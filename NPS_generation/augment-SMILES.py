@@ -10,8 +10,8 @@ import pandas as pd
 from tqdm import tqdm
 
 # set working directory
-git_dir = os.path.expanduser("~/documents/NPS-generation")
-python_dir = git_dir + "/NPS-generation"
+git_dir = os.path.expanduser("~/documents/NPS_generation")
+python_dir = git_dir + "/NPS_generation"
 os.chdir(python_dir)
 
 # import SmilesEnumerator

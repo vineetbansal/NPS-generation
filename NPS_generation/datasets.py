@@ -9,7 +9,7 @@ import torch
 import torch.nn.utils.rnn as rnn_utils
 from itertools import chain
 from torch.utils.data import Dataset
-from functions import read_smiles
+from NPS_generation.functions import read_smiles
 
 class SmilesDataset(Dataset):
     """

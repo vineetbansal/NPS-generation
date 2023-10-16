@@ -24,11 +24,17 @@ dependencies = [
     "tqdm"
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["NPS_generation"]
+
 [tool.setuptools.package-data]
-"*" = ["data/*.smi"]
+NPS_generation = ["data/*.smi"]
 
 [tool.pytest.ini_options]
 testpaths = []
 
 [project.optional-dependencies]
-dev = []
+dev = [
+    "pytest"
+]

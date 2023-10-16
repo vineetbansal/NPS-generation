@@ -15,7 +15,7 @@ from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
 # set working directory
-git_dir = os.path.expanduser("~/git/NPS-generation")
+git_dir = os.path.expanduser("~/git/NPS_generation")
 python_dir = git_dir + "/python"
 os.chdir(python_dir)
 

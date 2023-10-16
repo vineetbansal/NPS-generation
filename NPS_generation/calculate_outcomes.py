@@ -1,3 +1,4 @@
+
 """
 Calculate a set of outcomes summarizing the quality of a set of generated
 molecules.
@@ -32,7 +33,7 @@ sys.path.append(os.path.join(RDConfig.RDContribDir, 'NP_Score'))
 import npscorer
 
 # set working directory
-git_dir = os.path.expanduser("~/git/NPS-generation")
+git_dir = os.path.expanduser("~/git/NPS_generation")
 python_dir = git_dir + "/python"
 os.chdir(python_dir)
 

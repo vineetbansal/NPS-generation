@@ -19,8 +19,8 @@ from rdkit import rdBase
 rdBase.DisableLog('rdApp.error')
 
 # set working directory
-git_dir = os.path.expanduser("~/git/NPS-generation")
-python_dir = git_dir + "/python"
+git_dir = os.path.expanduser("~/documents/NPS_generation")
+python_dir = git_dir + "/NPS_generation"
 os.chdir(python_dir)
 
 # import classes
