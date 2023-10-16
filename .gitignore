@@ -13,5 +13,10 @@
 .R* 
 
 # Python
+*.egg-info
 *.pyc
 .idea
+__pycache__
+.pytest_cache
+/build/
+
