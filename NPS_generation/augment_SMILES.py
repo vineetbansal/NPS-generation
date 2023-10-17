@@ -26,7 +26,7 @@ def main(input_file=None, output_file=None, enum_factor=None):
                         help='factor to augment the dataset by')
 
 
-    args = parser.parse_known_args()
+    args = parser.parse_known_args()[0]
 
     if input_file is None:
         input_file = args.input_file
