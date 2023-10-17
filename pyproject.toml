@@ -26,7 +26,10 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["NPS_generation"]
+include = [
+    "NPS_generation",
+    "NPS_generation.util"
+]
 
 [tool.setuptools.package-data]
 NPS_generation = ["data/*.smi"]
