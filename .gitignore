@@ -19,4 +19,4 @@
 __pycache__
 .pytest_cache
 /build/
-/test_data/*.smi
+test_data/*.smi
