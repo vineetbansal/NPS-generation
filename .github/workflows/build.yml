@@ -2,7 +2,7 @@ name: Build Package and Test it
 
 on:
   push:
-    branches: [ master, pyproject, testCleanSMILES, testAugmentSMILES ]
+    branches: [ master, pyproject, testCleanSMILES, testAugmentSMILES, githubWorkflow]
   pull_request:
     branches: [ master ]
 
