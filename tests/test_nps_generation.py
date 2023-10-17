@@ -1,7 +1,7 @@
 import os
 from NPS_generation.clean_SMILES import main as clean_SMILES_main
-from NPS_generation.augment_SMILES import main as augment_SMILES_main
 from NPS_generation.util.SmilesEnumerator import SmilesEnumerator
+from NPS_generation.augment_SMILES import main as augment_SMILES_main
 import NPS_generation.data as data_folder
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
