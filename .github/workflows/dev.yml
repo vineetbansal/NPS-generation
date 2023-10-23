@@ -2,16 +2,16 @@ name: Build Package and Test it
 
 on:
   push:
-    branches: [dev]
+    branches: [master, dev]
   pull_request:
-    branches: [dev]
+    branches: [master, dev]
 
 jobs:
   build_wheels:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     name: Build wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -24,6 +24,9 @@ jobs:
       with:
         python-version: '3.10'
 
+    - name: Install torch (CPU-only)
+      run: pip3 install -r ${{ github.workspace }}/.github/workflows/requirements.txt
+
     - name: Build source
       run: pip install .
 
@@ -32,4 +35,3 @@ jobs:
 
     - name: Pytest
       run: pytest
-

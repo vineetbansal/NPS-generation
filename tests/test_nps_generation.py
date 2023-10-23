@@ -7,6 +7,7 @@ from NPS_generation.train_model import main as train_model_main
 from NPS_generation.calculate_outcomes import main as calculate_outcomes_main
 from NPS_generation.calculate_outcomes_distribution import main as calculate_outcomes_distribution_main
 from NPS_generation.sample_molecules import main as sample_molecules_main
+from NPS_generation.tabulate_molecules import main as tabulate_molecules_main
 import NPS_generation.data as data_folder
 
 test_dir = os.path.join(os.path.dirname(__file__), "test_data")
@@ -99,6 +100,19 @@ def test_sample_molecules():
             '--smiles_file', smiles_file,
             '--output_dir', temp_dir,
             '--mols_per_file', '1000',
-            '--sample_idx', '1'
+            '--sample_idx', '1',
+            '--batch_size', '32'
         ]
         sample_molecules_main(args_list)
+
+
+
+def test_tabulate_molecules():
+    input_files = os.path.join(test_dir, "sampled-SMILES-1.smi")
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_file = os.path.join(temp_dir, "output_step7.smi")
+        args_list = [
+            '--output_file', output_file,
+            '--input_files', input_files,
+        ]
+        tabulate_molecules_main(args_list)
