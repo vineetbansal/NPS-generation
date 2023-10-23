@@ -2,7 +2,7 @@ name: Build Package and Test it
 
 on:
   push:
-    branches: [vb/dev_debug1]
+    branches: [dev]
   pull_request:
     branches: [dev]
 
@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     name: Build wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
