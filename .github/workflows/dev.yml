@@ -2,9 +2,9 @@ name: Build Package and Test it
 
 on:
   push:
-    branches: [ master, pyproject]
+    branches: [dev]
   pull_request:
-    branches: [ master, pyproject ]
+    branches: [dev]
 
 jobs:
   build_wheels:

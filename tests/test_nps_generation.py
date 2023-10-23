@@ -6,6 +6,7 @@ from NPS_generation.augment_SMILES import main as augment_SMILES_main
 from NPS_generation.train_model import main as train_model_main
 from NPS_generation.calculate_outcomes import main as calculate_outcomes_main
 from NPS_generation.calculate_outcomes_distribution import main as calculate_outcomes_distribution_main
+from NPS_generation.sample_molecules import main as sample_molecules_main
 import NPS_generation.data as data_folder
 
 test_dir = os.path.join(os.path.dirname(__file__), "test_data")
@@ -83,6 +84,21 @@ def test_calculate_outcomes_distribution():
         args_list = [
             '--smiles_file', sampled_file,
             '--reference_file', original_file,
-            '--output_di', temp_dir
+            '--output_dir', temp_dir
         ]
         calculate_outcomes_distribution_main(args_list)
+
+
+def test_sample_molecules():
+    model_file = os.path.join(test_dir, "model-1.pt")
+    smiles_file = os.path.join(test_dir, "output_step1.smi")
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        args_list = [
+            '--model_file', model_file,
+            '--smiles_file', smiles_file,
+            '--output_dir', temp_dir,
+            '--mols_per_file', '1000',
+            '--sample_idx', '1'
+        ]
+        sample_molecules_main(args_list)
