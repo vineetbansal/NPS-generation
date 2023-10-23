@@ -105,7 +105,7 @@ def main(args_list=None):
 
     # sample a set of SMILES from the final, trained model
     sampled_count = 0
-    batch_size = 512
+    batch_size = 32
     while sampled_count < args.mols_per_file:
         sampled_smiles, NLLs = model.sample(batch_size, return_smiles=True,
                                             return_nll=True)
