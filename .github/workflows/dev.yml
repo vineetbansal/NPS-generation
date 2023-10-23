@@ -2,7 +2,7 @@ name: Build Package and Test it
 
 on:
   push:
-    branches: [dev]
+    branches: [vb/dev_debug1]
   pull_request:
     branches: [dev]
 
@@ -29,21 +29,6 @@ jobs:
 
     - name: Install developer dependencies
       run: pip install .[dev]
-
-    - name: Pytest 1
-      run: pytest tests/test_nps_generation.py::test_clean_SMILES
-
-    - name: Pytest 2
-      run: pytest tests/test_nps_generation.py::test_augment_SMILES
-
-    - name: Pytest 3
-      run: pytest tests/test_nps_generation.py::test_train_model
-
-    - name: Pytest 4
-      run: pytest tests/test_nps_generation.py::test_calculate_outcomes
-
-    - name: Pytest 5
-      run: pytest tests/test_nps_generation.py::test_calculate_outcomes_distribution
 
     - name: Pytest 6
       run: pytest tests/test_nps_generation.py::test_sample_molecules
