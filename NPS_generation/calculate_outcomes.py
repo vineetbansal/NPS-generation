@@ -185,7 +185,7 @@ def main(args_list=None):
             res = pd.concat([res, pd.DataFrame({
                     'input_file': sampled_file,
                     'outcome': '% valid',
-                    'value': [pct_valid]})], axis=1)
+                    'value': [pct_valid]})], axis=0)
 
             ## outcome 2: % novel
             # convert back to canonical SMILES for text-based comparison
@@ -194,14 +194,14 @@ def main(args_list=None):
             res = pd.concat([res, pd.DataFrame({
                     'input_file': sampled_file,
                     'outcome': '% novel',
-                    'value': [pct_novel] })],axis=1)
+                    'value': [pct_novel] })],axis=0)
 
             ## outcome 3: % unique
             pct_unique = len(set(gen_canonical)) / len(gen_canonical)
             res = pd.concat([res,pd.DataFrame({
                     'input_file': sampled_file,
                     'outcome': '% unique',
-                    'value': [pct_unique] })], axis=1)
+                    'value': [pct_unique] })], axis=0)
 
             if not args.minimal:
                 ## outcome 4: K-L divergence of heteroatom distributions
@@ -225,7 +225,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, atoms',
                                     'Jensen-Shannon distance, atoms',
                                     'Wasserstein distance, atoms'],
-                        'value': [kl_atoms, jsd_atoms, emd_atoms] })],axis=1)
+                        'value': [kl_atoms, jsd_atoms, emd_atoms] })],axis=0)
 
                 ## outcome 5: K-L divergence of molecular weight
                 gen_mws = [Descriptors.MolWt(mol) for mol in gen_mols]
@@ -237,7 +237,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, MWs',
                                     'Jensen-Shannon distance, MWs',
                                     'Wasserstein distance, MWs'],
-                        'value': [kl_mws, jsd_mws, emd_mws] })],axis=1)
+                        'value': [kl_mws, jsd_mws, emd_mws] })],axis=0)
 
                 ## outcome 6: K-L divergence of LogP
                 gen_logp = [Descriptors.MolLogP(mol) for mol in gen_mols]
@@ -249,7 +249,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, logP',
                                     'Jensen-Shannon distance, logP',
                                     'Wasserstein distance, logP'],
-                        'value': [kl_logp, jsd_logp, emd_logp] })], axis=1)
+                        'value': [kl_logp, jsd_logp, emd_logp] })], axis=0)
 
                 ## outcome 7: K-L divergence of Bertz topological complexity
                 gen_tcs = [BertzCT(mol) for mol in gen_mols]
@@ -261,7 +261,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, Bertz TC',
                                     'Jensen-Shannon distance, Bertz TC',
                                     'Wasserstein distance, Bertz TC'],
-                        'value': [kl_tc, jsd_tc, emd_tc] })], axis=1)
+                        'value': [kl_tc, jsd_tc, emd_tc] })], axis=0)
 
                 ## outcome 8: K-L divergence of QED
                 gen_qed = []
@@ -279,7 +279,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, QED',
                                     'Jensen-Shannon distance, QED',
                                     'Wasserstein distance, QED'],
-                        'value': [kl_qed, jsd_qed, emd_qed] })], axis=1)
+                        'value': [kl_qed, jsd_qed, emd_qed] })], axis=0)
 
                 ## outcome 9: K-L divergence of TPSA
                 gen_tpsa = [Descriptors.TPSA(mol) for mol in gen_mols]
@@ -291,7 +291,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, TPSA',
                                     'Jensen-Shannon distance, TPSA',
                                     'Wasserstein distance, TPSA'],
-                        'value': [kl_tpsa, jsd_tpsa, emd_tpsa] })],axis=1)
+                        'value': [kl_tpsa, jsd_tpsa, emd_tpsa] })],axis=0)
 
                 ## outcome 10: internal diversity
                 gen_fps = get_ecfp6_fingerprints(gen_mols)
@@ -299,7 +299,7 @@ def main(args_list=None):
                 res = pd.concat([res, pd.DataFrame({
                         'input_file': sampled_file,
                         'outcome': 'Internal diversity',
-                        'value': [internal_div] })], axis=1)
+                        'value': [internal_div] })], axis=0)
 
                 ## outcome 11: median Tc to original set
                 org_fps = get_ecfp6_fingerprints(org_mols)
@@ -307,7 +307,7 @@ def main(args_list=None):
                 res = pd.concat([res,pd.DataFrame({
                     'input_file': sampled_file,
                     'outcome': 'External diversity',
-                    'value': [external_div] })], axis=1)
+                    'value': [external_div] })], axis=0)
 
                 ## also, summarize using nearest-neighbor instead of mean
                 internal_= internal_nn(gen_fps)
@@ -316,7 +316,7 @@ def main(args_list=None):
                     'input_file': sampled_file,
                     'outcome': ['External nearest-neighbor Tc',
                                 'Internal nearest-neighbor Tc'],
-                    'value': [external_, internal_] })], axis=1)
+                    'value': [external_, internal_] })], axis=0)
 
                 ## outcome 12: K-L divergence of number of rings
                 gen_rings1 = [Lipinski.RingCount(mol) for mol in gen_mols]
@@ -344,7 +344,7 @@ def main(args_list=None):
                                 'Wasserstein distance, # of aromatic rings'],
                     'value': [kl_rings1, kl_rings2, kl_rings3,
                               jsd_rings1, jsd_rings2, jsd_rings3,
-                              emd_rings1, emd_rings2, emd_rings3] })], axis=1)
+                              emd_rings1, emd_rings2, emd_rings3] })], axis=0)
 
                 ## outcome 13: K-L divergence of SA score
                 gen_SA = []
@@ -362,7 +362,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, SA score',
                                     'Jensen-Shannon distance, SA score',
                                     'Wasserstein distance, SA score'],
-                        'value': [kl_SA, jsd_SA, emd_SA] })], axis=1)
+                        'value': [kl_SA, jsd_SA, emd_SA] })], axis=0)
 
                 ## outcome 14: K-L divergence of NP-likeness
                 gen_NP = []
@@ -380,7 +380,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, NP score',
                                     'Jensen-Shannon distance, NP score',
                                     'Wasserstein distance, NP score'],
-                        'value': [kl_NP, jsd_NP, emd_NP] })],axis=1)
+                        'value': [kl_NP, jsd_NP, emd_NP] })],axis=0)
 
                 ## outcome 15: K-L divergence of % sp3 carbons
                 gen_sp3 = [Lipinski.FractionCSP3(mol) for mol in gen_mols]
@@ -392,7 +392,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, % sp3 carbons',
                                     'Jensen-Shannon distance, % sp3 carbons',
                                     'Wasserstein distance, % sp3 carbons'],
-                        'value': [kl_sp3, jsd_sp3, emd_sp3] })], axis=1)
+                        'value': [kl_sp3, jsd_sp3, emd_sp3] })], axis=0)
 
                 ## outcome 16: K-L divergence of % rotatable bonds
                 gen_rot = [pct_rotatable_bonds(mol) for mol in gen_mols]
@@ -404,7 +404,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, % rotatable bonds',
                                     'Jensen-Shannon distance, % rotatable bonds',
                                     'Wasserstein distance, % rotatable bonds'],
-                        'value': [kl_rot, jsd_rot, emd_rot] })], axis=1)
+                        'value': [kl_rot, jsd_rot, emd_rot] })], axis=0)
 
                 ## outcome 17: K-L divergence of % stereocenters
                 gen_stereo = [pct_stereocentres(mol) for mol in gen_mols]
@@ -416,7 +416,7 @@ def main(args_list=None):
                         'outcome': ['KL divergence, % stereocenters',
                                     'Jensen-Shannon distance, % stereocenters',
                                     'Wasserstein distance, % stereocenters'],
-                        'value': [kl_stereo, jsd_stereo, emd_stereo] })], axis=1)
+                        'value': [kl_stereo, jsd_stereo, emd_stereo] })], axis=0)
 
                 ## outcome 18: K-L divergence of Murcko scaffolds
                 gen_murcko = []
@@ -446,7 +446,7 @@ def main(args_list=None):
                                     'Wasserstein distance, Murcko scaffolds',
                                     'Cosine distance, Murcko scaffolds'],
                         'value': [kl_murcko, jsd_murcko, emd_murcko,
-                                  cos_murcko] })], axis=1)
+                                  cos_murcko] })], axis=0)
 
                 ## outcome 19: K-L divergence of # of hydrogen donors/acceptors
                 gen_donors = [Lipinski.NumHDonors(mol) for mol in gen_mols]
@@ -467,7 +467,7 @@ def main(args_list=None):
                                 'Wasserstein distance, hydrogen acceptors'],
                     'value': [kl_donors, kl_acceptors,
                               jsd_donors, jsd_acceptors,
-                              emd_donors, emd_acceptors] })], axis=1)
+                              emd_donors, emd_acceptors] })], axis=0)
 
                 ## outcome 20: Frechet ChemNet distance
                 fcd = FCD(canonize=False)
@@ -475,7 +475,7 @@ def main(args_list=None):
                 res = pd.concat([res, pd.DataFrame({
                     'input_file': sampled_file,
                     'outcome': 'Frechet ChemNet distance',
-                    'value': [fcd_calc]})], axis=1)
+                    'value': [fcd_calc]})], axis=0)
 
             # write output
             res.to_csv(output_file, index=False, compression='gzip')
