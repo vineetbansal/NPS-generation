@@ -25,7 +25,7 @@ jobs:
         python-version: '3.10'
 
     - name: Install torch (CPU-only)
-      run: pip3 install -r ${{ github.workspace }}/.github/workflows/requirements.txt
+      run: pip3 install torch --index-url https://download.pytorch.org/whl/cpu
 
     - name: Build source
       run: pip install .
