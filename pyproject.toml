@@ -36,7 +36,7 @@ include = [
 NPS_generation = ["data/*.smi"]
 
 [tool.pytest.ini_options]
-testpaths = []
+testpaths = ["tests"]
 
 [project.optional-dependencies]
 dev = [

@@ -38,6 +38,8 @@ def main(args_list=None):
                         help='size of vocabulary embedding')
     parser.add_argument('--hidden_size', type=int, default=512,
                         help='size of language model hidden layers')
+    parser.add_argument('--batch_size', type=int, default=512,
+                        help='number of training examples in one iteration')
     parser.add_argument('--n_layers', type=int, default=3,
                         help='number of layers in language model')
     parser.add_argument('--dropout', type=float, default=0,
@@ -105,7 +107,7 @@ def main(args_list=None):
 
     # sample a set of SMILES from the final, trained model
     sampled_count = 0
-    batch_size = 32
+    batch_size = args.batch_size
     while sampled_count < args.mols_per_file:
         sampled_smiles, NLLs = model.sample(batch_size, return_smiles=True,
                                             return_nll=True)
