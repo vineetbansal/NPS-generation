@@ -342,3 +342,38 @@ Calculates the number of rings in a molecule
 Calculates the synthetic accessibility (SA) score for a list of molecular structures and stores the results in a list
 Calculates the natural product-likeness score for a list of molecules and stores the results in a list
 All the descriptors and properties above are added to the res DataFrame and stored in csv format
+
+
+
+sample_molecules
+-----------------
+
+Sets the seed for generating random number with PyTorch, the built-in Python 'random' module, and the NumPy's random number generator
+Checks if CUDA is available on the system
+    If true: sets the seeds for generating random numbers with PyTorch on all available GPUs
+Creates a dataset (SelfiesDataset or SmilesDataset object) based on the availability of the Selfies file
+Initialize a RNN model based on the provided command line argument.
+    Two possible types of models:
+        1. RNN with an embedding layer
+        2. OneHotRNN without an embedding layer (Only runs this if embedding_size = 0)
+Loads a pretrained model (if available)
+Generates sampled SMILES and Negative Log-Likelihood (NLL) values by calling teh 'sample' method on a 'model' object
+Writes the sampled SMILES and NLL values to a file
+
+
+
+tabulate_molecules
+-------------------
+
+Extracts the file name and extension from the user provided output file path
+Creates a new temporary file name and opens it in append mode
+Reads the input file line by line
+Processes moleculer structures, and uses RDKit to calculate various molecular properties, such as:
+    1. Mass
+    2. Molecular Formula
+    3. Canonical Smile
+Writes the above results into a file
+Reads data from the temporary file
+Calculates the frequency of each unique combination of SMILE representation, mass, and formula
+Extracts the best (lowest) NLL value for each unique SMILE
+Combines the above information and writes the result into an output file
