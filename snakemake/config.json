@@ -1,14 +1,12 @@
 {
   "output_dir": "data",
-  "datasets": ["COCONUT", "FooDB", "LOTUS", "NORMAN"],
+  "datasets": ["chembl_28_smiles", "gdb13_smiles"],
   "representations": ["SELFIES", "SMILES"],
   "k": 10,
   "sample_idxs": [1],
 
   "urls": {
-    "COCONUT": "https://getsamplefiles.com/download/gzip/sample-1.gz",
-    "FooDB": "https://getsamplefiles.com/download/gzip/sample-2.gz",
-    "LOTUS": "https://getsamplefiles.com/download/gzip/sample-3.gz",
-    "NORMAN": "https://getsamplefiles.com/download/gzip/sample-4.gz"
+    "chembl_28_smiles": "https://getsamplefiles.com/download/gzip/sample-1.gz",
+    "gdb13_smiles": "https://getsamplefiles.com/download/gzip/sample-2.gz"
   }
 }
