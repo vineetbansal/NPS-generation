@@ -16,33 +16,38 @@ from tqdm import tqdm
 from rdkit import rdBase
 rdBase.DisableLog('rdApp.error')
 
-# set working directory
-git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
-python_dir = git_dir + "/python"
-os.chdir(python_dir)
-sys.path.append(python_dir)
-
-# import functions 
+# import functions
 from datasets import SmilesDataset, SelfiesDataset
 from models import RNN
 from functions import check_arg, read_smiles, write_smiles
 from loggers import EarlyStopping, track_loss, print_update
 
-### dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
-grid_file = git_dir + '/sh/grids/train-models-RNN.txt'
-grid = pd.read_csv(grid_file, sep='\t')
-for arg_name in list(grid):
-    param_name = '--' + arg_name
-    param_dtype = str(grid[arg_name].dtype)
-    # convert to pandas
-    param_type = {'object': str,
-                  'int64': int,
-                  'float64': float,
-                  'bool': str
-                  }[param_dtype]
-    parser.add_argument(param_name, type=param_type)
+
+parser.add_argument('--database', type=str)
+parser.add_argument('--representation', type=str)
+parser.add_argument('--enum_factor', type=int)
+parser.add_argument('--n_molecules', type=int)
+parser.add_argument('--min_tc', type=int)
+parser.add_argument('--sample_idx', type=int)
+parser.add_argument('--rnn_type', type=str)
+parser.add_argument('--embedding_size', type=int)
+parser.add_argument('--hidden_size', type=int)
+parser.add_argument('--n_layers', type=int)
+parser.add_argument('--dropout', type=float)
+parser.add_argument('--batch_size', type=int)
+parser.add_argument('--learning_rate', type=float)
+parser.add_argument('--max_epochs', type=int)
+parser.add_argument('--patience', type=int)
+parser.add_argument('--log_every_steps', type=int)
+parser.add_argument('--log_every_epochs', type=int)
+parser.add_argument('--sample_mols', type=int)
+parser.add_argument('--input_file', type=str)
+parser.add_argument('--vocab_file', type=str)
+parser.add_argument('--smiles_file', type=str)
+parser.add_argument('--model_file', type=str)
+parser.add_argument('--loss_file', type=str)
+parser.add_argument('--time_file', type=str)
 
 # parse all arguments
 args = parser.parse_args()
@@ -82,8 +87,8 @@ model = RNN(dataset.vocabulary,
 print(dataset.vocabulary.dictionary)
 
 # set up data loader
-loader = DataLoader(dataset, 
-                    batch_size=args.batch_size, 
+loader = DataLoader(dataset,
+                    batch_size=args.batch_size,
                     shuffle=True,
                     collate_fn=dataset.collate)
 # set up optimizer
@@ -107,39 +112,39 @@ for epoch in range(0, args.max_epochs):
         # abort?
         if check_arg(args, 'max_steps') and counter > args.max_steps:
             break
-        
+
         # calculate loss
         loss = model.loss(batch)
-        
+
         # zero gradients, calculate new gradients, and take a step
         optim.zero_grad()
         loss.backward()
         optim.step()
-        
+
         # calculate validation loss
         validation = dataset.get_validation(args.batch_size)
         validation_loss = model.loss(validation).detach()
-        
+
         # print update and write training schedule?
         if check_arg(args, 'log_every_steps'):
             if counter % args.log_every_steps == 0:
-                track_loss(args.loss_file, epoch, counter, 
+                track_loss(args.loss_file, epoch, counter,
                            loss.item(), validation_loss.item())
-                print_update(model, epoch, batch_idx + 1, loss.item(), 
+                print_update(model, epoch, batch_idx + 1, loss.item(),
                              validation_loss.item())
-        
+
         # check early stopping
         early_stop(validation_loss.item(), model, args.model_file, counter)
-        
+
         if early_stop.stop:
             break
-    
+
     # print update and write training schedule?
     if check_arg(args, 'log_every_epochs'):
-        track_loss(args.loss_file, epoch, counter, 
+        track_loss(args.loss_file, epoch, counter,
                    loss.item(), validation_loss.item())
         print_update(model, epoch, 'NA', loss.item(), validation_loss.item())
-    
+
     if early_stop.stop:
         break
 
@@ -172,6 +177,6 @@ train_time = sample_start_time - train_start_time
 sample_time = time.time() - sample_start_time
 total_time = time.time() - start_time
 timing_df = pd.DataFrame({'stage': ['load', 'train', 'sample', 'total'],
-                          'time': [load_time, train_time, sample_time, 
+                          'time': [load_time, train_time, sample_time,
                                    total_time]})
 timing_df.to_csv(args.time_file, index=False)
