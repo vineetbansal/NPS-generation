@@ -26,9 +26,14 @@ localrules:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        train_files = expand(f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv", dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        vocab_files = expand(f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary", dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        test_files = expand(f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv", dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
+        smiles_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/SMILES.smi",
+                        dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
+        model_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/model.pt",
+                        dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
+        loss_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/loss.csv",
+                        dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
+        time_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/timing.csv",
+                        dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
 
 rule download_datasets:
@@ -63,8 +68,8 @@ rule generate_prior_inputs:
 
 rule inner_train_models_RNN:
     input:
-        input_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
-        vocab_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary"
+        input_file=rules.generate_prior_inputs.output.train_file,
+        vocab_file=rules.generate_prior_inputs.output.vocab_file
     output:
         smiles_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/SMILES.smi",
         model_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/model.pt",
@@ -72,31 +77,31 @@ rule inner_train_models_RNN:
         time_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/timing.csv"
     shell:
         """
-        python ../python/inner-train-models-RNN.py \
-            --database {{wildcards.dataset}} \
-            --representation {{wildcards.repr}} \
-            --enum_factor 0 \
-            --n_molecules 1 \
-            --min_tc 10 \
-            --sample_idx {{wildcards.sample_idx}} \
-            --fold {{wildcards.fold}} \
-            --rnn_type LSTM \
-            --embedding_size 128 \
-            --hidden_size 1024 \
-            --n_layers 3 \
-            --dropout 0 \
-            --batch_size 64 \
-            --learning_rate 0.001 \
-            --max_epochs 3 \
-            --patience 50000 \
-            --log_every_steps 100 \
-            --log_every_epochs 1 \
-            --sample_mols 500000 \
-            --input_file {input.input_file} \
-            --vocab_file {input.vocab_file} \
-            --smiles_file {output.smiles_file} \
-            --model_file {output.model_file} \
-            --loss_file {output.loss_file} \
-            --time_file {output.time_file}
+        'python ../python/inner-train-models-RNN.py '
+            '--database {{wildcards.dataset}} '
+            '--representation {{wildcards.repr}} '
+            '--enum_factor 0 '
+            '--n_molecules 1 '
+            '--min_tc 10 '
+            '--sample_idx {{wildcards.sample_idx}} '
+            '--fold {{wildcards.fold}} '
+            '--rnn_type LSTM '
+            '--embedding_size 128 '
+            '--hidden_size 1024 '
+            '--n_layers 3 '
+            '--dropout 0 '
+            '--batch_size 64 '
+            '--learning_rate 0.001 '
+            '--max_epochs 3 '
+            '--patience 50000 '
+            '--log_every_steps 100 '
+            '--log_every_epochs 1 '
+            '--sample_mols 500000 '
+            '--input_file {input.input_file} '
+            '--vocab_file {input.vocab_file} '
+            '--smiles_file {output.smiles_file} '
+            '--model_file {output.model_file} '
+            '--loss_file {output.loss_file} '
+            '--time_file {output.time_file} '
         """
 # -----------------------------------------------------------------------------
