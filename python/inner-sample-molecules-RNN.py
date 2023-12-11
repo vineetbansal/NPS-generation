@@ -9,32 +9,38 @@ import sys
 import time
 import torch
 
-# set working directory
-git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
-python_dir = git_dir + "/python"
-os.chdir(python_dir)
-sys.path.append(python_dir)
 
 # import classes and functions
 from datasets import Vocabulary, SelfiesDataset
 from models import RNN
 from functions import read_smiles
 
-### dynamically build CLI
 parser = argparse.ArgumentParser()
+
 ## build the CLI
-grid_file = git_dir + '/sh/grids/sample-molecules-RNN.txt'
-grid = pd.read_csv(grid_file, sep='\t')
-for arg_name in list(grid):
-    param_name = '--' + arg_name
-    param_dtype = str(grid[arg_name].dtype)
-    # convert to pandas
-    param_type = {'object': str,
-                  'int64': int,
-                  'float64': float,
-                  'bool': str
-                  }[param_dtype]
-    parser.add_argument(param_name, type=param_type)
+parser.add_argument('--database', type=str)
+parser.add_argument('--representation', type=str)
+parser.add_argument('--enum_factor', type=int)
+parser.add_argument('--n_molecules', type=int)
+parser.add_argument('--min_tc', type=int)
+parser.add_argument('--sample_idx', type=int)
+parser.add_argument('--rnn_type', type=str)
+parser.add_argument('--embedding_size', type=int)
+parser.add_argument('--hidden_size', type=int)
+parser.add_argument('--n_layers', type=int)
+parser.add_argument('--dropout', type=int)
+parser.add_argument('--batch_size', type=int)
+parser.add_argument('--learning_rate', type=float)
+parser.add_argument('--mol_sample_idx', type=int)
+parser.add_argument('--sample_mols', type=int)
+parser.add_argument('--input_file', type=str)
+parser.add_argument('--vocab_file', type=str)
+parser.add_argument('--model_file', type=str)
+parser.add_argument('--check_file', type=str)
+parser.add_argument('--output_file', type=str)
+parser.add_argument('--time_file', type=str)
+parser.add_argument('--nvstat_file', type=str)
+
 
 # parse all arguments
 args = parser.parse_args()

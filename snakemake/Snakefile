@@ -27,15 +27,12 @@ localrules:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        smiles_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_SMILES.smi",
-                        dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        model_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
-                        dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        loss_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_loss.csv",
-                        dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        time_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv",
-                        dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
-
+        output_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
+         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
+        time_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv",
+         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
+        nvstat_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.nvstat",
+         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
 rule download_datasets:
     params:
@@ -65,7 +62,6 @@ rule generate_prior_inputs:
         --vocab_file {output.vocab_file} \
         --test_file {output.test_file}
         """
-
 
 rule inner_train_models_RNN:
     input:
@@ -102,4 +98,38 @@ rule inner_train_models_RNN:
             '--model_file {output.model_file} '
             '--loss_file {output.loss_file} '
             '--time_file {output.time_file} '
-# -----------------------------------------------------------------------------
+
+rule inner_sample_molecules_RNN:
+    input:
+        input_file = f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
+        vocab_file = f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary",
+        model_file = f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
+        check_file = f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
+    output:
+        output_file = f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
+        time_file = f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv",
+        nvstat_file = f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.nvstat"
+    shell:
+        'python ../python/inner-sample-molecules-RNN.py '
+        '--database {wildcards.dataset} '
+        '--representation {wildcards.repr} '
+        '--enum_factor {MODEL_PARAMS[enum_factor]} '
+        '--n_molecules {MODEL_PARAMS[n_molecules]} '
+        '--min_tc {MODEL_PARAMS[min_tc]} '
+        '--sample_idx {wildcards.sample_idx} '
+        '--rnn_type {MODEL_PARAMS[rnn_type]} '
+        '--embedding_size {MODEL_PARAMS[embedding_size]} '
+        '--hidden_size {MODEL_PARAMS[hidden_size]} '
+        '--n_layers {MODEL_PARAMS[n_layers]} '
+        '--dropout {MODEL_PARAMS[dropout]} '
+        '--batch_size {MODEL_PARAMS[batch_size]} '
+        '--learning_rate {MODEL_PARAMS[learning_rate]} '
+        '--mol_sample_idx {wildcards.sample_idx} '
+        '--sample_mols {MODEL_PARAMS[sample_mols]} '
+        '--input_file {input.input_file} '
+        '--vocab_file {input.vocab_file} '
+        '--model_file {input.model_file} '
+        '--check_file {input.check_file} '
+        '--output_file {output.output_file} '
+        '--time_file {output.time_file} '
+        '--nvstat_file {output.nvstat_file} '

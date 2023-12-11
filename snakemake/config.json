@@ -11,20 +11,20 @@
   },
 
   "model_params": {
-    "enum_factor": 0,
-    "n_molecules": 1,
-    "min_tc": 10,
+    "enum_factor": 1,
+    "n_molecules": 3,
+    "min_tc": 8,
     "rnn_type": "LSTM",
-    "embedding_size": 128,
-    "hidden_size": 1024,
-    "n_layers": 3,
+    "embedding_size": 32,
+    "hidden_size": 130,
+    "n_layers": 2,
     "dropout": 0,
-    "batch_size": 64,
-    "learning_rate": 0.001,
-    "max_epochs": 3,
-    "patience": 50000,
-    "log_every_steps": 100,
+    "batch_size": 36,
+    "learning_rate": 0.1,
+    "max_epochs": 1,
+    "patience": 1003,
+    "log_every_steps": 10,
     "log_every_epochs":  1,
-    "sample_mols": 500000
+    "sample_mols": 10000
   }
 }
