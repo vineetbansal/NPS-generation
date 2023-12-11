@@ -26,13 +26,13 @@ localrules:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        smiles_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/SMILES.smi",
+        smiles_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/SMILES.smi",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        model_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/model.pt",
+        model_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/model.pt",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        loss_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/loss.csv",
+        loss_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/loss.csv",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        time_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/timing.csv",
+        time_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/timing.csv",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
 
@@ -68,23 +68,21 @@ rule generate_prior_inputs:
 
 rule inner_train_models_RNN:
     input:
-        input_file=rules.generate_prior_inputs.output.train_file,
-        vocab_file=rules.generate_prior_inputs.output.vocab_file
+        input_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
+        vocab_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary"
     output:
-        smiles_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/SMILES.smi",
-        model_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/model.pt",
-        loss_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/loss.csv",
-        time_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_rnn_type=LSTM_embedding_size=128_hidden_size=1024_n_layers=3_dropout=0_batch_size=64_learning_rate=0.001/timing.csv"
+        smiles_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/SMILES.smi",
+        model_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/model.pt",
+        loss_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/loss.csv",
+        time_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/timing.csv"
     shell:
-        """
-        'python ../python/inner-train-models-RNN.py '
-            '--database {{wildcards.dataset}} '
-            '--representation {{wildcards.repr}} '
+            'python ../python/inner-train-models-RNN.py '
+            '--database {wildcards.dataset} '
+            '--representation {wildcards.repr} '
             '--enum_factor 0 '
             '--n_molecules 1 '
             '--min_tc 10 '
-            '--sample_idx {{wildcards.sample_idx}} '
-            '--fold {{wildcards.fold}} '
+            '--sample_idx {wildcards.sample_idx} '
             '--rnn_type LSTM '
             '--embedding_size 128 '
             '--hidden_size 1024 '
@@ -103,5 +101,4 @@ rule inner_train_models_RNN:
             '--model_file {output.model_file} '
             '--loss_file {output.loss_file} '
             '--time_file {output.time_file} '
-        """
 # -----------------------------------------------------------------------------
