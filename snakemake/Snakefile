@@ -26,13 +26,13 @@ localrules:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        smiles_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/SMILES.smi",
+        smiles_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_SMILES.smi",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        model_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/model.pt",
+        model_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        loss_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/loss.csv",
+        loss_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_loss.csv",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        time_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/timing.csv",
+        time_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
 
@@ -71,10 +71,10 @@ rule inner_train_models_RNN:
         input_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
         vocab_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary"
     output:
-        smiles_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/SMILES.smi",
-        model_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/model.pt",
-        loss_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/loss.csv",
-        time_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}/timing.csv"
+        smiles_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_SMILES.smi",
+        model_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
+        loss_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_loss.csv",
+        time_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv"
     shell:
             'python ../python/inner-train-models-RNN.py '
             '--database {wildcards.dataset} '

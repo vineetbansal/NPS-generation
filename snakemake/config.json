@@ -8,5 +8,23 @@
   "urls": {
     "chembl_28_smiles": "https://getsamplefiles.com/download/gzip/sample-1.gz",
     "gdb13_smiles": "https://getsamplefiles.com/download/gzip/sample-2.gz"
+  },
+
+  "model_params": {
+    "enum_factor": 0,
+    "n_molecules": 1,
+    "min_tc": 10,
+    "rnn_type": "LSTM",
+    "embedding_size": 128,
+    "hidden_size": 1024,
+    "n_layers": 3,
+    "dropout": 0,
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "max_epochs": 3,
+    "patience": 50000,
+    "log_every_steps": 100,
+    "log_every_epochs":  1,
+    "sample_mols": 500000
   }
 }
