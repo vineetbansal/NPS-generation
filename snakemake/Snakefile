@@ -15,10 +15,6 @@ shell.executable("/bin/bash")
 wildcard_constraints:
     dataset="|".join(DATASETS)
 
-# Rules that should be run on the head node in a cluster environment
-# These typically involve web access or one time installation steps
-localrules:
-    download_datasets
 
 # -----------------------------------------------------------------------------
 
@@ -36,15 +32,6 @@ rule all:
         time_file = expand(f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv",
                         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
-
-rule download_datasets:
-    params:
-        url=lambda wildcards: config['urls'][wildcards.dataset]
-    output:
-        f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
-    shell: """
-        wget -O - {params.url} | gunzip -c > {output}
-        """
 
 rule generate_prior_inputs:
     input:
