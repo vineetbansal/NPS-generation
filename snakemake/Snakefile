@@ -8,6 +8,7 @@ REPRESENTATIONS = config["representations"]
 SAMPLE_IDXS = config["sample_idxs"]
 K = config["k"]
 OUTPUT_DIR = config['output_dir']
+MODEL_PARAMS = config['model_params']
 
 shell.executable("/bin/bash")
 
@@ -79,22 +80,22 @@ rule inner_train_models_RNN:
             'python ../python/inner-train-models-RNN.py '
             '--database {wildcards.dataset} '
             '--representation {wildcards.repr} '
-            '--enum_factor 0 '
-            '--n_molecules 1 '
-            '--min_tc 10 '
+            '--enum_factor {MODEL_PARAMS[enum_factor]} '
+            '--n_molecules {MODEL_PARAMS[n_molecules]} '
+            '--min_tc {MODEL_PARAMS[min_tc]} '
             '--sample_idx {wildcards.sample_idx} '
-            '--rnn_type LSTM '
-            '--embedding_size 128 '
-            '--hidden_size 1024 '
-            '--n_layers 3 '
-            '--dropout 0 '
-            '--batch_size 64 '
-            '--learning_rate 0.001 '
-            '--max_epochs 3 '
-            '--patience 50000 '
-            '--log_every_steps 100 '
-            '--log_every_epochs 1 '
-            '--sample_mols 500000 '
+            '--rnn_type {MODEL_PARAMS[rnn_type]} '
+            '--embedding_size {MODEL_PARAMS[embedding_size]} '
+            '--hidden_size {MODEL_PARAMS[hidden_size]} '
+            '--n_layers {MODEL_PARAMS[n_layers]} '
+            '--dropout {MODEL_PARAMS[dropout]} '
+            '--batch_size {MODEL_PARAMS[batch_size]} '
+            '--learning_rate {MODEL_PARAMS[learning_rate]} '
+            '--max_epochs {MODEL_PARAMS[max_epochs]} '
+            '--patience {MODEL_PARAMS[patience]} '
+            '--log_every_steps {MODEL_PARAMS[log_every_steps]} '
+            '--log_every_epochs {MODEL_PARAMS[log_every_epochs]} '
+            '--sample_mols {MODEL_PARAMS[sample_mols]} '
             '--input_file {input.input_file} '
             '--vocab_file {input.vocab_file} '
             '--smiles_file {output.smiles_file} '
