@@ -21,5 +21,6 @@
     "log_every_steps": 100,
     "log_every_epochs":  1,
     "sample_mols": 500000
-  }
+  },
+  "err_ppm": 10
 }

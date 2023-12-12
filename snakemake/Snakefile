@@ -9,6 +9,7 @@ SAMPLE_IDXS = config["sample_idxs"]
 K = config["k"]
 OUTPUT_DIR = config['output_dir']
 MODEL_PARAMS = config['model_params']
+ERR_PPM = config['err_ppm']
 
 shell.executable("/bin/bash")
 
@@ -23,13 +24,10 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        output_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_sample_1.csv",
-         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        time_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing_1.csv",
-         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        nvstat_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.nvstat",
-         dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
-
+        ranks_file=expand(f"{OUTPUT_DIR}/prior/structural_prior/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_CV_ranks.csv.gz",
+                   dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
+        tc_file=expand(f"{OUTPUT_DIR}/prior/structural_prior/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_CV_tc.csv.gz",
+                   dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
 rule generate_prior_inputs:
     input:
@@ -143,4 +141,25 @@ rule inner_sample_molecules_RNN:
         '--time_file {output.time_file} '
         '--nvstat_file {output.nvstat_file} '
 
+
+rule inner_write_structural_prior_CV:
+    input:
+        train_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
+        test_file=f"{OUTPUT_DIR}/prior/inputs/test_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
+        pubchem_file=f"{OUTPUT_DIR}/prior/raw/PubChem.tsv.gz",
+        sample_file=f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_sample_1.csv"
+    output:
+         ranks_file=f"{OUTPUT_DIR}/prior/structural_prior/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_CV_ranks.csv.gz",
+         tc_file=f"{OUTPUT_DIR}/prior/structural_prior/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_CV_tc.csv.gz"
+    shell:
+        'python ../python/inner-write-structural-prior-CV.py '
+        '--sample_idx {wildcards.sample_idx} '
+        '--output_dir f"{OUTPUT_DIR}/prior/structural_prior/ '
+        '--ranks_file {output.ranks_file} '
+        '--tc_file {output.tc_file} '
+        '--train_file {input.train_file} '
+        '--test_file {input.test_file} '
+        '--pubchem_file {input.pubchem_file} '
+        '--sample_file {input.sample_file} '
+        '--err_ppm {ERR_PPM} '
 # -----------------------------------------------------------------------------

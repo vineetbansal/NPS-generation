@@ -16,7 +16,10 @@ rdBase.DisableLog('rdApp.error')
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--sample_idx', type=int)
 parser.add_argument('--output_dir', type=str)
+parser.add_argument('--ranks_file', type=str)
+parser.add_argument('--tc_file', type=str)
 parser.add_argument('--train_file', type=str)
 parser.add_argument('--test_file', type=str)
 parser.add_argument('--pubchem_file', type=str)
@@ -152,7 +155,7 @@ for key, query in inputs.items():
         rank_df = rank_df.append(rank_row)
 
 # write to output files
-rank_df.to_csv(args.output_dir + '/CV-ranks.csv.gz', index=False,
+rank_df.to_csv(args.ranks_file, index=False,
                compression='gzip')
-tc_df.to_csv(args.output_dir + '/CV-Tc.csv.gz', index=False,
+tc_df.to_csv(args.tc_file, index=False,
              compression='gzip')
