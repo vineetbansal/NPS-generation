@@ -59,8 +59,8 @@ rule inner_create_training_sets:
         output_file=f"{OUTPUT_DIR}/prior/training/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_SMILES.smi",
         vocab_file=f"{OUTPUT_DIR}/prior/training/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary"
     shell:
-        'python ../python/inner-train-models-RNN.py '
-        '--input_dir input '
+        'python ../python/inner-create-training-sets.py '
+        '--input_dir {input} '
         '--database {wildcards.dataset} '
         '--representation {wildcards.repr} '
         '--enum_factor {MODEL_PARAMS[enum_factor]} '

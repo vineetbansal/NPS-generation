@@ -42,8 +42,8 @@ if not os.path.isdir(output_dir):
 
 # set up input
 input_dir = args.input_dir
-input_file = input_dir + {'gdb13_smiles': 'gdb13_smiles.txt',
-                          'chembl_28_smiles': 'chembl_28_smiles.txt'}[args.database]
+input_file = input_dir + {'gdb13_smiles': '/gdb13_smiles.txt',
+                          'chembl_28_smiles': '/chembl_28_smiles.txt'}[args.database]
 # read SMILES
 print('reading input SMILES ...')
 input_smiles = read_smiles(input_file)
