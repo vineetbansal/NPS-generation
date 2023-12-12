@@ -23,9 +23,9 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        output_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
+        output_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_sample_1.csv",
          dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
-        time_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv",
+        time_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing_1.csv",
          dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1)),
         nvstat_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.nvstat",
          dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
@@ -91,14 +91,14 @@ rule inner_train_models_RNN:
 
 rule inner_sample_molecules_RNN:
     input:
-        input_file = f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
-        vocab_file = f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary",
-        model_file = f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
-        check_file = f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
+        input_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_SMILES.smi",
+        vocab_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary",
+        model_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
+        check_file=f"{OUTPUT_DIR}/prior/models/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv"
     output:
-        output_file = f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_model.pt",
-        time_file = f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing.csv",
-        nvstat_file = f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.nvstat"
+        output_file=f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_sample_1.csv",
+        time_file=f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_timing_1.csv",
+        nvstat_file=f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.nvstat"
     shell:
         'python ../python/inner-sample-molecules-RNN.py '
         '--database {wildcards.dataset} '
