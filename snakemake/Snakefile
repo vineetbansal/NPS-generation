@@ -52,6 +52,7 @@ rule generate_prior_inputs:
         """
 
 
+# Note: This rule is not being used currently
 rule inner_create_training_sets:
     input:
         f"{OUTPUT_DIR}/prior/raw/"
