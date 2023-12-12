@@ -52,6 +52,25 @@ rule generate_prior_inputs:
         """
 
 
+rule inner_create_training_sets:
+    input:
+        f"{OUTPUT_DIR}/prior/raw/"
+    output:
+        output_file=f"{OUTPUT_DIR}/prior/training/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_SMILES.smi",
+        vocab_file=f"{OUTPUT_DIR}/prior/training/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary"
+    shell:
+        'python ../python/inner-train-models-RNN.py '
+        '--input_dir input '
+        '--database {wildcards.dataset} '
+        '--representation {wildcards.repr} '
+        '--enum_factor {MODEL_PARAMS[enum_factor]} '
+        '--n_molecules {MODEL_PARAMS[n_molecules]} '
+        '--min_tc {MODEL_PARAMS[min_tc]} '
+        '--sample_idx {wildcards.sample_idx} '
+        '--output_file {output.output_file} '
+        '--vocab_file {output.vocab_file} '
+
+
 rule inner_train_models_RNN:
     input:
         input_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",

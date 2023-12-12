@@ -14,32 +14,22 @@ from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
 from tqdm import tqdm
 
-# set working directory
-git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
-python_dir = git_dir + "/python"
-os.chdir(python_dir)
-sys.path.append(python_dir)
-
 # import functions
 from functions import read_smiles, clean_mols
 from datasets import Vocabulary, SelfiesVocabulary
 from util.SmilesEnumerator import SmilesEnumerator
 
-### dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
-grid_file = git_dir + '/sh/grids/create-training-sets.txt'
-grid = pd.read_csv(grid_file, sep='\t')
-for arg_name in list(grid):
-    param_name = '--' + arg_name
-    param_dtype = str(grid[arg_name].dtype)
-    # convert to pandas
-    param_type = {'object': str,
-                  'int64': int,
-                  'float64': float,
-                  'bool': str
-                  }[param_dtype]
-    parser.add_argument(param_name, type=param_type)
+
+parser.add_argument('--input_dir', type=str)
+parser.add_argument('--database', type=str)
+parser.add_argument('--representation', type=str)
+parser.add_argument('--enum_factor', type=int)
+parser.add_argument('--n_molecules', type=int)
+parser.add_argument('--min_tc', type=int)
+parser.add_argument('--sample_idx', type=int)
+parser.add_argument('--output_file', type=str)
+parser.add_argument('--vocab_file', type=str)
 
 # parse all arguments
 args = parser.parse_args()
@@ -51,9 +41,9 @@ if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
 
 # set up input
-input_dir = '/Genomics/skinniderlab/invalid-smiles-analysis'
-input_file = input_dir + {'GDB13': 'GDB-13/gdb13_smiles.txt',
-                          'ChEMBL': 'ChEMBL/chembl_28_smiles.txt'}[args.database]
+input_dir = args.input_dir
+input_file = input_dir + {'gdb13_smiles': 'gdb13_smiles.txt',
+                          'chembl_28_smiles': 'chembl_28_smiles.txt'}[args.database]
 # read SMILES
 print('reading input SMILES ...')
 input_smiles = read_smiles(input_file)
