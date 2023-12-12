@@ -15,10 +15,7 @@ classifiers = [
 
 dependencies = [
     "deepsmiles",
-<<<<<<< HEAD
     "fcd_torch",
-=======
->>>>>>> f3323dc (Created __init__.py and pyproject.toml files)
     "numpy",
     "pandas",
     "rdkit",
@@ -29,7 +26,6 @@ dependencies = [
     "tqdm"
 ]
 
-<<<<<<< HEAD
 [tool.setuptools.packages.find]
 where = ["."]
 include = [
@@ -39,19 +35,11 @@ include = [
 
 [tool.setuptools.package-data]
 NPS_generation = ["data/*.smi"]
-=======
-[tool.setuptools.package-data]
-"*" = ["data/*.smi"]
->>>>>>> f3323dc (Created __init__.py and pyproject.toml files)
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [project.optional-dependencies]
-<<<<<<< HEAD
 dev = [
     "pytest"
 ]
-=======
-dev = []
->>>>>>> f3323dc (Created __init__.py and pyproject.toml files)
