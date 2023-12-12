@@ -15,10 +15,6 @@ shell.executable("/bin/bash")
 wildcard_constraints:
     dataset="|".join(DATASETS)
 
-# Rules that should be run on the head node in a cluster environment
-# These typically involve web access or one time installation steps
-localrules:
-    download_datasets
 
 # -----------------------------------------------------------------------------
 
@@ -34,14 +30,6 @@ rule all:
         nvstat_file = expand(f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.nvstat",
          dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
-rule download_datasets:
-    params:
-        url=lambda wildcards: config['urls'][wildcards.dataset]
-    output:
-        f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
-    shell: """
-        wget -O - {params.url} | gunzip -c > {output}
-        """
 
 rule generate_prior_inputs:
     input:
@@ -62,6 +50,7 @@ rule generate_prior_inputs:
         --vocab_file {output.vocab_file} \
         --test_file {output.test_file}
         """
+
 
 rule inner_train_models_RNN:
     input:
@@ -99,6 +88,7 @@ rule inner_train_models_RNN:
             '--loss_file {output.loss_file} '
             '--time_file {output.time_file} '
 
+
 rule inner_sample_molecules_RNN:
     input:
         input_file = f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
@@ -133,3 +123,5 @@ rule inner_sample_molecules_RNN:
         '--output_file {output.output_file} '
         '--time_file {output.time_file} '
         '--nvstat_file {output.nvstat_file} '
+
+# -----------------------------------------------------------------------------
