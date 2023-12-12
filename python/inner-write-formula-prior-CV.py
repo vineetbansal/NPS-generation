@@ -5,11 +5,6 @@ import pandas as pd
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
-# set working directory
-git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
-python_dir = git_dir + "/python"
-os.chdir(python_dir)
-
 # import functions
 from functions import clean_mol, clean_mols, read_smiles
 
@@ -17,21 +12,14 @@ from functions import clean_mol, clean_mols, read_smiles
 from rdkit import rdBase
 rdBase.DisableLog('rdApp.error')
 
-### dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
-grid_file = git_dir + '/sh/grids/write-formula-prior.txt'
-grid = pd.read_csv(grid_file, sep='\t')
-for arg_name in list(grid):
-    param_name = '--' + arg_name
-    param_dtype = str(grid[arg_name].dtype)
-    # convert to pandas
-    param_type = {'object': str,
-                  'int64': int,
-                  'float64': float,
-                  'bool': str
-                  }[param_dtype]
-    parser.add_argument(param_name, type=param_type)
+
+parser.add_argument('--output_dir', type=str)
+parser.add_argument('--train_file', type=str)
+parser.add_argument('--test_file', type=str)
+parser.add_argument('--pubchem_file', type=str)
+parser.add_argument('--sample_file', type=str)
+parser.add_argument('--err_ppm', type=int)
 
 # parse all arguments
 args = parser.parse_args()
