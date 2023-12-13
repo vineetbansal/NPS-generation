@@ -31,6 +31,7 @@ rule all:
         tc_file=expand(f"{OUTPUT_DIR}/prior/structural_prior/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_CV_tc.csv.gz",
                    dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
+
 rule generate_prior_inputs:
     input:
         f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
@@ -52,6 +53,7 @@ rule generate_prior_inputs:
         """
 
 
+# Note: This rule is not being used currently
 rule inner_create_training_sets:
     input:
         f"{OUTPUT_DIR}/prior/raw/"
@@ -184,4 +186,5 @@ rule inner_write_formula_prior_CV:
         '--pubchem_file {input.pubchem_file} '
         '--sample_file {input.sample_file} '
         '--err_ppm {ERR_PPM} '
+
 # -----------------------------------------------------------------------------
