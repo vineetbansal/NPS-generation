@@ -32,45 +32,30 @@ rule all:
                    dataset=DATASETS, repr=REPRESENTATIONS, sample_idx=SAMPLE_IDXS, fold=range(1, K + 1))
 
 
-rule generate_prior_inputs:
+rule preprocess_and_create_training_sets:
     input:
         f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
     output:
         train_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
         vocab_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary",
-        test_file=f"{OUTPUT_DIR}/prior/inputs/test_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv"
-    shell: """
-        python ../python/inner-preprocess-prior-datasets.py \
-        --representation {wildcards.repr} \
-        --enum_factor 0 \
-        --sample_idx {wildcards.sample_idx} \
-        --k {K} \
-        --cv_fold {wildcards.fold} \
-        --input_file {input} \
-        --train_file {output.train_file} \
-        --vocab_file {output.vocab_file} \
-        --test_file {output.test_file}
-        """
-
-
-# Note: This rule is not being used currently
-rule inner_create_training_sets:
-    input:
-        f"{OUTPUT_DIR}/prior/raw/"
-    output:
-        output_file=f"{OUTPUT_DIR}/prior/training/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_SMILES.smi",
-        vocab_file=f"{OUTPUT_DIR}/prior/training/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary"
+        test_file=f"{OUTPUT_DIR}/prior/inputs/test_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
+        train_file_smi=f"{OUTPUT_DIR}/prior/training_sets/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_fps.smi",
+        vocab_file_fps=f"{OUTPUT_DIR}/prior/training_sets/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_fps.vocab"
     shell:
-        'python ../python/inner-create-training-sets.py '
-        '--input_dir {input} '
-        '--database {wildcards.dataset} '
+        'python ../python/inner-preprocess-and-create-training-sets.py '
+        '--input_file {input} '
+        '--train_file {output.train_file} '
+        '--test_file {output.test_file} '
+        '--vocab_file {output.vocab_file} '
+        '--train_file_smi {output.train_file_smi} '
+        '--vocab_file_fps {output.vocab_file_fps} '
         '--representation {wildcards.repr} '
-        '--enum_factor {MODEL_PARAMS[enum_factor]} '
+        '--k {K} '
+        '--cv_fold {wildcards.fold} '
+        '--sample_idx {wildcards.sample_idx} '
+        '--enum_factor 0 '
         '--n_molecules {MODEL_PARAMS[n_molecules]} '
         '--min_tc {MODEL_PARAMS[min_tc]} '
-        '--sample_idx {wildcards.sample_idx} '
-        '--output_file {output.output_file} '
-        '--vocab_file {output.vocab_file} '
 
 
 rule inner_train_models_RNN:
