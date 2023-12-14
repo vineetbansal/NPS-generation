@@ -7,7 +7,7 @@
 
   "model_params": {
     "enum_factor": 0,
-    "n_molecules": 1,
+    "n_molecules": 100,
     "min_tc": 0,
     "rnn_type": "LSTM",
     "embedding_size": 128,

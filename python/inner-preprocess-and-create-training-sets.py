@@ -151,6 +151,7 @@ def write_to_file(representation, output_molecules, output_file):
 
 def write_vocabulary(training_set, vocab_file, representation):
     if representation == 'SELFIES':
+        training_set = convert_to_selfies(training_set)
         vocabulary = SelfiesVocabulary(selfies=training_set)
     else:
         vocabulary = Vocabulary(smiles=training_set)
