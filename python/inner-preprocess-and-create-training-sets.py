@@ -1,6 +1,6 @@
 """
 Create input files for the cross-validation experiment by splitting into
-cross-validation folds.
+cross-validation folds and create input files to train a chemical language model.
 """
 
 import argparse
