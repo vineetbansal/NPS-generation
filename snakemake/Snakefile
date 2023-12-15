@@ -4,6 +4,7 @@ threads: 1
 # Setup
 # -----------------------------------------------------------------------------
 DATASETS = config["datasets"]
+DATASETS_FOLDER = config["datasets_folder"]
 REPRESENTATIONS = config["representations"]
 SAMPLE_IDXS = config["sample_idxs"]
 K = config["k"]
@@ -34,7 +35,7 @@ rule all:
 
 rule preprocess_and_create_training_sets:
     input:
-        f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
+        f"{DATASETS_FOLDER}/{{dataset}}.txt"
     output:
         train_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
         vocab_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.vocabulary",
@@ -135,7 +136,7 @@ rule inner_write_structural_prior_CV:
     input:
         train_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
         test_file=f"{OUTPUT_DIR}/prior/inputs/test_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
-        pubchem_file=f"{OUTPUT_DIR}/prior/raw/PubChem.tsv.gz",
+        pubchem_file=config['pubchem_gz_file'],
         sample_file=f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_sample_1.csv"
     output:
          ranks_file=f"{OUTPUT_DIR}/prior/structural_prior/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_CV_ranks_structure.csv.gz",
@@ -157,7 +158,7 @@ rule inner_write_formula_prior_CV:
     input:
         train_file=f"{OUTPUT_DIR}/prior/inputs/train_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
         test_file=f"{OUTPUT_DIR}/prior/inputs/test_{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}.csv",
-        pubchem_file=f"{OUTPUT_DIR}/prior/raw/PubChem.tsv.gz",
+        pubchem_file=config['pubchem_gz_file'],
         sample_file=f"{OUTPUT_DIR}/prior/samples/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_sample_1.csv"
     output:
          ranks_file=f"{OUTPUT_DIR}/prior/structural_prior/{{dataset}}_{{repr}}_sample{{sample_idx}}_{{fold}}_CV_ranks_formula.csv.gz"

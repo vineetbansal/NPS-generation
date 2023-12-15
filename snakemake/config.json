@@ -22,5 +22,7 @@
     "log_every_epochs":  1,
     "sample_mols": 500000
   },
-  "err_ppm": 10
+  "err_ppm": 10,
+  "pubchem_gz_file": "/path/to/PubChem.tsv.gz",
+  "datasets_folder": "/path/to/datasets.txt"
 }
