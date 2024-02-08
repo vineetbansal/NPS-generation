@@ -21,6 +21,7 @@ dependencies = [
     "fcd_torch",
     "numpy",
     "pandas",
+    "pulp<2.8.0",
     "rdkit",
     "scipy<1.12",
     "selfies",
