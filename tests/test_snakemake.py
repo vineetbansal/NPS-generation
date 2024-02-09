@@ -22,9 +22,9 @@ def test_snakemake():
             cores=1,
             configfiles=[config_file],
             config={"dataset": dataset, "pubchem_tsv_file": pubchem_tsv_file, "output_dir": temp_dir},
-            dryrun=True,
+            dryrun=False,
             latency_wait=60,
             forceall=True,
-            force_incomplete=True
+            verbose=True
         )
         assert success, "Snakemake did not complete successfully"
