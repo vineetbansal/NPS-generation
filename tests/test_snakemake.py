@@ -1,4 +1,5 @@
 import os
+import os.path
 from pathlib import Path
 import snakemake
 import tempfile
@@ -20,10 +21,11 @@ def test_snakemake():
             snakefile=snakefile,
             cores=1,
             configfiles=[config_file],
-            config={"dataset": dataset, "pubchem_tsv_file": pubchem_tsv_file},
+            config={"dataset": dataset, "pubchem_tsv_file": pubchem_tsv_file, "output_dir": temp_dir},
             dryrun=False,
             latency_wait=60,
             forceall=True,
+            workdir=os.path.dirname(snakefile),  # TODO: Only needed till rules call scripts, not nps commands
             verbose=True
         )
         assert success, "Snakemake did not complete successfully"
