@@ -48,6 +48,7 @@ NPS_generation = ["data/*.smi"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-sv"
 
 [project.optional-dependencies]
 dev = [

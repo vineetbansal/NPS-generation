@@ -7,12 +7,10 @@ import tempfile
 
 base_dir = Path(__file__).parent.parent
 
-python_dir = os.path.join(base_dir, "python")
-nps_generation = os.path.join(base_dir, "NPS_generation")
-snakefile = os.path.join(base_dir, "snakemake/Snakefile")
-config_file = os.path.join(base_dir, "snakemake/config_fast.json")
-dataset = os.path.join(os.path.dirname(__file__), "test_data/LOTUS_truncated.txt")
-pubchem_tsv_file = os.path.join(os.path.dirname(__file__), "test_data/PubChem_truncated.tsv")
+snakefile = base_dir / "snakemake/Snakefile"
+config_file = base_dir / "snakemake/config_fast.json"
+dataset = base_dir / "tests/test_data/LOTUS_truncated.txt"
+pubchem_tsv_file = base_dir / "tests/test_data/PubChem_truncated.tsv"
 
 
 def test_snakemake():

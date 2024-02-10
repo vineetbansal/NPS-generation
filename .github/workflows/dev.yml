@@ -2,7 +2,7 @@ name: Build Package and Test it
 
 on:
   push:
-    branches: [master, dev, vb/coverage]
+    branches: [master, dev]
   pull_request:
     branches: [master, dev]
 
@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [ubuntu-latest, macos-latest]
 
     name: Build and test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -38,4 +38,4 @@ jobs:
 
     - name: Pytest
       shell: bash
-      run: pytest tests/test_snakemake.py
+      run: pytest tests
