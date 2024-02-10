@@ -15,13 +15,12 @@ pubchem_tsv_file = os.path.join(os.path.dirname(__file__), "test_data/PubChem_tr
 
 
 def test_snakemake():
-    # TODO: Runs too fast - why doesn't this produce anything in temp_dir?
     with tempfile.TemporaryDirectory() as temp_dir:
         success = snakemake.snakemake(
             snakefile=snakefile,
             cores=1,
             configfiles=[config_file],
-            config={"dataset": dataset, "pubchem_tsv_file": pubchem_tsv_file, "output_dir": temp_dir},
+            config={"dataset": dataset, "pubchem_tsv_file": pubchem_tsv_file},
             dryrun=False,
             latency_wait=60,
             forceall=True,

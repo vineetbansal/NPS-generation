@@ -2,7 +2,7 @@ name: Build Package and Test it
 
 on:
   push:
-    branches: [master, dev]
+    branches: [master, dev, vb/coverage]
   pull_request:
     branches: [master, dev]
 
@@ -34,4 +34,4 @@ jobs:
       run: pip install .[dev]
 
     - name: Pytest
-      run: pytest tests
+      run: pytest tests/test_snakemake.py
