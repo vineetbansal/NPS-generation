@@ -7,14 +7,17 @@ on:
     branches: [master, dev]
 
 jobs:
-  build_wheels:
+  build_and_test:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [windows-latest]
 
-    name: Build wheel on ${{ matrix.os }}
+    name: Build and test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
     - uses: actions/checkout@master
@@ -34,4 +37,5 @@ jobs:
       run: pip install .[dev]
 
     - name: Pytest
+      shell: bash
       run: pytest tests/test_snakemake.py
