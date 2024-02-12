@@ -87,7 +87,7 @@ rule create_training_sets:
         '--enum-factor {wildcards.enum_factor} '
         '--folds {FOLDS} '
         '--representation {wildcards.repr} '
-        '--min-tc 0 '
+        '--min-tc {config[min_tc]} '
         '--max-input-smiles {config[max_input_smiles]} '
 
 
@@ -134,7 +134,6 @@ rule train_models_RNN:
             'python ../python/inner-train-models-RNN.py '
             '--database {wildcards.dataset} '
             '--representation {wildcards.repr} '
-            '--min_tc {MODEL_PARAMS[min_tc]} '
             '--seed {wildcards.seed} '
             '--rnn_type {MODEL_PARAMS[rnn_type]} '
             '--embedding_size {MODEL_PARAMS[embedding_size]} '
@@ -172,7 +171,6 @@ rule sample_molecules_RNN:
         'python ../python/inner-sample-molecules-RNN.py '
         '--database {wildcards.dataset} '
         '--representation {wildcards.repr} '
-        '--min_tc {MODEL_PARAMS[min_tc]} '
         '--rnn_type {MODEL_PARAMS[rnn_type]} '
         '--embedding_size {MODEL_PARAMS[embedding_size]} '
         '--hidden_size {MODEL_PARAMS[hidden_size]} '

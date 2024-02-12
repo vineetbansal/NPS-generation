@@ -10,7 +10,6 @@
   "max_input_smiles": 1000,
 
   "model_params": {
-    "min_tc": 0,
     "rnn_type": "LSTM",
     "embedding_size": 32,
     "hidden_size": 256,
@@ -27,6 +26,7 @@
 
   "metrics": ["freq-avg"],
 
+  "min_tc": 0,
   "top_k": 30,
   "err_ppm": 10
 

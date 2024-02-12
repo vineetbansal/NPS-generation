@@ -24,7 +24,6 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--database', type=str)
 parser.add_argument('--representation', type=str)
-parser.add_argument('--min_tc', type=int)
 parser.add_argument('--seed', type=int)
 parser.add_argument('--rnn_type', type=str)
 parser.add_argument('--embedding_size', type=int)
