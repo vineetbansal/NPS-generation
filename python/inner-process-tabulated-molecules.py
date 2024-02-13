@@ -17,57 +17,72 @@ import os
 import pandas as pd
 import numpy as np
 
+
 # Argument parser setup
-parser = argparse.ArgumentParser()
-parser.add_argument("--input_file", type=str, nargs="+", help="Path to the input CSV file.")
-parser.add_argument("--cv_file", type=str, nargs="+", help="Path to the CV file.")
-parser.add_argument("--output_file", type=str, help="Path to the output CSV file.")
-parser.add_argument("--summary_fn", type=str, default='freq_avg', help="Summary function (fp10k/freq_sum/freq_avg).")
+def add_args(parser):
+    parser.add_argument("--input_file", type=str, nargs="+", help="Path to the input CSV file.")
+    parser.add_argument("--cv_file", type=str, nargs="+", help="Path to the CV file.")
+    parser.add_argument("--output_file", type=str, help="Path to the output CSV file.")
+    parser.add_argument("--summary_fn", type=str, default='freq_avg',
+                        help="Summary function (fp10k/freq_sum/freq_avg).")
+    return parser
 
-# Parse command-line arguments
-args = parser.parse_args()
 
-_metas = []
-for fold_idx, file in enumerate(args.input_file):
-    _meta = pd.read_csv(file, dtype={"smiles": str})
-    _meta['fold'] = fold_idx
-    _metas.append(_meta)
-meta = pd.concat(_metas)
+def process_tabulated_molecules(input_file, cv_file, output_file, summary_fn):
+    _metas = []
+    for fold_idx, file in enumerate(input_file):
+        _meta = pd.read_csv(file, dtype={"smiles": str})
+        _meta['fold'] = fold_idx
+        _metas.append(_meta)
+    meta = pd.concat(_metas)
 
-data = meta.pivot_table(index='smiles', columns='fold', values='size', aggfunc='first', fill_value=0)
-data[np.isnan(data)] = 0
+    data = meta.pivot_table(index='smiles', columns='fold', values='size', aggfunc='first', fill_value=0)
+    data[np.isnan(data)] = 0
 
-uniq_smiles = data.index.to_numpy()
+    uniq_smiles = data.index.to_numpy()
 
-# Read training set SMILES
-for fold_idx, cv_file in enumerate(args.cv_file):
-    cv_dat = pd.read_csv(cv_file, names=["smiles"]).query("smiles in @uniq_smiles")
-    # censor these values
-    if len(cv_dat) > 0:
-        data[cv_dat['smiles'], fold_idx] = np.nan
+    # Read training set SMILES
+    for fold_idx, cv_file in enumerate(cv_file):
+        cv_dat = pd.read_csv(cv_file, names=["smiles"]).query("smiles in @uniq_smiles")
+        # censor these values
+        if len(cv_dat) > 0:
+            data[cv_dat['smiles'], fold_idx] = np.nan
 
-# Optionally normalize by total sampling frequency
-if args.summary_fn == 'fp10k':
-    data = 10e3 * data / np.nansum(data, axis=0)
+    # Optionally normalize by total sampling frequency
+    if summary_fn == 'fp10k':
+        data = 10e3 * data / np.nansum(data, axis=0)
 
-# Calculate mean/sum
-if args.summary_fn == 'freq-sum':
-    # With what frequency (across all folds)
-    # were valid molecules produced by our models?
-    sums = np.nansum(data, axis=1)
-    data = pd.DataFrame({"smiles": list(uniq_smiles), "size": sums})
-else:
-    # With what average frequency (across all folds)
-    # were valid molecules produced by our models?
-    means = np.nanmean(data, axis=1)
-    data = pd.DataFrame({"smiles": list(uniq_smiles), "size": means})
+    # Calculate mean/sum
+    if summary_fn == 'freq-sum':
+        # With what frequency (across all folds)
+        # were valid molecules produced by our models?
+        sums = np.nansum(data, axis=1)
+        data = pd.DataFrame({"smiles": list(uniq_smiles), "size": sums})
+    else:
+        # With what average frequency (across all folds)
+        # were valid molecules produced by our models?
+        means = np.nanmean(data, axis=1)
+        data = pd.DataFrame({"smiles": list(uniq_smiles), "size": means})
 
-# Arrange by size
-data = data.sort_values(by="size", ascending=False).query("size > 0")
+    # Arrange by size
+    data = data.sort_values(by="size", ascending=False).query("size > 0")
 
-# Add metadata (mass and formula)
-data = data.merge(meta[['smiles', 'mass', 'formula']], how='left', on='smiles')
+    # Add metadata (mass and formula)
+    data = data.merge(meta[['smiles', 'mass', 'formula']], how='left', on='smiles')
 
-output_dir = os.path.dirname(args.output_file)
-os.makedirs(output_dir, exist_ok=True)
-data.to_csv(args.output_file, index=False)
+    output_dir = os.path.dirname(output_file)
+    os.makedirs(output_dir, exist_ok=True)
+    data.to_csv(output_file, index=False)
+
+
+def main(args):
+    process_tabulated_molecules(input_file=args.input_file,
+                                cv_file=args.cv_file,
+                                output_file=args.output_file,
+                                summary_fn=args.summary_fn)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    args = add_args(parser).parse_args()
+    main(args)
