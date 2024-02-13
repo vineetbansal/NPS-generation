@@ -6,6 +6,7 @@ from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
 from functions import clean_mol, clean_mols, read_smiles
+from NPS_generation.functions import set_seed, seed_type
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -20,10 +21,13 @@ parser.add_argument('--pubchem_file', type=str)
 parser.add_argument('--sample_file', type=str)
 parser.add_argument('--err_ppm', type=int)
 parser.add_argument('--chunk_size', type=int, default=100000)
+parser.add_argument('--seed', type=seed_type, default=None, nargs="?", help="Random seed")
 
 # parse all arguments
 args = parser.parse_args()
 print(args)
+
+set_seed(args.seed)
 
 # read training and test sets
 all_train_smiles = read_smiles(args.train_file)
@@ -130,4 +134,4 @@ for key, query in inputs.items():
 # write to output files
 os.makedirs(os.path.dirname(args.ranks_file), exist_ok=True)
 rank_df.to_csv(args.ranks_file, index=False,
-               compression='gzip')
+               compression='gzip' if args.ranks_file.endswith('.gz') else None)

@@ -3,7 +3,6 @@ Sample generated molecules from a trained chemical language model.
 """
 
 import argparse
-import os
 import os.path
 import torch
 from tqdm import tqdm
@@ -11,12 +10,14 @@ from tqdm import tqdm
 from datasets import Vocabulary, SelfiesDataset
 from models import RNN
 from functions import read_smiles
+from NPS_generation.functions import set_seed, seed_type
 
 parser = argparse.ArgumentParser()
 
 ## build the CLI
 parser.add_argument('--database', type=str)
 parser.add_argument('--representation', type=str)
+parser.add_argument('--seed', type=seed_type, default=None, nargs="?", help="Random seed")
 parser.add_argument('--rnn_type', type=str)
 parser.add_argument('--embedding_size', type=int)
 parser.add_argument('--hidden_size', type=int)
@@ -35,6 +36,8 @@ parser.add_argument('--time_file', type=str)
 # parse all arguments
 args = parser.parse_args()
 print(args)
+
+set_seed(args.seed)
 
 os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
 

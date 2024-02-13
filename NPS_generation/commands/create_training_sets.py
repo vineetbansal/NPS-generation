@@ -1,6 +1,5 @@
 import argparse
 import logging
-import random
 import itertools
 from tqdm import tqdm
 import numpy as np
@@ -8,7 +7,7 @@ from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
 from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
-from NPS_generation.functions import read_smiles, write_smiles, clean_mols
+from NPS_generation.functions import read_smiles, write_smiles, clean_mols, seed_type
 from NPS_generation.datasets import vocabulary_from_representation
 from NPS_generation.util.SmilesEnumerator import SmilesEnumerator
 
@@ -48,7 +47,7 @@ def add_args(parser):
         "--max-tries", type=int, default=200, help="Maximum tries to get n_molecules with min_tc"
     )
     parser.add_argument(
-        "--seed", type=int, default=None, help="Random Seed"
+        "--seed", type=seed_type, nargs="?", default=None, help="Random Seed"
     )
     parser.add_argument(
         "--max-input-smiles", type=int, default=None, help="Maximum smiles to read from input file (useful for testing)"
@@ -57,7 +56,7 @@ def add_args(parser):
     return parser
 
 
-def get_similar_smiles(input_smiles, min_tc, n_molecules=100, max_tries=200, seed=None):
+def get_similar_smiles(input_smiles, min_tc, n_molecules=100, max_tries=200):
     mols = clean_mols(input_smiles)
     input_smiles = [input_smiles[idx] for idx, mol in enumerate(mols) if mol is not None]
     input_mols = [mol for mol in mols if mol is not None]
@@ -66,17 +65,16 @@ def get_similar_smiles(input_smiles, min_tc, n_molecules=100, max_tries=200, see
 
     # shuffle SMILES and fingerprints
     inputs = list(zip(input_smiles, input_fps))
-    random.seed(seed)
-    random.shuffle(inputs)
+    np.random.shuffle(inputs)
     input_smiles, input_fps = zip(*inputs)
 
     # try to pick n molecules with minimum Tc to random seed molecule
     success = False
     for try_idx in range(max_tries):
+        np.random.seed(try_idx)
         logger.info(f"picking {n_molecules} molecules with min_tc={min_tc} try #{try_idx} of {max_tries} ...")
         inputs = list(zip(input_smiles, input_fps))
-        random.seed(try_idx)
-        random.shuffle(inputs)
+        np.random.shuffle(inputs)
         input_smiles, input_fps = zip(*inputs)
 
         # pick our seed molecule at random
@@ -108,9 +106,8 @@ def create_training_sets(input_file=None, train_file=None, test_file=None, vocab
 
     generate_test_data = folds > 0
     if generate_test_data:
-        random.seed(seed)
         np.random.seed(seed)
-        random.shuffle(smiles)
+        np.random.shuffle(smiles)
         folds = np.array_split(smiles, folds)
     else:
         folds = [smiles]

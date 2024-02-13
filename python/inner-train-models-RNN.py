@@ -19,12 +19,13 @@ from datasets import SmilesDataset, SelfiesDataset
 from models import RNN
 from functions import check_arg, read_smiles, write_smiles
 from loggers import EarlyStopping, track_loss, print_update
+from NPS_generation.functions import set_seed, seed_type
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--database', type=str)
 parser.add_argument('--representation', type=str)
-parser.add_argument('--seed', type=int)
+parser.add_argument('--seed', type=seed_type, default=None, nargs="?", help="Random seed")
 parser.add_argument('--rnn_type', type=str)
 parser.add_argument('--embedding_size', type=int)
 parser.add_argument('--hidden_size', type=int)
@@ -46,7 +47,7 @@ parser.add_argument('--loss_file', type=str)
 args = parser.parse_args()
 print(args)
 
-torch.manual_seed(args.seed)
+set_seed(args.seed)
 
 os.makedirs(os.path.dirname(args.model_file), exist_ok=True)
 os.makedirs(os.path.dirname(args.loss_file), exist_ok=True)

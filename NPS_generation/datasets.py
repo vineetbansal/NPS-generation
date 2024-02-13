@@ -48,7 +48,6 @@ class SmilesDataset(Dataset):
             self.vocabulary = Vocabulary(smiles=self.smiles)
 
         # split into training and validation sets
-        np.random.seed(0)
         n_smiles = len(self.smiles)
         split = np.random.choice(range(n_smiles),
                                  size=int(n_smiles * training_split),
@@ -114,7 +113,6 @@ class SelfiesDataset(Dataset):
             self.vocabulary = SelfiesVocabulary(selfies=self.selfies)
 
         # split into training and validation sets
-        np.random.seed(0)
         n_selfies = len(self.selfies)
         split = np.random.choice(range(n_selfies),
                                  size=int(n_selfies * training_split),
@@ -211,7 +209,7 @@ class Vocabulary:
                                  " instantiate Vocabulary")
             # tokenize all SMILES in the input and add all tokens to vocabulary
             all_chars = [self.tokenize(sm) for sm in self.smiles]
-            self.characters = list(set(chain(*all_chars)))
+            self.characters = np.unique(np.array(list(chain(*all_chars)))).tolist()
 
         # add padding token
         if not '<PAD>' in self.characters:
@@ -316,7 +314,7 @@ class SelfiesVocabulary:
             # read tokens from file, and add to vocabulary
             all_chars = read_smiles(vocab_file)
             # prevent chain popping open multi-character tokens
-            self.characters = list(set(chain(*[[char] for char in all_chars])))
+            self.characters = np.unique(np.array(chain(*[[char] for char in all_chars]))).tolist()
         else:
             # read SMILES
             if selfies is not None:

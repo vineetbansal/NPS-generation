@@ -1,5 +1,4 @@
 import numpy as np
-import random
 import re
 import selfies as sf
 import torch
@@ -148,8 +147,7 @@ class SmilesDataset(Dataset):
                  training_split=0.9):
         # shuffle the SMILES
         self.smiles = smiles
-        random.seed(0)
-        random.shuffle(self.smiles)
+        np.random.shuffle(self.smiles)
                 
         # create vocabulary or else read from file
         if vocab_file:
@@ -209,8 +207,7 @@ class SelfiesDataset(Dataset):
                  training_split=0.9):
         # shuffle the SELFIES
         self.selfies = selfies
-        random.seed(0)
-        random.shuffle(self.selfies)
+        np.random.shuffle(self.selfies)
          
         # create vocabulary or else read from file
         if vocab_file:
