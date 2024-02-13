@@ -43,9 +43,4 @@ jobs:
 
     - name: Pytest
       shell: bash
-      run: pytest tests/test_snakemake.py
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: artifact-${{ matrix.os }}
-        path: out/
+      run: pytest
