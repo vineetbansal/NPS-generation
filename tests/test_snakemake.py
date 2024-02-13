@@ -31,9 +31,11 @@ def test_snakemake():
 
     output_dir = os.path.join(os.path.join(snakefile), output_dir)
     ranks_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv"
-    checksum = hashlib.md5(''.join(sorted(open(ranks_file_overall, "r").readlines())).encode('utf8')).hexdigest()
+    checksum = hashlib.md5(''.join(open(ranks_file_overall, "r").readlines()).encode('utf8')).hexdigest()
+    # eb1b8299b54fc36eef4f067ac0819d7d
     print('ranks_file_overall checksum = ', checksum)
 
     tc_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv"
-    checksum = hashlib.md5(''.join(sorted(open(tc_file_overall, "r").readlines())).encode('utf8')).hexdigest()
+    checksum = hashlib.md5(''.join(open(tc_file_overall, "r").readlines()).encode('utf8')).hexdigest()
+    # c6e24fa270b159239835f83ace71ff1f
     print('tc_file_overall checksum = ', checksum)

@@ -110,8 +110,10 @@ rule collapse_train_test_data:
         mem_mb=20000,
         runtime=10,
     shell:
-        'cat {input.train_file} | sort | uniq > {output.train_file} && '
-        'cat {input.test_file} | sort | uniq > {output.test_file} '
+        # Note: We use python instead of sort | uniq > to avoid locale specific issues
+        # on the command line, and get a deterministic sort
+        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.train_file} > {output.train_file} && '
+        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file} '
 
 
 rule train_models_RNN:
