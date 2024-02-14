@@ -12,7 +12,9 @@ from NPS_generation.functions import set_seed, seed_type
 
 # suppress rdkit errors
 from rdkit import rdBase
+
 rdBase.DisableLog('rdApp.error')
+
 
 def add_args(parser):
     parser.add_argument('--ranks_file', type=str)
@@ -27,8 +29,9 @@ def add_args(parser):
 
     return parser
 
-def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubchem_file, sample_file, err_ppm, chunk_size, seed):
 
+def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubchem_file, sample_file, err_ppm,
+                              chunk_size, seed):
     set_seed(seed)
 
     # read training and test sets
@@ -38,7 +41,7 @@ def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubche
     train_fmlas = []
     with tqdm(total=len(all_train_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
-            smiles = all_train_smiles[i:i+chunk_size]
+            smiles = all_train_smiles[i:i + chunk_size]
             mols = clean_mols(smiles, disable_progress=True)
             train_masses.extend([round(Descriptors.ExactMolWt(mol), 4) for mol in mols])
             train_fmlas.extend([rdMolDescriptors.CalcMolFormula(mol) for mol in mols])
@@ -54,15 +57,15 @@ def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubche
     test_fmlas = []
     with tqdm(total=len(all_test_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
-            smiles = all_test_smiles[i:i+chunk_size]
+            smiles = all_test_smiles[i:i + chunk_size]
             mols = clean_mols(smiles, disable_progress=True)
             test_masses.extend([round(Descriptors.ExactMolWt(mol), 4) for mol in mols])
             test_fmlas.extend([rdMolDescriptors.CalcMolFormula(mol) for mol in mols])
             pbar.update(len(smiles))
 
     test = pd.DataFrame({'smiles': all_test_smiles,
-                          'mass': test_masses,
-                          'formula': test_fmlas})
+                         'mass': test_masses,
+                         'formula': test_fmlas})
     test = test.assign(mass_known=test['mass'].isin(train_masses))
     test = test.assign(formula_known=test['formula'].isin(train_fmlas))
 
@@ -104,12 +107,12 @@ def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubche
             # get matches to mass
             if key != "model":
                 # get matches to mass and shuffle them to random order
-                matches = query[query['mass'].between(min_mass, max_mass)].\
+                matches = query[query['mass'].between(min_mass, max_mass)]. \
                     sample(frac=1)
                 matches = matches.assign(rank=np.arange(matches.shape[0]))
             else:
                 # generative model: sort descending by mass
-                matches = query[query['mass'].between(min_mass, max_mass)].\
+                matches = query[query['mass'].between(min_mass, max_mass)]. \
                     sort_values('size', ascending=False)
                 matches = matches.assign(rank=np.arange(matches.shape[0]))
 
@@ -159,8 +162,8 @@ def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubche
 
             # now, append Tc to the growing data frame
             tc_row = pd.concat(
-                [pd.DataFrame([row]).iloc[np.full(tc.shape[0], 0)].\
-                 reset_index(drop=True), tc.reset_index(drop=True)], axis=1)
+                [pd.DataFrame([row]).iloc[np.full(tc.shape[0], 0)]. \
+                     reset_index(drop=True), tc.reset_index(drop=True)], axis=1)
             tc_df = pd.concat([tc_df, tc_row])
 
             # do the same for rank
@@ -186,6 +189,7 @@ def main(args):
                               sample_file=args.sample_file,
                               err_ppm=args.err_ppm,
                               chunk_size=args.chunk_size)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
