@@ -52,7 +52,7 @@ def train_models_RNN(database, representation, seed, rnn_type, embedding_size, h
                      batch_size, learning_rate, max_epochs, patience, log_every_steps, log_every_epochs,
                      sample_mols, input_file, vocab_file, smiles_file, model_file, loss_file):
 
-    set_seed(args.seed)
+    set_seed(seed)
 
     os.makedirs(os.path.dirname(model_file), exist_ok=True)
     os.makedirs(os.path.dirname(loss_file), exist_ok=True)
