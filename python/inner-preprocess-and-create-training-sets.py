@@ -22,28 +22,23 @@ from functions import read_smiles, write_smiles, clean_mols, \
 from datasets import Vocabulary, SelfiesVocabulary
 from util.SmilesEnumerator import SmilesEnumerator
 
-parser = argparse.ArgumentParser()
 
-parser.add_argument('--input_file', type=str)
-parser.add_argument('--train_file', type=str)
-parser.add_argument('--test_file', type=str)
-parser.add_argument('--vocab_file', type=str)
-parser.add_argument('--train_file_smi', type=str)
-parser.add_argument('--vocab_file_fps', type=str)
-parser.add_argument('--representation', type=str)
-parser.add_argument('--k', type=int)
-parser.add_argument('--cv_fold', type=int)
-parser.add_argument('--sample_idx', type=int)
-parser.add_argument('--enum_factor', type=int)
-parser.add_argument('--n_molecules', type=int)
-parser.add_argument('--min_tc', type=int)
+def add_args(parser):
+    parser.add_argument('--input_file', type=str)
+    parser.add_argument('--train_file', type=str)
+    parser.add_argument('--test_file', type=str)
+    parser.add_argument('--vocab_file', type=str)
+    parser.add_argument('--train_file_smi', type=str)
+    parser.add_argument('--vocab_file_fps', type=str)
+    parser.add_argument('--representation', type=str)
+    parser.add_argument('--k', type=int)
+    parser.add_argument('--cv_fold', type=int)
+    parser.add_argument('--sample_idx', type=int)
+    parser.add_argument('--enum_factor', type=int)
+    parser.add_argument('--n_molecules', type=int)
+    parser.add_argument('--min_tc', type=int)
+    return parser
 
-args = parser.parse_args()
-print(args)
-
-output_dir = os.path.dirname(args.train_file)
-if not os.path.isdir(output_dir):
-    os.makedirs(output_dir)
 
 def preprocess_molecules(mols):
     print(f"cleaning {len(mols)} molecules ...")
@@ -68,7 +63,8 @@ def preprocess_molecules(mols):
 
     return canonical
 
-def create_training_sets(input_smiles, mols):
+
+def create_training_sets(input_smiles, mols, sample_idx, n_molecules, min_tc):
     input_smiles = [input_smiles[idx] for idx, mol in enumerate(mols) if mol is not None]
     input_mols = [mol for mol in mols if mol is not None]
     print(f"calculating fingerprints for {len(input_mols)} valid molecules ...")
@@ -76,7 +72,7 @@ def create_training_sets(input_smiles, mols):
 
     # shuffle SMILES and fingerprints
     inputs = list(zip(input_smiles, input_fps))
-    random.seed(args.sample_idx)
+    random.seed(sample_idx)
     random.shuffle(inputs)
     input_smiles, input_fps = zip(*inputs)
 
@@ -84,7 +80,7 @@ def create_training_sets(input_smiles, mols):
     max_tries = 100
     success = False
     for try_idx in range(max_tries):
-        print(f"picking {args.n_molecules} molecules with min_tc={args.min_tc} try #{try_idx} of {max_tries} ...")
+        print(f"picking {n_molecules} molecules with min_tc={min_tc} try #{try_idx} of {max_tries} ...")
         inputs = list(zip(input_smiles, input_fps))
         random.seed(try_idx)
         random.shuffle(inputs)
@@ -96,15 +92,16 @@ def create_training_sets(input_smiles, mols):
 
         tcs = [FingerprintSimilarity(input_fp, target_fp) for input_fp in input_fps]
         # subset SMILES based on fingerprint similarity
-        subset_smiles = [input_smiles for input_smiles, tc in zip(input_smiles, tcs) if tc >= args.min_tc]
+        subset_smiles = [input_smiles for input_smiles, tc in zip(input_smiles, tcs) if tc >= min_tc]
 
         # break if we have enough molecules
-        if len(subset_smiles) >= args.n_molecules:
-            subset_smiles = subset_smiles[:int(args.n_molecules)]
+        if len(subset_smiles) >= n_molecules:
+            subset_smiles = subset_smiles[:int(n_molecules)]
             success = True
             break
 
     return subset_smiles, success
+
 
 def augment_smiles(enum_factor, folds):
     if enum_factor > 0:
@@ -119,8 +116,8 @@ def augment_smiles(enum_factor, folds):
                         this_try = sme.randomize_smiles(sm)
                         tries.append(this_try)
                         tries = [rnd for rnd in np.unique(tries)]
-                        if len(tries) > args.enum_factor:
-                            tries = tries[:args.enum_factor]
+                        if len(tries) > enum_factor:
+                            tries = tries[:enum_factor]
                             break
                     except AttributeError:
                         continue
@@ -164,45 +161,74 @@ def write_vocabulary(training_set, vocab_file, representation):
             _ = f.write(token + '\n')
 
 
-print('reading input SMILES ...')
-input_smiles = read_smiles(args.input_file)
+def preprocess_and_create_training_sets(input_file, train_file, test_file, vocab_file, train_file_smi, vocab_file_fps,
+                                        representation, k, cv_fold, sample_idx, enum_factor, n_molecules, min_tc):
+    output_dir = os.path.dirname(train_file)
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+    print('reading input SMILES ...')
+    input_smiles = read_smiles(input_file)
 
-print(f"converting {len(input_smiles)} input SMILES to molecules ...")
-mols = clean_mols(input_smiles)
+    print(f"converting {len(input_smiles)} input SMILES to molecules ...")
+    mols = clean_mols(input_smiles)
 
-canonical = preprocess_molecules(mols)
-# split into folds
-random.seed(args.sample_idx)
-random.shuffle(canonical)
-fold_length = int(len(canonical) / args.k)
-folds = []
-for i in range(args.k - 1):
-    folds += [canonical[i * fold_length:(i + 1) * fold_length]]
+    canonical = preprocess_molecules(mols)
+    # split into folds
+    random.seed(sample_idx)
+    random.shuffle(canonical)
+    fold_length = int(len(canonical) / k)
+    folds = []
+    for i in range(k - 1):
+        folds += [canonical[i * fold_length:(i + 1) * fold_length]]
 
-folds += [canonical[(args.k - 1) * fold_length:len(canonical)]]
-folds = augment_smiles(enum_factor=args.enum_factor, folds=folds)
+    folds += [canonical[(k - 1) * fold_length:len(canonical)]]
+    folds = augment_smiles(enum_factor=enum_factor, folds=folds)
 
-# Collapse fold into training/test datasets
-fold_idx = args.cv_fold - 1
-test = folds[fold_idx]
-train = folds[:fold_idx] + folds[fold_idx + 1:]
-train = list(itertools.chain.from_iterable(train))
+    # Collapse fold into training/test datasets
+    fold_idx = cv_fold - 1
+    test = folds[fold_idx]
+    train = folds[:fold_idx] + folds[fold_idx + 1:]
+    train = list(itertools.chain.from_iterable(train))
 
-subset_smiles, success = create_training_sets(input_smiles, mols)
+    subset_smiles, success = create_training_sets(input_smiles, mols, sample_idx, n_molecules, min_tc)
 
-# if we failed to pick enough molecules, write an empty error file
-if not success:
-    error_file = os.path.splitext(args.output_file)[0] + ".err"
-    with open(error_file, 'w') as empty_file:
-        pass
-else:
-    print(f"doing SMILES enumeration on {len(subset_smiles)} molecules ...")
-    subset_smiles = augment_smiles(enum_factor=args.enum_factor, folds=subset_smiles)
+    # if we failed to pick enough molecules, write an empty error file
+    if not success:
+        error_file = os.path.splitext(train_file_smi)[0] + ".err"
+        with open(error_file, 'w') as empty_file:
+            pass
+    else:
+        print(f"doing SMILES enumeration on {len(subset_smiles)} molecules ...")
+        subset_smiles = augment_smiles(enum_factor=enum_factor, folds=subset_smiles)
 
-    # Write the molecules to a file
-    write_to_file(args.representation, subset_smiles, args.train_file_smi)
-    write_vocabulary(subset_smiles, args.vocab_file_fps, args.representation)
+        # Write the molecules to a file
+        write_to_file(representation, subset_smiles, train_file_smi)
+        write_vocabulary(subset_smiles, vocab_file_fps, representation)
 
-write_to_file(args.representation, train, args.train_file)
-write_to_file(args.representation, test, args.test_file)
-write_vocabulary(train, args.vocab_file, args.representation)
+    write_to_file(representation, train, train_file)
+    write_to_file(representation, test, test_file)
+    write_vocabulary(train, vocab_file, representation)
+
+
+def main(args):
+    preprocess_and_create_training_sets(
+        input_file=args.input_file,
+        train_file=args.train_file,
+        test_file=args.test_file,
+        vocab_file=args.vocab_file,
+        train_file_smi=args.train_file_smi,
+        vocab_file_fps=args.vocab_file_fps,
+        representation=args.representation,
+        k=args.k,
+        cv_fold=args.cv_fold,
+        sample_idx=args.sample_idx,
+        enum_factor=args.enum_factor,
+        n_molecules=args.n_molecules,
+        min_tc=args.min_tc,
+    )
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    args = add_args(parser).parse_args()
+    main(args)
