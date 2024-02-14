@@ -3,7 +3,6 @@ Sample generated molecules from a trained chemical language model.
 """
 
 import argparse
-import os
 import os.path
 import torch
 from tqdm import tqdm
@@ -11,13 +10,13 @@ from tqdm import tqdm
 from datasets import Vocabulary, SelfiesDataset
 from models import RNN
 from functions import read_smiles
-
-parser = argparse.ArgumentParser()
+from NPS_generation.functions import set_seed, seed_type
 
 
 def add_args(parser):
     parser.add_argument('--database', type=str)
     parser.add_argument('--representation', type=str)
+    parser.add_argument('--seed', type=seed_type, default=None, nargs="?", help="Random seed")
     parser.add_argument('--rnn_type', type=str)
     parser.add_argument('--embedding_size', type=int)
     parser.add_argument('--hidden_size', type=int)
@@ -35,9 +34,10 @@ def add_args(parser):
     return parser
 
 
-def sample_molecules_RNN(database, representation, rnn_type, embedding_size, hidden_size, n_layers,
+def sample_molecules_RNN(database, representation, seed, rnn_type, embedding_size, hidden_size, n_layers,
                          dropout, batch_size, learning_rate, sample_mols, input_file, vocab_file, model_file,
                          output_file, time_file):
+    set_seed(seed)
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     # detect device
@@ -91,6 +91,7 @@ def sample_molecules_RNN(database, representation, rnn_type, embedding_size, hid
 def main(args):
     sample_molecules_RNN(database=args.database,
                          representation=args.representation,
+                         seed=args.seed,
                          rnn_type=args.rnn_type,
                          embedding_size=args.embedding_size,
                          hidden_size=args.hidden_size,

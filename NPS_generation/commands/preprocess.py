@@ -1,6 +1,7 @@
 import argparse
 import logging
 from tqdm import tqdm
+import numpy as np
 from rdkit import Chem
 from NPS_generation.functions import read_smiles, write_smiles, clean_mols, remove_salts_solvents, NeutraliseCharges
 from NPS_generation.datasets import Vocabulary
@@ -80,7 +81,7 @@ def preprocess(input_file, output_file, max_input_smiles=None, neutralise=True, 
             smiles.extend(_smiles)
             pbar.update(len(input_smiles))
 
-    smiles = list(set(smiles))
+    smiles = np.unique(np.array(smiles))
     logger.info('got {} unique canonical SMILES'.format(len(smiles)))
 
     if remove_rare:
@@ -93,7 +94,7 @@ def preprocess(input_file, output_file, max_input_smiles=None, neutralise=True, 
                             token in vocabulary.tokenize(sm)]
             pct_smiles = len(token_smiles) / n_smiles
             if pct_smiles < 0.01 / 100 or len(token_smiles) <= 10:
-                smiles = list(set(smiles).difference(token_smiles))
+                smiles = np.setdiff1d(smiles, token_smiles)
 
     write_smiles(smiles, output_file, 'w')
 

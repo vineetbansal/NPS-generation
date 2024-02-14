@@ -6,6 +6,7 @@ from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
 from functions import clean_mol, clean_mols, read_smiles
+from NPS_generation.functions import set_seed, seed_type
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -21,10 +22,14 @@ def add_args(parser):
     parser.add_argument('--sample_file', type=str)
     parser.add_argument('--err_ppm', type=int)
     parser.add_argument('--chunk_size', type=int, default=100000)
+    parser.add_argument('--seed', type=seed_type, default=None, nargs="?", help="Random seed")
     return parser
 
 
-def inner_write_formula_prior_CV(ranks_file, train_file, test_file, pubchem_file, sample_file, err_ppm, chunk_size):
+def inner_write_formula_prior_CV(ranks_file, train_file, test_file, pubchem_file, sample_file, err_ppm, chunk_size,
+                                 seed):
+    set_seed(args.seed)
+
     # read training and test sets
     all_train_smiles = read_smiles(train_file)
 
@@ -140,7 +145,9 @@ def main(args):
                                  pubchem_file=args.pubchem_file,
                                  sample_file=args.sample_file,
                                  err_ppm=args.err_ppm,
-                                 chunk_size=args.chunk_size)
+                                 chunk_size=args.chunk_size,
+                                 seed=args.seed
+                                 )
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from functions import clean_mol, clean_mols, get_ecfp6_fingerprints, \
     read_smiles
+from NPS_generation.functions import set_seed, seed_type
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -22,10 +23,14 @@ def add_args(parser):
     parser.add_argument('--sample_file', type=str)
     parser.add_argument('--err_ppm', type=int)
     parser.add_argument('--chunk_size', type=int, default=100000)
+    parser.add_argument('--seed', type=seed_type, default=None, nargs="?", help="Random seed")
+
     return parser
 
+def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubchem_file, sample_file, err_ppm, chunk_size, seed):
 
-def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubchem_file, sample_file, err_ppm, chunk_size):
+    set_seed(seed)
+
     # read training and test sets
     all_train_smiles = read_smiles(train_file)
 

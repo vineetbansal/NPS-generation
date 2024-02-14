@@ -29,15 +29,15 @@ wildcard_constraints:
 rule all:
     input:
         output_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv", enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, metric=METRICS),
-        ranks_file_formula=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv.gz",
+        ranks_file_formula=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv",
                        enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, seed=SEEDS, fold=range(FOLDS)),
-        ranks_file_structure=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz",
+        ranks_file_structure=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv",
                    enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, seed=SEEDS, fold=range(FOLDS)),
-        tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv.gz",
+        tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv",
                    enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, seed=SEEDS, fold=range(FOLDS)),
-        ranks_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}CV_ranks_structure.csv.gz",
+        ranks_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
             enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, metric=METRICS),
-        tc_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv.gz",
+        tc_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv",
             enum_factor=ENUM_FACTORS,dataset=DATASET,repr=REPRESENTATIONS,metric=METRICS)
 
 
@@ -88,6 +88,7 @@ rule create_training_sets:
         '--folds {FOLDS} '
         '--representation {wildcards.repr} '
         '--min-tc {config[min_tc]} '
+        '--seed {config[random_seed]} '
         '--max-input-smiles {config[max_input_smiles]} '
 
 
@@ -109,8 +110,10 @@ rule collapse_train_test_data:
         mem_mb=20000,
         runtime=10,
     shell:
-        'cat {input.train_file} | sort | uniq > {output.train_file} && '
-        'cat {input.test_file} | sort | uniq > {output.test_file} '
+        # Note: We use python instead of sort | uniq > to avoid locale specific issues
+        # on the command line, and get a deterministic sort
+        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.train_file} > {output.train_file} && '
+        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file} '
 
 
 rule train_models_RNN:
@@ -171,6 +174,7 @@ rule sample_molecules_RNN:
         'python ../python/inner-sample-molecules-RNN.py '
         '--database {wildcards.dataset} '
         '--representation {wildcards.repr} '
+        '--seed {wildcards.seed} '
         '--rnn_type {MODEL_PARAMS[rnn_type]} '
         '--embedding_size {MODEL_PARAMS[embedding_size]} '
         '--hidden_size {MODEL_PARAMS[hidden_size]} '
@@ -275,8 +279,8 @@ rule write_structural_prior_CV:
         pubchem_file=config['pubchem_tsv_file'],
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
     output:
-         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz",
-         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv.gz"
+         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv",
+         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv"
     resources:
         mem_mb=32000,
         runtime=180,
@@ -289,7 +293,7 @@ rule write_structural_prior_CV:
         '--pubchem_file {input.pubchem_file} '
         '--sample_file {input.sample_file} '
         '--err_ppm {ERR_PPM} '
-
+        '--seed {config[random_seed]} '
 
 rule write_formula_prior_CV:
     """
@@ -314,7 +318,7 @@ rule write_formula_prior_CV:
         pubchem_file=config['pubchem_tsv_file'],
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
     output:
-         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv.gz"
+         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv"
     resources:
         mem_mb=32000,
         runtime=180,
@@ -326,7 +330,7 @@ rule write_formula_prior_CV:
         '--pubchem_file {input.pubchem_file} '
         '--sample_file {input.sample_file} '
         '--err_ppm {ERR_PPM} '
-
+        '--seed {config[random_seed]} '
 
 rule write_structural_prior_CV_overall:
     """
@@ -353,8 +357,8 @@ rule write_structural_prior_CV_overall:
         pubchem_file=config['pubchem_tsv_file'],
         sample_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv", metric=METRICS, allow_missing=True)
     output:
-        ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}CV_ranks_structure.csv.gz",
-        tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv.gz"
+        ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
+        tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv"
     resources:
         mem_mb=32000,
         runtime=180,
@@ -367,3 +371,4 @@ rule write_structural_prior_CV_overall:
         '--pubchem_file {input.pubchem_file} '
         '--sample_file {input.sample_file} '
         '--err_ppm {ERR_PPM} '
+        '--seed {config[random_seed]} '

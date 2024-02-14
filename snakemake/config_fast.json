@@ -28,6 +28,6 @@
 
   "min_tc": 0,
   "top_k": 30,
-  "err_ppm": 10
-
+  "err_ppm": 10,
+  "random_seed": null
 }

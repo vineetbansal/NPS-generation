@@ -14,6 +14,8 @@ from rdkit.DataStructs import FingerprintSimilarity
 from scipy import histogram
 from scipy.stats import entropy, gaussian_kde, wasserstein_distance
 from scipy.spatial.distance import jensenshannon
+import numpy as np
+import torch
 
 converter = deepsmiles.Converter(rings=True, branches=True)
 
@@ -454,3 +456,15 @@ def NeutraliseCharges(mol, reactions=None):
             rms = AllChem.ReplaceSubstructs(mol, reactant, product)
             mol = rms[0]
     return mol
+
+
+def set_seed(seed):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+
+
+def seed_type(value):
+    # A "type" useful for argparse arguments for random seeds
+    # that can come in as "None" (e.g. from a snakemake workflow)
+    return None if value == "None" else int(value)

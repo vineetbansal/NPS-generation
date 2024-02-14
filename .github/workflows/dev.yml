@@ -36,6 +36,11 @@ jobs:
     - name: Install developer dependencies
       run: pip install .[dev]
 
+    - name: Conda Info
+      run: |
+        conda info
+        conda list --export
+
     - name: Pytest
       shell: bash
-      run: pytest tests
+      run: pytest
