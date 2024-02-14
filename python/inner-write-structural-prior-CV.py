@@ -174,10 +174,10 @@ def write_structural_prior_CV(ranks_file, tc_file, train_file, test_file, pubche
     # write to output files
     os.makedirs(os.path.dirname(ranks_file), exist_ok=True)
     rank_df.to_csv(ranks_file, index=False,
-                   compression='gzip')
+                   compression='gzip' if ranks_file.endswith('.gz') else None)
     os.makedirs(os.path.dirname(tc_file), exist_ok=True)
     tc_df.to_csv(tc_file, index=False,
-                 compression='gzip')
+                 compression='gzip' if args.tc_file.endswith('.gz') else None)
 
 
 def main(args):
@@ -188,7 +188,8 @@ def main(args):
                               pubchem_file=args.pubchem_file,
                               sample_file=args.sample_file,
                               err_ppm=args.err_ppm,
-                              chunk_size=args.chunk_size)
+                              chunk_size=args.chunk_size,
+                              seed=args.seed)
 
 
 if __name__ == '__main__':
