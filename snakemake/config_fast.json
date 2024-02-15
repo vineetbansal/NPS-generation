@@ -6,7 +6,7 @@
   "representations": ["SMILES"],
   "folds": 3,
   "seeds": [0, 1],
-  "enum_factors": [0],
+  "enum_factors": [0, 2],
   "max_input_smiles": 1000,
 
   "model_params": {

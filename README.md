@@ -1,4 +1,4 @@
-## NPS-generation
+## CLM
 
 This repository contains Python source code required to train and evaluate deep generative models of novel psychoactive substances, as used in the manuscript, "A deep generative model enables automated structure elucidation of novel psychoactive substances."
 
