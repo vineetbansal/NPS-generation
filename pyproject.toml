@@ -40,13 +40,6 @@ package-dir = {"" = "src"}
 [tool.setuptools_scm]
 write_to = "src/clm/_version.py"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = [
-    "clm",
-    "clm.util"
-]
-
 [tool.setuptools.package-data]
 clm = ["data/*.smi"]
 
