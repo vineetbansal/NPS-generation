@@ -14,12 +14,6 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-# suppress Chem.MolFromSmiles error output
-from rdkit import rdBase
-
-rdBase.DisableLog("rdApp.error")
-
-
 # import classes
 from NPS_generation.models import RNN, OneHotRNN, EarlyStopping
 from NPS_generation.datasets import SmilesDataset, SelfiesDataset, SmilesCollate
@@ -31,9 +25,14 @@ from NPS_generation.functions import (
     write_smiles,
 )
 
+# suppress Chem.MolFromSmiles error output
+from rdkit import rdBase
+
+rdBase.DisableLog("rdApp.error")
+
 
 def main(args_list=None):
-    ### CLI
+    # CLI
     parser = argparse.ArgumentParser(
         description="Chemical structure language model interface"
     )
@@ -101,7 +100,7 @@ def main(args_list=None):
         "--learning_rate_decay",
         default=None,  # type=float,
         help="amount (0-1) to decrease learning rate by every "
-        + "fixed number of steps",
+             + "fixed number of steps",
     )
     parser.add_argument(
         "--learning_rate_decay_steps",
@@ -215,7 +214,7 @@ def main(args_list=None):
         except FileExistsError:
             pass
 
-    ## seed all RNGs
+    # seed all RNGs
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -272,8 +271,8 @@ def main(args_list=None):
     # set up optimizer
     optimizer = optim.Adam(
         model.parameters(),
-        betas=(0.9, 0.999),  ## default
-        eps=1e-08,  ## default
+        betas=(0.9, 0.999),  # default
+        eps=1e-08,  # default
         lr=args.learning_rate,
     )
 
@@ -309,8 +308,8 @@ def main(args_list=None):
 
             # check learning rate decay
             if (
-                args.learning_rate_decay is not None
-                and counter % args.learning_rate_decay_steps == 0
+                    args.learning_rate_decay is not None
+                    and counter % args.learning_rate_decay_steps == 0
             ):
                 decrease_learning_rate(optimizer, multiplier=args.learning_rate_decay)
 
@@ -394,7 +393,7 @@ def main(args_list=None):
 
     # load the best model
     model.load_state_dict(torch.load(model_file))
-    model.eval()  ## enable evaluation modes
+    model.eval()  # enable evaluation modes
 
     # sample a set of SMILES from the final, trained model
     sampled_smiles = []

@@ -9,12 +9,6 @@ from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
 from tqdm import tqdm
 
-# set working directory
-git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
-python_dir = git_dir + "/python"
-os.chdir(python_dir)
-sys.path.append(python_dir)
-
 # import functions
 from NPS_generation.python.functions import (
     write_smiles,
@@ -25,9 +19,15 @@ from NPS_generation.python.functions import (
 from NPS_generation.python.datasets import Vocabulary, SelfiesVocabulary
 from NPS_generation.python.util.SmilesEnumerator import SmilesEnumerator
 
-### dynamically build CLI
+# set working directory
+git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
+python_dir = git_dir + "/python"
+os.chdir(python_dir)
+sys.path.append(python_dir)
+
+# dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
+# build the CLI
 grid_file = git_dir + "/sh/grids/preprocess-gdb13-sample.txt"
 grid = pd.read_csv(grid_file, sep="\t")
 for arg_name in list(grid):
@@ -63,14 +63,14 @@ mols = [remove_salts_solvents(mol, hac=3) if mol else None for mol in tqdm(mols)
 # remove charges
 mols = [NeutraliseCharges(mol) if mol else None for mol in tqdm(mols)]
 # remove molecules with invalid atoms
-## what unique atoms are present in any molecule?
+# what unique atoms are present in any molecule?
 elements = [
     [atom.GetSymbol() for atom in mol.GetAtoms()] if mol else None for mol in mols
 ]
 counts = np.unique(
     list(chain(*[element for element in elements if element])), return_counts=True
 )
-## define valid symbols
+# define valid symbols
 valid = set(["Br", "C", "Cl", "F", "H", "I", "N", "O", "P", "S"])
 for idx, atoms in enumerate(elements):
     if atoms is not None and len(set(atoms) - valid) > 0:
@@ -91,7 +91,7 @@ if args.enum_factor > 0:
     # create enumerator
     sme = SmilesEnumerator(canonical=False, enum=True)
     enum = []
-    max_tries = 200  ## randomized SMILES to generate for each input structure
+    max_tries = 200  # randomized SMILES to generate for each input structure
     for sm_idx, sm in enumerate(tqdm(smiles)):
         tries = []
         for try_idx in range(max_tries):

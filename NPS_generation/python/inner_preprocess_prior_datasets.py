@@ -1,5 +1,5 @@
 """
-Create input files for the cross-validation experiment by splitting into 
+Create input files for the cross-validation experiment by splitting into
 cross-validation folds.
 """
 
@@ -7,10 +7,7 @@ import argparse
 import itertools
 import numpy as np
 import os
-import pandas as pd
 import random
-import sys
-from itertools import chain
 from rdkit import Chem
 from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
@@ -71,14 +68,11 @@ def preprocess_prior_datasets(
     # remove charges
     mols = [NeutraliseCharges(mol) if mol else None for mol in tqdm(mols)]
     # remove molecules with invalid atoms
-    ## what unique atoms are present in any molecule?
+    # what unique atoms are present in any molecule?
     elements = [
         [atom.GetSymbol() for atom in mol.GetAtoms()] if mol else None for mol in mols
     ]
-    counts = np.unique(
-        list(chain(*[element for element in elements if element])), return_counts=True
-    )
-    ## define valid symbols
+    # define valid symbols
     valid = set(["Br", "C", "Cl", "F", "H", "I", "N", "O", "P", "S"])
     for idx, atoms in enumerate(elements):
         if atoms is not None and len(set(atoms) - valid) > 0:
@@ -110,7 +104,7 @@ def preprocess_prior_datasets(
         for idx, fold in enumerate(folds):
             # enumerate potential SMILES
             enum = []
-            max_tries = 200  ## randomized SMILES to generate for each input structure
+            max_tries = 200  # randomized SMILES to generate for each input structure
             for sm_idx, sm in enumerate(tqdm(fold)):
                 tries = []
                 for try_idx in range(max_tries):

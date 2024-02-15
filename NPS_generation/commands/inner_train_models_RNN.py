@@ -11,16 +11,16 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-# suppress Chem.MolFromSmiles error output
 from rdkit import rdBase
-
-rdBase.DisableLog("rdApp.error")
 
 from NPS_generation.python.datasets import SmilesDataset, SelfiesDataset
 from NPS_generation.python.models import RNN
-from NPS_generation.python.functions import check_arg, read_smiles, write_smiles
+from NPS_generation.python.functions import read_smiles, write_smiles
 from NPS_generation.python.loggers import EarlyStopping, track_loss, print_update
 from NPS_generation.functions import set_seed, seed_type
+
+# suppress Chem.MolFromSmiles error output
+rdBase.DisableLog("rdApp.error")
 
 
 def add_args(parser):
@@ -51,35 +51,33 @@ def add_args(parser):
 
 
 def train_models_RNN(
-    database,
-    representation,
-    seed,
-    rnn_type,
-    embedding_size,
-    hidden_size,
-    n_layers,
-    dropout,
-    batch_size,
-    learning_rate,
-    max_epochs,
-    patience,
-    log_every_steps,
-    log_every_epochs,
-    sample_mols,
-    input_file,
-    vocab_file,
-    smiles_file,
-    model_file,
-    loss_file,
+        database,
+        representation,
+        seed,
+        rnn_type,
+        embedding_size,
+        hidden_size,
+        n_layers,
+        dropout,
+        batch_size,
+        learning_rate,
+        max_epochs,
+        patience,
+        log_every_steps,
+        log_every_epochs,
+        sample_mols,
+        input_file,
+        vocab_file,
+        smiles_file,
+        model_file,
+        loss_file,
 ):
-
     set_seed(seed)
 
     os.makedirs(os.path.dirname(model_file), exist_ok=True)
     os.makedirs(os.path.dirname(loss_file), exist_ok=True)
 
     # detect device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("cuda: {}".format(torch.cuda.is_available()))
 
     # read training set

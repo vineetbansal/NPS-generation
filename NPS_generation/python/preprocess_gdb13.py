@@ -4,7 +4,6 @@ Preprocess the entire GDB-13 dataset.
 
 import argparse
 import os
-import sys
 from rdkit import Chem
 
 

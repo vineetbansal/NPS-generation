@@ -1,5 +1,5 @@
 """
-Calculate the Tanimoto coefficient between random pairs of SMILES in a 
+Calculate the Tanimoto coefficient between random pairs of SMILES in a
 database.
 """
 
@@ -9,11 +9,6 @@ import pandas as pd
 import random
 from rdkit.DataStructs import FingerprintSimilarity
 
-# set working directory
-git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
-python_dir = git_dir + "/python"
-os.chdir(python_dir)
-
 # import functions
 from functions import clean_mols, get_ecfp6_fingerprints, read_smiles
 
@@ -22,9 +17,14 @@ from rdkit import rdBase
 
 rdBase.DisableLog("rdApp.error")
 
-### dynamically build CLI
+# set working directory
+git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
+python_dir = git_dir + "/python"
+os.chdir(python_dir)
+
+# dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
+# build the CLI
 grid_file = git_dir + "/sh/grids/write-pairwise-Tc-distribution.txt"
 grid = pd.read_csv(grid_file, sep="\t")
 for arg_name in list(grid):

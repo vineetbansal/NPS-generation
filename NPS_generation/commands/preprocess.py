@@ -123,7 +123,7 @@ def preprocess(
     logger.info("got {} unique canonical SMILES".format(len(smiles)))
 
     if remove_rare:
-        logger.info(f"Creating vocabulary")
+        logger.info("Creating vocabulary")
         vocabulary = Vocabulary(smiles=smiles)
         logger.info(f"Trimming vocabulary of size {len(vocabulary)}")
         n_smiles = len(smiles)

@@ -20,24 +20,8 @@ from scipy.stats import wasserstein_distance
 from scipy.spatial.distance import jensenshannon
 from tqdm import tqdm
 
-# suppress Chem.MolFromSmiles error output
-from rdkit import rdBase
-
-rdBase.DisableLog("rdApp.error")
-# import from rdkit.Contrib module
-from rdkit.Chem import RDConfig
-
-sys.path.append(os.path.join(RDConfig.RDContribDir, "SA_Score"))
-import sascorer
-
-sys.path.append(os.path.join(RDConfig.RDContribDir, "NP_Score"))
-import npscorer
-
-# set working directory
-git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
-python_dir = git_dir + "/python"
-os.chdir(python_dir)
-sys.path.append(python_dir)
+from rdkit.Contrib.SA_Score import sascorer
+from rdkit.Contrib.NP_Score import npscorer
 
 # import functions
 from functions import (
@@ -52,9 +36,20 @@ from functions import (
     pct_stereocenters,
 )
 
-### dynamically build CLI
+# suppress Chem.MolFromSmiles error output
+from rdkit import rdBase
+
+rdBase.DisableLog("rdApp.error")
+
+# set working directory
+git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
+python_dir = git_dir + "/python"
+os.chdir(python_dir)
+sys.path.append(python_dir)
+
+# dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
+# build the CLI
 grid_file = git_dir + "/sh/grids/calculate-outcomes.txt"
 grid = pd.read_csv(grid_file, sep="\t")
 for arg_name in list(grid):
@@ -85,18 +80,18 @@ org_mols = [
 org_canonical = [Chem.MolToSmiles(mol) for mol in org_mols]
 
 # calculate training set descriptors
-## heteroatom distribution
+# heteroatom distribution
 org_elements = [[atom.GetSymbol() for atom in mol.GetAtoms()] for mol in org_mols]
 org_counts = np.unique(list(chain(*org_elements)), return_counts=True)
-## molecular weights
+# molecular weights
 org_mws = [Descriptors.MolWt(mol) for mol in org_mols]
-## logP
+# logP
 org_logp = [Descriptors.MolLogP(mol) for mol in tqdm(org_mols)]
-## Bertz TC
+# Bertz TC
 org_tcs = [BertzCT(mol) for mol in tqdm(org_mols)]
-## TPSA
+# TPSA
 org_tpsa = [Descriptors.TPSA(mol) for mol in org_mols]
-## QED
+# QED
 org_qed = []
 for mol in org_mols:
     try:
@@ -104,11 +99,11 @@ for mol in org_mols:
     except OverflowError:
         pass
 
-## number of rings
+# number of rings
 org_rings1 = [Lipinski.RingCount(mol) for mol in tqdm(org_mols)]
 org_rings2 = [Lipinski.NumAliphaticRings(mol) for mol in tqdm(org_mols)]
 org_rings3 = [Lipinski.NumAromaticRings(mol) for mol in tqdm(org_mols)]
-## SA score
+# SA score
 org_SA = []
 for mol in tqdm(org_mols):
     try:
@@ -116,19 +111,19 @@ for mol in tqdm(org_mols):
     except (OverflowError, ZeroDivisionError):
         pass
 
-## NP-likeness
+# NP-likeness
 fscore = npscorer.readNPModel()
 org_NP = [npscorer.scoreMol(mol, fscore) for mol in tqdm(org_mols)]
-## % sp3 carbons
+# % sp3 carbons
 org_sp3 = [Lipinski.FractionCSP3(mol) for mol in org_mols]
-## % rotatable bonds
+# % rotatable bonds
 org_rot = [pct_rotatable_bonds(mol) for mol in org_mols]
-## % of stereocentres
+# % of stereocentres
 org_stereo = [pct_stereocenters(mol) for mol in org_mols]
 # Murcko scaffolds
 org_murcko = [MurckoScaffoldSmiles(mol=mol) for mol in org_mols]
 org_murcko_counts = np.unique(org_murcko, return_counts=True)
-## hydrogen donors/acceptors
+# hydrogen donors/acceptors
 org_donors = [Lipinski.NumHDonors(mol) for mol in org_mols]
 org_acceptors = [Lipinski.NumHAcceptors(mol) for mol in org_mols]
 
@@ -162,7 +157,7 @@ gen_canonical = [sm for sm in gen_canonical if sm != ""]
 res = pd.DataFrame()
 
 # calculate descriptors
-## outcome 1: % valid
+# outcome 1: % valid
 pct_valid = len(gen_mols) / len(gen_smiles)
 res = res.append(
     pd.DataFrame(
@@ -171,10 +166,10 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 2: % novel
+# outcome 2: % novel
 # convert back to canonical SMILES for text-based comparison
 org_set = set(org_canonical)
-pct_novel = len([sm for sm in gen_canonical if not sm in org_set]) / len(gen_canonical)
+pct_novel = len([sm for sm in gen_canonical if sm not in org_set]) / len(gen_canonical)
 res = res.append(
     pd.DataFrame(
         {"input_file": args.sampled_file, "outcome": "% novel", "value": [pct_novel]}
@@ -182,7 +177,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 3: % unique
+# outcome 3: % unique
 pct_unique = len(set(gen_canonical)) / len(gen_canonical)
 res = res.append(
     pd.DataFrame(
@@ -192,9 +187,9 @@ res = res.append(
 print(res.tail(1))
 
 # remove known molecules before calculating divergence metrics
-gen_mols = [gen_mols[idx] for idx, sm in enumerate(gen_canonical) if not sm in org_set]
+gen_mols = [gen_mols[idx] for idx, sm in enumerate(gen_canonical) if sm not in org_set]
 
-## outcome 4: K-L divergence of heteroatom distributions
+# outcome 4: K-L divergence of heteroatom distributions
 gen_elements = [[atom.GetSymbol() for atom in mol.GetAtoms()] for mol in gen_mols]
 gen_counts = np.unique(list(chain(*gen_elements)), return_counts=True)
 # get all unique keys
@@ -222,7 +217,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 5: K-L divergence of molecular weight
+# outcome 5: K-L divergence of molecular weight
 gen_mws = [Descriptors.MolWt(mol) for mol in gen_mols]
 jsd_mws = continuous_JSD(gen_mws, org_mws)
 res = res.append(
@@ -237,7 +232,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 6: K-L divergence of LogP
+# outcome 6: K-L divergence of LogP
 gen_logp = [Descriptors.MolLogP(mol) for mol in gen_mols]
 jsd_logp = continuous_JSD(gen_logp, org_logp)
 res = res.append(
@@ -252,7 +247,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 7: K-L divergence of Bertz topological complexity
+# outcome 7: K-L divergence of Bertz topological complexity
 gen_tcs = [BertzCT(mol) for mol in gen_mols]
 jsd_tc = continuous_JSD(gen_tcs, org_tcs)
 res = res.append(
@@ -267,7 +262,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 8: K-L divergence of QED
+# outcome 8: K-L divergence of QED
 gen_qed = []
 for mol in gen_mols:
     try:
@@ -288,7 +283,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 9: K-L divergence of TPSA
+# outcome 9: K-L divergence of TPSA
 gen_tpsa = [Descriptors.TPSA(mol) for mol in gen_mols]
 jsd_tpsa = continuous_JSD(gen_tpsa, org_tpsa)
 res = res.append(
@@ -303,7 +298,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## also, summarize using nearest-neighbor instead of mean
+# also, summarize using nearest-neighbor instead of mean
 gen_fps = get_ecfp6_fingerprints(gen_mols)
 nn1 = internal_nn(gen_fps)
 nn2 = external_nn(gen_fps, org_fps)
@@ -318,7 +313,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 12: K-L divergence of number of rings
+# outcome 12: K-L divergence of number of rings
 gen_rings1 = [Lipinski.RingCount(mol) for mol in gen_mols]
 gen_rings2 = [Lipinski.NumAliphaticRings(mol) for mol in gen_mols]
 gen_rings3 = [Lipinski.NumAromaticRings(mol) for mol in gen_mols]
@@ -340,7 +335,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 13: K-L divergence of SA score
+# outcome 13: K-L divergence of SA score
 gen_SA = []
 for mol in gen_mols:
     try:
@@ -361,7 +356,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 14: K-L divergence of NP-likeness
+# outcome 14: K-L divergence of NP-likeness
 gen_NP = []
 for mol in gen_mols:
     try:
@@ -382,7 +377,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 15: K-L divergence of % sp3 carbons
+# outcome 15: K-L divergence of % sp3 carbons
 gen_sp3 = [Lipinski.FractionCSP3(mol) for mol in gen_mols]
 jsd_sp3 = continuous_JSD(gen_sp3, org_sp3)
 res = res.append(
@@ -397,7 +392,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 16: K-L divergence of % rotatable bonds
+# outcome 16: K-L divergence of % rotatable bonds
 gen_rot = [pct_rotatable_bonds(mol) for mol in gen_mols]
 jsd_rot = continuous_JSD(gen_rot, org_rot)
 res = res.append(
@@ -412,7 +407,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 17: K-L divergence of % stereocenters
+# outcome 17: K-L divergence of % stereocenters
 gen_stereo = [pct_stereocenters(mol) for mol in gen_mols]
 jsd_stereo = continuous_JSD(gen_stereo, org_stereo)
 res = res.append(
@@ -427,7 +422,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 18: K-L divergence of Murcko scaffolds
+# outcome 18: K-L divergence of Murcko scaffolds
 gen_murcko = [MurckoScaffoldSmiles(mol=mol) for mol in gen_mols]
 gen_murcko_counts = np.unique(gen_murcko, return_counts=True)
 # get all unique keys
@@ -450,7 +445,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 19: K-L divergence of # of hydrogen donors/acceptors
+# outcome 19: K-L divergence of # of hydrogen donors/acceptors
 gen_donors = [Lipinski.NumHDonors(mol) for mol in gen_mols]
 gen_acceptors = [Lipinski.NumHAcceptors(mol) for mol in gen_mols]
 jsd_donors = discrete_JSD(gen_donors, org_donors)
@@ -469,7 +464,7 @@ res = res.append(
 )
 print(res.tail(1))
 
-## outcome 20: Frechet ChemNet distance
+# outcome 20: Frechet ChemNet distance
 fcd = FCD(canonize=False)
 fcd_calc = fcd(gen_canonical, org_canonical)
 res = res.append(

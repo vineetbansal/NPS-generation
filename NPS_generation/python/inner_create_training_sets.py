@@ -1,20 +1,17 @@
 """
-Create input files to train a chemical language model. 
+Create input files to train a chemical language model.
 """
 
 import argparse
 import numpy as np
 import os
-import pandas as pd
 import random
-import sys
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
 from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
 from tqdm import tqdm
 
-# import functions
 from NPS_generation.python.functions import read_smiles, clean_mols
 from NPS_generation.python.datasets import Vocabulary, SelfiesVocabulary
 from NPS_generation.python.util.SmilesEnumerator import SmilesEnumerator
@@ -97,7 +94,6 @@ def create_training_sets(
         input_smiles, input_fps = zip(*inputs)
 
         # pick our seed molecule at random
-        target_smiles = input_smiles[0]
         target_fp = input_fps[0]
 
         # get Tanimoto coefficients
@@ -114,11 +110,12 @@ def create_training_sets(
             break
 
     # if we failed to pick enough molecules, write an empty error file
-    if not success:
-        error_file = os.path.splitext(output_file)[0] + ".err"
-        with open(error_file, "w") as empty_file:
-            pass
-    else:
+    # TODO: Not sure why the following two lines were there (Was originally uncommented)
+    # if not success:
+        # error_file = os.path.splitext(output_file)[0] + ".err"
+        # with open(error_file, "w") as empty_file:
+        #    pass
+    if success:
         # first, do SMILES enumeration on the training set
         print("doing SMILES enumeration on {} molecules ...".format(len(subset_smiles)))
         if enum_factor > 0:
@@ -167,7 +164,7 @@ def create_training_sets(
                     _ = f.write(output + "\n")
 
         # last, write vocabulary
-        ## no filtering of low-frequency tokens here
+        # no filtering of low-frequency tokens here
         if representation == "SELFIES":
             vocabulary = SelfiesVocabulary(selfies=outputs)
         else:

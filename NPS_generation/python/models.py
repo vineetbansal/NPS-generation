@@ -69,7 +69,7 @@ class RNN(nn.Module):
 
         # embed the padded sequence
         embedded = self.embedding(padded)
-        ### -> embedded: max_len x batch_size x emb_size
+        # -> embedded: max_len x batch_size x emb_size
         if self.dropout.p > 0:
             embedded = self.dropout(embedded)
 
@@ -78,13 +78,13 @@ class RNN(nn.Module):
         packed_output, hidden = self.rnn(packed)
         # unpack the output
         padded_output, output_lens = pad_packed_sequence(packed_output)
-        ### -> packed_output: max_len x batch_size x hidden_size
+        # -> packed_output: max_len x batch_size x hidden_size
 
         # run LSTM output through decoder
         if self.dropout.p > 0:
             padded_output = self.dropout(padded_output)
         decoded = self.decoder(padded_output)
-        ### -> decoded: max_len x batch_size x vocab_len
+        # -> decoded: max_len x batch_size x vocab_len
 
         # finally, calculate loss
         loss = 0.0
@@ -178,7 +178,7 @@ class CausalSelfAttention(nn.Module):
         self.attn_dropout = nn.Dropout(self.dropout)
         self.resid_dropout = nn.Dropout(self.dropout)
 
-        ## from nanoGPT:
+        # from nanoGPT:
         # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
         self.flash = hasattr(torch.nn.functional, "scaled_dot_product_attention")
         if not self.flash:
@@ -201,7 +201,7 @@ class CausalSelfAttention(nn.Module):
         k = k.view(B, T, self.n_heads, C // self.n_heads).transpose(1, 2)
         q = q.view(B, T, self.n_heads, C // self.n_heads).transpose(1, 2)
         v = v.view(B, T, self.n_heads, C // self.n_heads).transpose(1, 2)
-        ## -> (B, nh, T, hs)
+        # -> (B, nh, T, hs)
 
         # causal self-attention; Self-attend:
         # (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
@@ -361,7 +361,7 @@ class Transformer(nn.Module):
             )
         )
         self.lm_head = nn.Linear(self.embedding_size, self.vocabulary_size, bias=False)
-        ## skip weight tying per MolGPT
+        # skip weight tying per MolGPT
 
         # loss function (ignoring padding)
         self.loss_fn = nn.CrossEntropyLoss(
@@ -387,11 +387,11 @@ class Transformer(nn.Module):
 
         # embeddings
         tok_emb = self.transformer.wte(x)
-        ## -> batch_size * seq_len * emb_size
+        # -> batch_size * seq_len * emb_size
         # position embeddings
         pos = torch.arange(0, seq_len, dtype=torch.long, device=x.device)
         pos_emb = self.transformer.wpe(pos)
-        ## -> 1 * seq_len * emb_size
+        # -> 1 * seq_len * emb_size
 
         # combine embeddings with dropout
         x = self.transformer.drop(tok_emb + pos_emb)
@@ -414,7 +414,7 @@ class Transformer(nn.Module):
 
         # pass through the entire transformer model
         decoded = self(padded)
-        ### -> decoded: batch_size x max_len x vocab_size
+        # -> decoded: batch_size x max_len x vocab_size
 
         # finally, calculate loss
         loss = 0.0

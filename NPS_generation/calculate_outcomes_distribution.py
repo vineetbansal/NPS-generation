@@ -15,20 +15,18 @@ from rdkit.Chem import Lipinski
 from rdkit.Chem.GraphDescriptors import BertzCT
 from tqdm import tqdm
 
-# suppress Chem.MolFromSmiles error output
 from rdkit import rdBase
-
-rdBase.DisableLog("rdApp.error")
-# import from rdkit.Contrib module
 from rdkit.Contrib.SA_Score import sascorer
 from rdkit.Contrib.NP_Score import npscorer
 
-# import functions
 from NPS_generation.functions import clean_mols, read_smiles
+
+# suppress Chem.MolFromSmiles error output
+rdBase.DisableLog("rdApp.error")
 
 
 def main(args_list=None):
-    ### CLI
+    # CLI
     parser = argparse.ArgumentParser(
         description="Calculate a series of properties for a set of SMILES"
     )
@@ -80,24 +78,24 @@ def main(args_list=None):
     ref_mols = [mol for mol in clean_mols(ref_smiles) if mol]
     ref_canonical = [Chem.MolToSmiles(mol, isomericSmiles=False) for mol in ref_mols]
 
-    ## drop known molecules
+    # drop known molecules
     canonical = [sm for sm in canonical if sm not in ref_canonical]
     # re-parse molecules
     mols = [mol for mol in clean_mols(canonical) if mol]
 
     # calculate descriptors
-    ## heteroatom distribution
+    # heteroatom distribution
     elements = [[atom.GetSymbol() for atom in mol.GetAtoms()] for mol in mols]
     counts = np.unique(list(chain(*elements)), return_counts=True)
-    ## molecular weights
+    # molecular weights
     mws = [Descriptors.MolWt(mol) for mol in mols]
-    ## logP
+    # logP
     logp = [Descriptors.MolLogP(mol) for mol in tqdm(mols)]
-    ## Bertz TC
+    # Bertz TC
     tcs = [BertzCT(mol) for mol in tqdm(mols)]
-    ## TPSA
+    # TPSA
     tpsa = [Descriptors.TPSA(mol) for mol in mols]
-    ## QED
+    # QED
     qed = []
     for mol in tqdm(mols):
         try:
@@ -105,15 +103,15 @@ def main(args_list=None):
         except OverflowError:
             pass
 
-    ## % of sp3 carbons
+    # % of sp3 carbons
     pct_sp3 = [Lipinski.FractionCSP3(mol) for mol in tqdm(mols)]
-    ## % heteroatoms
+    # % heteroatoms
     pct_hetero = [
         Lipinski.NumHeteroatoms(mol) / mol.GetNumAtoms() for mol in tqdm(mols)
     ]
-    ## number of rings
+    # number of rings
     rings = [Lipinski.RingCount(mol) for mol in tqdm(mols)]
-    ## SA score
+    # SA score
     SA = []
     for mol in tqdm(mols):
         try:
@@ -121,7 +119,7 @@ def main(args_list=None):
         except (OverflowError, ZeroDivisionError):
             pass
 
-    ## NP-likeness
+    # NP-likeness
     fscore = npscorer.readNPModel()
     NP = [npscorer.scoreMol(mol, fscore) for mol in tqdm(mols)]
 

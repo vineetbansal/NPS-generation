@@ -213,8 +213,7 @@ class SmilesEnumerator(object):
             for i, ss in enumerate(smiles):
                 if self.enumerate:
                     ss = self.randomize_smiles(ss)
-                l = len(ss)
-                diff = self.pad - l
+                diff = self.pad - len(ss)
                 for j, c in enumerate(ss):
                     one_hot[i, j + diff, self._char_to_int[c]] = 1
             return one_hot
