@@ -41,6 +41,10 @@ jobs:
         conda info
         conda list --export
 
+    - name: Pre-commit checks
+      run: |
+          pre-commit run --all-files
+
     - name: Pytest
       shell: bash
       run: pytest

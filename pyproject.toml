@@ -53,5 +53,6 @@ addopts = "-sv"
 
 [project.optional-dependencies]
 dev = [
+    "pre-commit",
     "pytest"
 ]

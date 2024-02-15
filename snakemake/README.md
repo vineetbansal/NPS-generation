@@ -63,7 +63,7 @@ snakemake --config dataset=/path/to/LOTUS.txt pubchem_tsv_file=/path/to/PubChem.
 ```
 
 Replace `dataset` and `pubchem_tsv_file` with the paths to the `LOTUS.txt` and `PubChem.tsv` file respectively. These will override the
-values obtained for these flags in `config.json`. Alternately, you can change `config.json` to point to the correct paths. 
+values obtained for these flags in `config.json`. Alternately, you can change `config.json` to point to the correct paths.
 
 Repeat the command without the `--dry-run -p` to execute the workflow. The end-end workflow should take around 12-15 hours, depending on the cluster workload.
 
