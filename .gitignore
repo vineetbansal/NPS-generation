@@ -21,4 +21,4 @@ __pycache__
 /build/
 
 # version file (managed by setuptools-scm)
-clm/_version.py
+src/clm/_version.py

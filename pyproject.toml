@@ -34,8 +34,11 @@ dynamic = ["version"]
 [project.scripts]
 clm = "clm.__main__:main"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools_scm]
-write_to = "clm/_version.py"
+write_to = "src/clm/_version.py"
 
 [tool.setuptools.packages.find]
 where = ["."]
