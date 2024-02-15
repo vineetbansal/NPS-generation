@@ -19,7 +19,7 @@ class Vocabulary(object):
             self.characters = list(set(chain(*all_chars)))
 
         # add padding token
-        if not "<PAD>" in self.characters:
+        if "<PAD>" not in self.characters:
             # ... unless reading a padded vocabulary from file
             self.characters.append("<PAD>")
 
@@ -102,7 +102,7 @@ class SelfiesVocabulary(object):
             self.characters.extend(["SOS", "EOS"])
 
         # add padding token
-        if not "<PAD>" in self.characters:
+        if "<PAD>" not in self.characters:
             # ... unless reading a padded vocabulary from file
             self.characters.append("<PAD>")
 

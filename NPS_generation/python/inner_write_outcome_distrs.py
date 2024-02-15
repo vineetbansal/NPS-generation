@@ -8,38 +8,31 @@ import os
 import numpy as np
 import pandas as pd
 import random
-import sys
 from itertools import chain
 from rdkit.Chem import Descriptors
 from rdkit.Chem import Lipinski
 from rdkit.Chem.GraphDescriptors import BertzCT
 from rdkit.Chem.Scaffolds.MurckoScaffold import MurckoScaffoldSmiles
 from tqdm import tqdm
+from rdkit.Contrib.SA_Score import sascorer
+from rdkit.Contrib.NP_Score import npscorer
+
+# import functions
+from functions import clean_mols, read_smiles, pct_rotatable_bonds, pct_stereocenters
 
 # suppress Chem.MolFromSmiles error output
 from rdkit import rdBase
 
 rdBase.DisableLog("rdApp.error")
-# import from rdkit.Contrib module
-from rdkit.Chem import RDConfig
-
-sys.path.append(os.path.join(RDConfig.RDContribDir, "SA_Score"))
-import sascorer
-
-sys.path.append(os.path.join(RDConfig.RDContribDir, "NP_Score"))
-import npscorer
 
 # set working directory
 git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
 python_dir = git_dir + "/python"
 os.chdir(python_dir)
 
-# import functions
-from functions import clean_mols, read_smiles, pct_rotatable_bonds, pct_stereocenters
-
-### dynamically build CLI
+# dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
+# build the CLI
 grid_file = git_dir + "/sh/grids/write-outcome-distrs.txt"
 grid = pd.read_csv(grid_file, sep="\t")
 for arg_name in list(grid):
@@ -87,22 +80,22 @@ mols = [mols[idx] for idx in idxs]
 smiles = [smiles[idx] for idx in idxs]
 
 # calculate descriptors
-## heteroatom distribution
+# heteroatom distribution
 elements = [[atom.GetSymbol() for atom in mol.GetAtoms()] for mol in mols]
 counts = np.unique(list(chain(*elements)), return_counts=True)
 # Murcko scaffolds
 murcko = [MurckoScaffoldSmiles(mol=mol) for mol in mols]
 murcko_counts = np.unique(murcko, return_counts=True)
 
-## molecular weights
+# molecular weights
 mws = [Descriptors.MolWt(mol) for mol in mols]
-## logP
+# logP
 logp = [Descriptors.MolLogP(mol) for mol in tqdm(mols)]
-## Bertz TC
+# Bertz TC
 tcs = [BertzCT(mol) for mol in tqdm(mols)]
-## TPSA
+# TPSA
 tpsa = [Descriptors.TPSA(mol) for mol in mols]
-## QED
+# QED
 qed = []
 for mol in tqdm(mols):
     try:
@@ -110,22 +103,22 @@ for mol in tqdm(mols):
     except OverflowError:
         pass
 
-## % of sp3 carbons
+# % of sp3 carbons
 pct_sp3 = [Lipinski.FractionCSP3(mol) for mol in tqdm(mols)]
-## % rotatable bonds
+# % rotatable bonds
 pct_rot = [pct_rotatable_bonds(mol) for mol in mols]
-## % of stereocentres
+# % of stereocentres
 pct_stereo = [pct_stereocenters(mol) for mol in mols]
-## % heteroatoms
+# % heteroatoms
 pct_hetero = [Lipinski.NumHeteroatoms(mol) / mol.GetNumAtoms() for mol in tqdm(mols)]
-## number of rings
+# number of rings
 rings = [Lipinski.RingCount(mol) for mol in tqdm(mols)]
 ali_rings = [Lipinski.NumAliphaticRings(mol) for mol in tqdm(mols)]
 aro_rings = [Lipinski.NumAromaticRings(mol) for mol in tqdm(mols)]
-## hydrogen donors/acceptors
+# hydrogen donors/acceptors
 h_donors = [Lipinski.NumHDonors(mol) for mol in mols]
 h_acceptors = [Lipinski.NumHAcceptors(mol) for mol in mols]
-## SA score
+# SA score
 SA = []
 for mol in tqdm(mols):
     try:
@@ -133,7 +126,7 @@ for mol in tqdm(mols):
     except (OverflowError, ZeroDivisionError):
         pass
 
-## NP-likeness
+# NP-likeness
 fscore = npscorer.readNPModel()
 NP = [npscorer.scoreMol(mol, fscore) for mol in tqdm(mols)]
 

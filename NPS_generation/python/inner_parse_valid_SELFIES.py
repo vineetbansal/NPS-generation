@@ -12,17 +12,17 @@ import sys
 import time
 from rdkit import Chem
 
+from NPS_generation.python.datasets import Vocabulary, SelfiesVocabulary
+
 # set working directory
 git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
 python_dir = git_dir + "/python"
 os.chdir(python_dir)
 sys.path.append(python_dir)
 
-from NPS_generation.python.datasets import Vocabulary, SelfiesVocabulary
-
-### dynamically build CLI
+# dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
+# build the CLI
 grid_file = git_dir + "/sh/grids/parse-valid-SELFIES.txt"
 grid = pd.read_csv(grid_file, sep="\t")
 for arg_name in list(grid):
@@ -118,12 +118,12 @@ def cat_error(errors):
             # so not only pass those errors that do not contain while parsing
             if error.find("while parsing") == -1:
                 error = re.split("Error:|for|while", error)
-                if re.search("Failed", error[1]) != None:
+                if re.search("Failed", error[1]) is not None:
                     error[1] = "syntax error"
-                elif re.search("ring closure", error[1]) != None:
+                elif re.search("ring closure", error[1]) is not None:
                     error[1] = "bond exists"
                 # to merge parentheses errors together
-                elif re.search("parentheses", error[1]) != None:
+                elif re.search("parentheses", error[1]) is not None:
                     error[1] = "parentheses error"
                 error_list.append(error[1])
         elif error.find("valence") >= 1:
@@ -166,7 +166,7 @@ invalid_output.write(header)
 line_idx = 0
 f = open(args.input_file, "r")
 # convoluted approach to save rdkit errors
-## https://sourceforge.net/p/rdkit/mailman/rdkit-discuss/thread/CAKwxoo4HyYqsyw4RwZuruM1Cfi-nqZ-TuOSnBhb7yofSiATC%3Dw%40mail.gmail.com/#msg33261443
+# https://sourceforge.net/p/rdkit/mailman/rdkit-discuss/thread/CAKwxoo4HyYqsyw4RwZuruM1Cfi-nqZ-TuOSnBhb7yofSiATC%3Dw%40mail.gmail.com/#msg33261443
 stderr_fileno = sys.stderr.fileno()
 stderr_save = os.dup(stderr_fileno)
 error_file = os.path.splitext(args.valid_file)[0] + ".err"

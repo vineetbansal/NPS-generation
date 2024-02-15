@@ -1,7 +1,6 @@
 import os
 import hashlib
 import tempfile
-from NPS_generation.augment_SMILES import main as augment_SMILES_main
 from NPS_generation.train_model import main as train_model_main
 from NPS_generation.calculate_outcomes import main as calculate_outcomes_main
 from NPS_generation.calculate_outcomes_distribution import (

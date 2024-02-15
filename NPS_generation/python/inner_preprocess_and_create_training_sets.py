@@ -8,7 +8,6 @@ import itertools
 import numpy as np
 import os
 import random
-from itertools import chain
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
@@ -54,9 +53,6 @@ def preprocess_molecules(mols):
     elements = [
         [atom.GetSymbol() for atom in mol.GetAtoms()] if mol else None for mol in mols
     ]
-    counts = np.unique(
-        list(chain(*[element for element in elements if element])), return_counts=True
-    )
 
     valid_symbols = set(["Br", "C", "Cl", "F", "H", "I", "N", "O", "P", "S"])
     for idx, atoms in enumerate(elements):
@@ -103,7 +99,6 @@ def create_training_sets(input_smiles, mols, sample_idx, n_molecules, min_tc):
         input_smiles, input_fps = zip(*inputs)
 
         # pick our seed molecule at random
-        target_smiles = input_smiles[0]
         target_fp = input_fps[0]
 
         tcs = [FingerprintSimilarity(input_fp, target_fp) for input_fp in input_fps]
@@ -126,7 +121,7 @@ def augment_smiles(enum_factor, folds):
         sme = SmilesEnumerator(canonical=False, enum=True)
         for idx, fold in enumerate(folds):
             enum = []
-            max_tries = 200  ## randomized SMILES to generate for each input structure
+            max_tries = 200  # randomized SMILES to generate for each input structure
             for sm_idx, sm in enumerate(tqdm(fold)):
                 tries = []
                 for try_idx in range(max_tries):
@@ -226,11 +221,12 @@ def preprocess_and_create_training_sets(
     )
 
     # if we failed to pick enough molecules, write an empty error file
-    if not success:
-        error_file = os.path.splitext(train_file_smi)[0] + ".err"
-        with open(error_file, "w") as empty_file:
-            pass
-    else:
+    # TODO: Not sure why we're writing an empty error file
+    # if not success:
+    #     error_file = os.path.splitext(train_file_smi)[0] + ".err"
+    #     with open(error_file, "w") as empty_file:
+    #         pass
+    if success:
         print(f"doing SMILES enumeration on {len(subset_smiles)} molecules ...")
         subset_smiles = augment_smiles(enum_factor=enum_factor, folds=subset_smiles)
 

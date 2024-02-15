@@ -16,7 +16,7 @@ from NPS_generation.models import RNN, OneHotRNN
 
 
 def main(args_list=None):
-    ### CLI
+    # CLI
     parser = argparse.ArgumentParser(
         description="Sample from a trained chemical language model"
     )
@@ -98,7 +98,7 @@ def main(args_list=None):
     if not os.path.isdir(args.output_dir):
         os.makedirs(args.output_dir)
 
-    ## seed all RNGs
+    # seed all RNGs
     torch.manual_seed(args.sample_idx)
     random.seed(args.sample_idx)
     np.random.seed(args.sample_idx)
@@ -139,7 +139,7 @@ def main(args_list=None):
 
     # load the best model
     model.load_state_dict(torch.load(args.model_file))
-    model.eval()  ## enable evaluation modes
+    model.eval()  # enable evaluation modes
 
     # set up output filename
     if args.sample_idx is not None:

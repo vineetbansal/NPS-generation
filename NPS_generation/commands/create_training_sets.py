@@ -172,7 +172,7 @@ def create_training_sets(
         sme = SmilesEnumerator(canonical=False, enum=True)
         for idx, fold in enumerate(folds):
             enum = []
-            max_tries = 200  ## randomized SMILES to generate for each input structure
+            max_tries = 200  # randomized SMILES to generate for each input structure
             for sm_idx, sm in enumerate(tqdm(fold)):
                 tries = []
                 for try_idx in range(max_tries):

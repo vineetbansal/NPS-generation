@@ -58,7 +58,7 @@ class SmilesDataset(Dataset):
             self.smiles[idx] for idx in range(len(self.smiles)) if idx in split
         ]
         self.validation = [
-            self.smiles[idx] for idx in range(len(self.smiles)) if not idx in split
+            self.smiles[idx] for idx in range(len(self.smiles)) if idx not in split
         ]
 
     def get_validation(self, n_smiles):
@@ -135,7 +135,7 @@ class SelfiesDataset(Dataset):
             self.selfies[idx] for idx in range(len(self.selfies)) if idx in split
         ]
         self.validation = [
-            self.selfies[idx] for idx in range(len(self.selfies)) if not idx in split
+            self.selfies[idx] for idx in range(len(self.selfies)) if idx not in split
         ]
 
     def get_validation(self, n_selfies):
@@ -240,7 +240,7 @@ class Vocabulary:
             self.characters = np.unique(np.array(list(chain(*all_chars)))).tolist()
 
         # add padding token
-        if not "<PAD>" in self.characters:
+        if "<PAD>" not in self.characters:
             # ... unless reading a padded vocabulary from file
             self.characters.append("<PAD>")
 

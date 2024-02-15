@@ -9,20 +9,20 @@ import sys
 import time
 import torch
 
+# import classes and functions
+from datasets import Vocabulary, SelfiesDataset
+from models import Transformer
+from functions import read_smiles
+
 # set working directory
 git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
 python_dir = git_dir + "/python"
 os.chdir(python_dir)
 sys.path.append(python_dir)
 
-# import classes and functions
-from datasets import Vocabulary, SelfiesDataset
-from models import Transformer
-from functions import read_smiles
-
-### dynamically build CLI
+# dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
+# build the CLI
 grid_file = git_dir + "/sh/grids/sample-molecules-transformer.txt"
 grid = pd.read_csv(grid_file, sep="\t")
 for arg_name in list(grid):
@@ -81,7 +81,7 @@ if torch.cuda.is_available():
 else:
     model.load_state_dict(torch.load(args.model_file, map_location=torch.device("cpu")))
 
-model.eval()  ## enable evaluation mode
+model.eval()  # enable evaluation mode
 
 # another tick
 sample_start_time = time.time()

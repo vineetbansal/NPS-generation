@@ -58,7 +58,6 @@ def sample_molecules_RNN(
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     # detect device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("cuda: {}".format(torch.cuda.is_available()))
 
     # load vocabulary
@@ -86,7 +85,7 @@ def sample_molecules_RNN(
     else:
         model.load_state_dict(torch.load(model_file, map_location=torch.device("cpu")))
 
-    model.eval()  ## enable evaluation mode
+    model.eval()  # enable evaluation mode
 
     # wipe the file before writing
     open(output_file, "w").close()

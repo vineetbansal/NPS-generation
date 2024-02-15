@@ -17,7 +17,7 @@ def clean_mol(smiles, representation="SMILES", stereochem=False):
     Construct a molecule from a SMILES string, removing stereochemistry and
     explicit hydrogens, and setting aromaticity.
     """
-    if smiles != smiles:  ## nan
+    if smiles != smiles:  # nan
         return None
 
     if representation == "SELFIES":
@@ -60,8 +60,8 @@ def remove_salts_solvents(mol, hac=3):
     """
     # split molecule into fragments
     fragments = list(rdmolops.GetMolFrags(mol, asMols=True))
-    ## keep heaviest only
-    ## fragments.sort(reverse=True, key=lambda m: m.GetNumAtoms())
+    # keep heaviest only
+    # fragments.sort(reverse=True, key=lambda m: m.GetNumAtoms())
     # remove fragments with < 'hac' heavy atoms
     fragments = [fragment for fragment in fragments if fragment.GetNumAtoms() > hac]
     #

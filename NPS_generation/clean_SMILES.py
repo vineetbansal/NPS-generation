@@ -3,10 +3,8 @@ Clean and canonicalize SMILES from the combined plant database and write them
 to a line-delimited file.
 """
 
-import os
 import numpy as np
 import sys
-from itertools import chain
 from rdkit import Chem
 from tqdm import tqdm
 
@@ -24,7 +22,6 @@ from NPS_generation.datasets import Vocabulary
 
 def main(input_file, output_file):
     # read SMILES
-    basename = os.path.basename(input_file)
     smiles = read_smiles(input_file)
 
     # remove duplicated SMILES
@@ -48,10 +45,9 @@ def main(input_file, output_file):
     print("parsed " + str(len(mols)) + " molecules with >3 heavy atoms and 1 fragment")
 
     # remove molecules with invalid atoms
-    ## what unique atoms are present in any molecule?
+    # what unique atoms are present in any molecule?
     elements = [[atom.GetSymbol() for atom in mol.GetAtoms()] for mol in mols]
-    counts = np.unique(list(chain(*elements)), return_counts=True)
-    ## define valid symbols
+    # define valid symbols
     valid = set(["Br", "C", "Cl", "F", "H", "I", "N", "O", "P", "S"])
     mols = [
         mols[idx] for idx, atoms in enumerate(elements) if len(set(atoms) - valid) == 0

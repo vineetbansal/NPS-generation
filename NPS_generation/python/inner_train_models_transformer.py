@@ -12,6 +12,12 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+# import functions
+from datasets import SmilesDataset, SelfiesDataset
+from models import Transformer
+from functions import check_arg, read_smiles, write_smiles
+from loggers import EarlyStopping, track_loss, print_update
+
 # suppress Chem.MolFromSmiles error output
 from rdkit import rdBase
 
@@ -23,15 +29,9 @@ python_dir = git_dir + "/python"
 os.chdir(python_dir)
 sys.path.append(python_dir)
 
-# import functions
-from datasets import SmilesDataset, SelfiesDataset
-from models import Transformer
-from functions import check_arg, read_smiles, write_smiles
-from loggers import EarlyStopping, track_loss, print_update
-
-### dynamically build CLI
+# dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
+# build the CLI
 grid_file = git_dir + "/sh/grids/train-models-transformer.txt"
 grid = pd.read_csv(grid_file, sep="\t")
 for arg_name in list(grid):

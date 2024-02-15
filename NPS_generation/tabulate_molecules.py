@@ -24,7 +24,7 @@ rdBase.DisableLog("rdApp.error")
 
 
 def main(args_list=None):
-    ## CLI
+    # CLI
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_file", type=str)
     parser.add_argument(
@@ -64,7 +64,7 @@ def main(args_list=None):
 
                         # calculate exact mass
                         exact_mass = Descriptors.ExactMolWt(mol)
-                        ## round to 6 decimal places
+                        # round to 6 decimal places
                         mass = round(exact_mass, 6)
 
                         # calculate molecular formula

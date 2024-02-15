@@ -15,11 +15,6 @@ import time
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-# set working directory
-git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
-python_dir = git_dir + "/python"
-os.chdir(python_dir)
-
 # import functions
 from functions import clean_mol, read_smiles
 
@@ -28,9 +23,15 @@ from rdkit import rdBase
 
 rdBase.DisableLog("rdApp.error")
 
-### dynamically build CLI
+
+# set working directory
+git_dir = os.path.expanduser("~/git/invalid-smiles-analysis")
+python_dir = git_dir + "/python"
+os.chdir(python_dir)
+
+# dynamically build CLI
 parser = argparse.ArgumentParser()
-## build the CLI
+# build the CLI
 grid_file = git_dir + "/sh/grids/tabulate-molecules-break-SELFIES.txt"
 grid = pd.read_csv(grid_file, sep="\t")
 for arg_name in list(grid):
@@ -59,7 +60,7 @@ train_smiles = read_smiles(args.train_file)
 # set up temporary output
 filename, ext = os.path.splitext(args.output_file)
 tmp_file = filename + ".temp"
-## remove file if it exists
+# remove file if it exists
 if os.path.exists(tmp_file):
     os.remove(tmp_file)
 
@@ -139,7 +140,7 @@ with open(args.input_file) as f1:
 
             # calculate exact mass
             exact_mass = Descriptors.ExactMolWt(mol)
-            ## round to 6 decimal places
+            # round to 6 decimal places
             mass = round(exact_mass, 6)
 
             # calculate molecular formula
@@ -149,7 +150,7 @@ with open(args.input_file) as f1:
             canonical_smiles = Chem.MolToSmiles(mol, isomericSmiles=False)
 
             # optionally, skip
-            if not canonical_smiles in train_smiles:
+            if canonical_smiles not in train_smiles:
                 # append to file
                 row = "\t".join([canonical_smiles, str(mass), formula])
                 _ = f2.write(row + "\n")

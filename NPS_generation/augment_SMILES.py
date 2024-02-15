@@ -6,16 +6,14 @@ enumeration.
 import argparse
 import numpy as np
 import os
-import pandas as pd
 from tqdm import tqdm
 
-# import SmilesEnumerator
 from NPS_generation.util.SmilesEnumerator import SmilesEnumerator
 from NPS_generation.functions import read_smiles, write_smiles
 
 
 def main(args_list=None):
-    ### CLI
+    # CLI
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--input_file", type=str)
@@ -39,12 +37,9 @@ def main(args_list=None):
     # create enumerator
     sme = SmilesEnumerator(canonical=False, enum=True)
 
-    # also store and write information about enumerated library size
-    summary = pd.DataFrame()
-
     # enumerate potential SMILES
     enum = []
-    max_tries = 200  ## randomized SMILES to generate for each input structure
+    max_tries = 200  # randomized SMILES to generate for each input structure
     for sm_idx, sm in enumerate(tqdm(smiles)):
         tries = []
         for try_idx in range(max_tries):

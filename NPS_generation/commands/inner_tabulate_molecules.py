@@ -10,7 +10,6 @@ SMILES and record the following properties:
 import argparse
 import os
 import pandas as pd
-import time
 from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
@@ -42,7 +41,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     # set up temporary output
     filename, ext = os.path.splitext(output_file)
     tmp_file = filename + ".temp"
-    ## remove file if it exists
+    # remove file if it exists
     if os.path.exists(tmp_file):
         os.remove(tmp_file)
 
@@ -65,7 +64,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
 
                 # calculate exact mass
                 exact_mass = Descriptors.ExactMolWt(mol)
-                ## round to 6 decimal places
+                # round to 6 decimal places
                 mass = round(exact_mass, 6)
 
                 # calculate molecular formula
@@ -75,7 +74,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
                 canonical_smile = Chem.MolToSmiles(mol, isomericSmiles=False)
 
                 # optionally, skip
-                if not canonical_smile in train_smiles:
+                if canonical_smile not in train_smiles:
                     # append to file
                     row = "\t".join([canonical_smile, str(mass), formula])
                     _ = f2.write(row + "\n")

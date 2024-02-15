@@ -14,7 +14,6 @@ from rdkit.DataStructs import FingerprintSimilarity
 from scipy import histogram
 from scipy.stats import entropy, gaussian_kde, wasserstein_distance
 from scipy.spatial.distance import jensenshannon
-import numpy as np
 import torch
 
 converter = deepsmiles.Converter(rings=True, branches=True)
@@ -32,8 +31,8 @@ def clean_mol(smiles, stereochem=False, selfies=False, deepsmiles=False):
         deepsmiles = smiles
         try:
             smiles = converter.decode(deepsmiles)
-        except:
-            raise ValueError("invalid DeepSMILES: " + str(deepsmiles))
+        except ValueError:
+            raise ValueError(f"invalid DeepSMILES: {deepsmiles}")
     mol = Chem.MolFromSmiles(str(smiles))
     if mol is None:
         raise ValueError("invalid SMILES: " + str(smiles))
@@ -68,8 +67,8 @@ def remove_salts_solvents(mol, hac=3):
     """
     # split molecule into fragments
     fragments = list(rdmolops.GetMolFrags(mol, asMols=True))
-    ## keep heaviest only
-    ## fragments.sort(reverse=True, key=lambda m: m.GetNumAtoms())
+    # keep heaviest only
+    # fragments.sort(reverse=True, key=lambda m: m.GetNumAtoms())
     # remove fragments with < 'hac' heavy atoms
     fragments = [fragment for fragment in fragments if fragment.GetNumAtoms() > hac]
     #
@@ -325,7 +324,7 @@ def decrease_learning_rate(optimizer, multiplier=0.99):
 
 
 def print_update(
-    model, dataset, epoch, batch_idx, training_loss, batch_size, selfies=False
+        model, dataset, epoch, batch_idx, training_loss, batch_size, selfies=False
 ):
     """
     Print an update on model training, including the current epoch,
@@ -368,7 +367,7 @@ def print_update(
         if sm is not None and Chem.MolFromSmiles(sm):
             valid += 1
         else:
-            ## print 'invalid' SMILES
+            # print 'invalid' SMILES
             if selfies:
                 tqdm.write("invalid SELFIES: {}".format(sf))
     pct_valid = 100 * valid / n_smiles
@@ -432,18 +431,18 @@ def sample_smiles(output_dir, sample_idx, model, sample_size, epoch, step_idx):
     if step_idx == "NA":
         # writing by epoch: don't include batch index
         smiles_filename = (
-            "sample-" + str(sample_idx + 1) + "-epoch=" + str(epoch + 1) + "-SMILES.smi"
+                "sample-" + str(sample_idx + 1) + "-epoch=" + str(epoch + 1) + "-SMILES.smi"
         )
     else:
         # writing by step: calculate overall step
         smiles_filename = (
-            "sample-"
-            + str(sample_idx + 1)
-            + "-epoch="
-            + str(epoch + 1)
-            + "-step="
-            + str(step_idx)
-            + "-SMILES.smi"
+                "sample-"
+                + str(sample_idx + 1)
+                + "-epoch="
+                + str(epoch + 1)
+                + "-step="
+                + str(step_idx)
+                + "-SMILES.smi"
         )
 
     # write to file

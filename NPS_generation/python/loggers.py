@@ -52,7 +52,7 @@ class EarlyStopping:
                 # loss is decreasing
                 self.best_loss = val_loss
                 self.step_at_best = step_idx
-                ## reset counter
+                # reset counter
                 self.counter = 0
                 self.save_model(model, output_file)
 
