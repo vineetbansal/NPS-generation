@@ -15,7 +15,7 @@ from clm.commands import (
 )
 
 
-logger = logging.getLogger("NPS_generation")
+logger = logging.getLogger("clm")
 
 
 def main():

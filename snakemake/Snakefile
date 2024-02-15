@@ -56,7 +56,7 @@ rule preprocess:
         mem_mb=12000,
         runtime=30,
     shell:
-        'nps preprocess '
+        'clm preprocess '
         '--input-file {input} '
         '--output-file {output} '
         '--max-input-smiles {config[max_input_smiles]} '
@@ -79,7 +79,7 @@ rule create_training_sets:
         mem_mb=20000,
         runtime=10,
     shell:
-        'nps create_training_sets '
+        'clm create_training_sets '
         '--input-file {input} '
         '--train-file {output.train_file} '
         '--vocab-file {output.vocab_file} '
@@ -134,7 +134,7 @@ rule train_models_RNN:
         runtime=MODEL_PARAMS["max_epochs"]*120,
         slurm_extra="--gres=gpu:1"
     shell:
-            'nps inner_train_models_RNN '
+            'clm inner_train_models_RNN '
             '--database {wildcards.dataset} '
             '--representation {wildcards.repr} '
             '--seed {wildcards.seed} '
@@ -171,7 +171,7 @@ rule sample_molecules_RNN:
         runtime=MODEL_PARAMS["sample_mols"]//10000,
         slurm_extra="--gres=gpu:1"
     shell:
-        'nps inner_sample_molecules_RNN '
+        'clm inner_sample_molecules_RNN '
         '--database {wildcards.dataset} '
         '--representation {wildcards.repr} '
         '--seed {wildcards.seed} '
@@ -202,7 +202,7 @@ rule tabulate_molecules:
         mem_mb=4000,
         runtime=MODEL_PARAMS["sample_mols"]//1000,
     shell:
-        'nps inner_tabulate_molecules '
+        'clm inner_tabulate_molecules '
         '--input_file {input.input_file} '
         '--train_file {input.train_file} '
         '--representation {wildcards.repr} '
@@ -222,7 +222,7 @@ rule collect_tabulated_molecules:
         mem_mb=4000,
         runtime=MODEL_PARAMS["sample_mols"]//1000,
     shell:
-        'nps inner_collect_tabulated_molecules '
+        'clm inner_collect_tabulated_molecules '
         '--input_files {input.input_files} '
         '--output_file {output.output_file} '
 
@@ -248,7 +248,7 @@ rule process_tabulated_molecules:
         mem_mb=4000,
         runtime=MODEL_PARAMS["sample_mols"]//1000,
     shell:
-        'nps inner_process_tabulated_molecules '
+        'clm inner_process_tabulated_molecules '
         '--input_file {input.input_file} '
         '--cv_file {input.cv_file} '
         '--output_file {output.output_file} '
@@ -285,7 +285,7 @@ rule write_structural_prior_CV:
         mem_mb=32000,
         runtime=180,
     shell:
-        'nps inner_write_structural_prior_CV '
+        'clm inner_write_structural_prior_CV '
         '--ranks_file {output.ranks_file} '
         '--tc_file {output.tc_file} '
         '--train_file {input.train_file} '
@@ -323,7 +323,7 @@ rule write_formula_prior_CV:
         mem_mb=32000,
         runtime=180,
     shell:
-        'nps inner_write_formula_prior_CV '
+        'clm inner_write_formula_prior_CV '
         '--ranks_file {output.ranks_file} '
         '--train_file {input.train_file} '
         '--test_file {input.test_file} '
@@ -363,7 +363,7 @@ rule write_structural_prior_CV_overall:
         mem_mb=32000,
         runtime=180,
     shell:
-        'nps inner_write_structural_prior_CV '
+        'clm inner_write_structural_prior_CV '
         '--ranks_file {output.ranks_file} '
         '--tc_file {output.tc_file} '
         '--train_file {input.train_file} '

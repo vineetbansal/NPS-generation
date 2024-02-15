@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "setuptools_scm>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "NPS-generation"
+name = "skinniderlab-clm"
 authors = [
   {name="Michael Skinnider", email="skinnider@princeton.edu"}
 ]
@@ -32,20 +32,20 @@ dependencies = [
 dynamic = ["version"]
 
 [project.scripts]
-nps = "NPS_generation.__main__:main"
+clm = "clm.__main__:main"
 
 [tool.setuptools_scm]
-write_to = "NPS_generation/_version.py"
+write_to = "clm/_version.py"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = [
-    "NPS_generation",
-    "NPS_generation.util"
+    "clm",
+    "clm.util"
 ]
 
 [tool.setuptools.package-data]
-NPS_generation = ["data/*.smi"]
+clm = ["data/*.smi"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,7 +1,7 @@
 ## Snakemake workflow
 
 The included `Snakefile` provides a way to run the end-end workflow for the
-`NPS-generation` repository.
+`clm` repository.
 
 The following "rulegraph" illustrates the unique steps in the workflow that would be run,
 and their order of execution.
@@ -24,7 +24,7 @@ To run this workflow on the LOTUS dataset:
 
 #### Steps
 
-1. Install `NPS-generation` to get all the dependencies, including `snakemake`.
+1. Install `clm` to get all the dependencies, including `snakemake`.
 ```
 cd /path/to/repo
 pip install -e .
