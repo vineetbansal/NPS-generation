@@ -3,14 +3,14 @@ import logging
 from tqdm import tqdm
 import numpy as np
 from rdkit import Chem
-from NPS_generation.functions import (
+from clm.functions import (
     read_smiles,
     write_smiles,
     clean_mols,
     remove_salts_solvents,
     NeutraliseCharges,
 )
-from NPS_generation.datasets import Vocabulary
+from clm.datasets import Vocabulary
 
 logger = logging.getLogger(__name__)
 VALID_ELEMENTS = ["Br", "C", "Cl", "F", "H", "I", "N", "O", "P", "S"]

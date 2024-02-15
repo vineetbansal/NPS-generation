@@ -7,10 +7,10 @@ import os.path
 import torch
 from tqdm import tqdm
 
-from NPS_generation.python.datasets import Vocabulary, SelfiesDataset
-from NPS_generation.python.models import RNN
-from NPS_generation.python.functions import read_smiles
-from NPS_generation.functions import set_seed, seed_type
+from clm.python.datasets import Vocabulary, SelfiesDataset
+from clm.python.models import RNN
+from clm.python.functions import read_smiles
+from clm.functions import set_seed, seed_type
 
 
 def add_args(parser):

@@ -5,7 +5,7 @@ import torch
 from itertools import chain
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
-from NPS_generation.python.functions import read_smiles
+from clm.python.functions import read_smiles
 
 
 class Vocabulary(object):

@@ -6,13 +6,13 @@ from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors
 from rdkit.DataStructs import FingerprintSimilarity
 from tqdm import tqdm
 
-from NPS_generation.python.functions import (
+from clm.python.functions import (
     clean_mol,
     clean_mols,
     get_ecfp6_fingerprints,
     read_smiles,
 )
-from NPS_generation.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type
 
 # suppress rdkit errors
 from rdkit import rdBase

@@ -7,9 +7,9 @@ from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
 from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
-from NPS_generation.functions import read_smiles, write_smiles, clean_mols, seed_type
-from NPS_generation.datasets import vocabulary_from_representation
-from NPS_generation.util.SmilesEnumerator import SmilesEnumerator
+from clm.functions import read_smiles, write_smiles, clean_mols, seed_type
+from clm.datasets import vocabulary_from_representation
+from clm.util.SmilesEnumerator import SmilesEnumerator
 
 
 logger = logging.getLogger(__name__)

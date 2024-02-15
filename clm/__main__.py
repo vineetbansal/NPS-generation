@@ -1,8 +1,8 @@
 import logging
 import argparse
 import os
-import NPS_generation
-from NPS_generation.commands import (
+import clm
+from clm.commands import (
     preprocess,
     create_training_sets,
     inner_train_models_RNN,
@@ -21,7 +21,7 @@ logger = logging.getLogger("NPS_generation")
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--version", action="version", version=NPS_generation.__version__
+        "--version", action="version", version=clm.__version__
     )
 
     modules = (
