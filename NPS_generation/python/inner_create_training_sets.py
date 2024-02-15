@@ -112,9 +112,9 @@ def create_training_sets(
     # if we failed to pick enough molecules, write an empty error file
     # TODO: Not sure why the following two lines were there (Was originally uncommented)
     # if not success:
-        # error_file = os.path.splitext(output_file)[0] + ".err"
-        # with open(error_file, "w") as empty_file:
-        #    pass
+    # error_file = os.path.splitext(output_file)[0] + ".err"
+    # with open(error_file, "w") as empty_file:
+    #    pass
     if success:
         # first, do SMILES enumeration on the training set
         print("doing SMILES enumeration on {} molecules ...".format(len(subset_smiles)))

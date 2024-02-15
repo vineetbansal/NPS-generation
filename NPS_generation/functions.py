@@ -324,7 +324,7 @@ def decrease_learning_rate(optimizer, multiplier=0.99):
 
 
 def print_update(
-        model, dataset, epoch, batch_idx, training_loss, batch_size, selfies=False
+    model, dataset, epoch, batch_idx, training_loss, batch_size, selfies=False
 ):
     """
     Print an update on model training, including the current epoch,
@@ -431,18 +431,18 @@ def sample_smiles(output_dir, sample_idx, model, sample_size, epoch, step_idx):
     if step_idx == "NA":
         # writing by epoch: don't include batch index
         smiles_filename = (
-                "sample-" + str(sample_idx + 1) + "-epoch=" + str(epoch + 1) + "-SMILES.smi"
+            "sample-" + str(sample_idx + 1) + "-epoch=" + str(epoch + 1) + "-SMILES.smi"
         )
     else:
         # writing by step: calculate overall step
         smiles_filename = (
-                "sample-"
-                + str(sample_idx + 1)
-                + "-epoch="
-                + str(epoch + 1)
-                + "-step="
-                + str(step_idx)
-                + "-SMILES.smi"
+            "sample-"
+            + str(sample_idx + 1)
+            + "-epoch="
+            + str(epoch + 1)
+            + "-step="
+            + str(step_idx)
+            + "-SMILES.smi"
         )
 
     # write to file

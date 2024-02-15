@@ -233,7 +233,7 @@ rule process_tabulated_molecules:
     average sampling frequency (if metric=freq-avg), freq-sum etc.
     Smiles found in training data (i.e. in `cv_file`) are not counted towards
     the aggregated metric.
-    
+
     `output_file` has the same format as the one produced by
     `collect_tabulated_molecules` (<smile>, <mass>, <formula>, <size>),
     but now `size` has a different interpretation than simply the frequency
@@ -258,19 +258,19 @@ rule process_tabulated_molecules:
 rule write_structural_prior_CV:
     """
     Evaluate test smiles against the trained models, with PubChem as a baseline.
-    
+
     For each fold, for each smile in the test dataset, generate statistics for
     the occurrence of the test smile in each of the 3 "models":
       <trained_smiles>/<sampled_smiles>/PubChem.
-    
+
     For each of the 3 "models", keep track of smiles that fall within some
     tolerance of the true test-smile molecular weight. When sorted by decreasing
     sampling frequency, the rank at which we find the "correct" smile
     (in terms of a match in the smile string), gives us the
     "rank" of each test smile. Lower ranks indicate a better model.
-    
+
     This output is written to `ranks_file`.
-    
+
     Fingerprint similarity values are written out to `tc_file`.
     """
     input:
@@ -299,7 +299,7 @@ rule write_formula_prior_CV:
     """
     NOTE: Analogous to `write_structural_prior_CV`, but "correctness" is based
     on a matching formula, not a matching smile. Read on for full details.
-    
+
     For each fold, for each smile in the test dataset, generate statistics for
     the occurrence of the test smile in each of the 3 "models":
       <trained_smiles>/<sampled_smiles>/PubChem.
@@ -309,7 +309,7 @@ rule write_formula_prior_CV:
     sampling frequency, the rank at which we find the "correct" smile
     (in terms of the correct formula), gives us the
     "rank" of each test smile. Lower ranks indicate a better model.
-    
+
     This output is written to `ranks_file`.
     """
     input:

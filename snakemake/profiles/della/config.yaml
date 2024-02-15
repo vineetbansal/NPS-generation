@@ -13,7 +13,7 @@ rule train_models_RNN:
         mem_mb=32000,
         runtime=MODEL_PARAMS["max_epochs"]*120,
         slurm_extra="--gres=gpu:1"
- 
+
 rule sample_molecules_RNN:
     resources:
         mem_mb=1000,

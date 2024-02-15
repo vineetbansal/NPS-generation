@@ -10,7 +10,7 @@
 /target/
 
 # Rstudio
-.R* 
+.R*
 
 # Python
 *.egg-info

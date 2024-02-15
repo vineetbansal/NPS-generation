@@ -100,7 +100,7 @@ def main(args_list=None):
         "--learning_rate_decay",
         default=None,  # type=float,
         help="amount (0-1) to decrease learning rate by every "
-             + "fixed number of steps",
+        + "fixed number of steps",
     )
     parser.add_argument(
         "--learning_rate_decay_steps",
@@ -308,8 +308,8 @@ def main(args_list=None):
 
             # check learning rate decay
             if (
-                    args.learning_rate_decay is not None
-                    and counter % args.learning_rate_decay_steps == 0
+                args.learning_rate_decay is not None
+                and counter % args.learning_rate_decay_steps == 0
             ):
                 decrease_learning_rate(optimizer, multiplier=args.learning_rate_decay)
 

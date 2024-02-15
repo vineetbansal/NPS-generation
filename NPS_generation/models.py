@@ -6,7 +6,6 @@ from NPS_generation.datasets import Variable
 
 
 class RNN(nn.Module):
-
     def __init__(
         self,
         vocabulary,
@@ -236,7 +235,6 @@ class RNN(nn.Module):
 
 
 class OneHotRNN(nn.Module):
-
     def __init__(
         self,
         vocabulary,

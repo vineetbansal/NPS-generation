@@ -2,13 +2,13 @@
 
 This repository contains Python source code required to train and evaluate deep generative models of novel psychoactive substances, as used in the manuscript, "A deep generative model enables automated structure elucidation of novel psychoactive substances."
 
-Due to its sensitivity and the potential for misuse, the data used to train the model is not publicly available for unrestricted download. However, the training dataset will be made available to all qualified researchers in the field upon request. Similarly, the model output, including all generated molecules, their sampling frequencies, and predicted tandem mass spectra, will also be provided upon request. Please contact David Wishart (david dot wishart at ualberta dot ca) to request access. 
+Due to its sensitivity and the potential for misuse, the data used to train the model is not publicly available for unrestricted download. However, the training dataset will be made available to all qualified researchers in the field upon request. Similarly, the model output, including all generated molecules, their sampling frequencies, and predicted tandem mass spectra, will also be provided upon request. Please contact David Wishart (david dot wishart at ualberta dot ca) to request access.
 
 ### Usage
 
 The scripts in the `python` directory were used in the following order to preprocess the HighResNPS dataset, train chemical language models, evaluate the quality of the generated molecules, sample SMILES strings from the trained models, and tabulate unique molecules based on their frequency.
 
-- `clean-SMILES.py`: preprocess chemical structures from the HighResNPS database for input during model training. 
+- `clean-SMILES.py`: preprocess chemical structures from the HighResNPS database for input during model training.
 - `augment-SMILES.py`: enumerate multiple, non-canonical SMILES for each canonical SMILES in the file output by `clean-SMILES.py`, given some fixed data augmentation factor.
 - `train_model.py`: train a recurrent neural network-based generative model of chemical structures.
 - `calculate_outcomes.py`: calculate a suite of metrics used to benchmark different generative models, varying the amount of data augmentation and RNN architecture.
@@ -16,13 +16,13 @@ The scripts in the `python` directory were used in the following order to prepro
 - `sample_molecules.py`: sample a large number of SMILES strings (here, 1 billion) from the best generative model.
 - `tabulate_molecules.py`: tabulate the frequency with which each unique molecule appears in the sample of 1 billion SMILES strings, and record its mass and molecular formula.
 
-`datasets.py`, `functions.py`, and `models.py` contain additional classes and functions required for model training and analysis. Arguments for usage from the command line are documented within each individual script. 
+`datasets.py`, `functions.py`, and `models.py` contain additional classes and functions required for model training and analysis. Arguments for usage from the command line are documented within each individual script.
 
 A demonstration dataset of 2,000 SMILES for drug-like small molecules is provided in order to demonstrate the functionality of the code. Please note, however, that these molecules were sampled at random from the  ChEMBL database (version 28) and are not themselves designer drugs. Please contact David Wishart (david dot wishart at ualberta dot ca) to request access to the complete training set used in the accompanying manuscript.
 
 ### Environment
 
-The experiments described in the manuscript were carried out in a conda environment with the following packages installed. A copy of the environment is also provided in the file `environment.yml`. 
+The experiments described in the manuscript were carried out in a conda environment with the following packages installed. A copy of the environment is also provided in the file `environment.yml`.
 
 ```
 # packages in environment at /home/skinnim/.conda/envs/chemenv:
@@ -128,4 +128,4 @@ zlib                      1.2.11               h7b6447c_3
 zstd                      1.4.5                h9ceee32_0
 ```
 
-Note that to run the `train_model.py` and `sample-molecules.py` scripts, a GPU is recommended. 
+Note that to run the `train_model.py` and `sample-molecules.py` scripts, a GPU is recommended.

@@ -103,4 +103,3 @@ dependencies:
     - fcd-torch==1.0.7
     - selfies==1.0.2
 prefix: /home/skinnim/.conda/envs/chemenv
-
