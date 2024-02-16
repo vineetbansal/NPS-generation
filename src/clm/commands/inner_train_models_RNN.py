@@ -14,8 +14,8 @@ from tqdm import tqdm
 from rdkit import rdBase
 
 from clm.datasets import SmilesDataset, SelfiesDataset
-from clm.python.models import RNN
-from clm.python.loggers import EarlyStopping, track_loss, print_update
+from clm.models import RNN
+from clm.loggers import EarlyStopping, track_loss, print_update
 from clm.functions import set_seed, seed_type, read_smiles, write_smiles
 
 # suppress Chem.MolFromSmiles error output
