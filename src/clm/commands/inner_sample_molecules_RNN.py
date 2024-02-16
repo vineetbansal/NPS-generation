@@ -7,7 +7,7 @@ import os.path
 import torch
 from tqdm import tqdm
 
-from clm.python.datasets import Vocabulary, SelfiesDataset
+from clm.datasets import Vocabulary, SelfiesDataset
 from clm.python.models import RNN
 from clm.functions import set_seed, seed_type, read_smiles
 

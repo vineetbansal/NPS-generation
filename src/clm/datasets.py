@@ -6,7 +6,7 @@ import numpy as np
 import re
 import selfies as sf
 import torch
-import torch.nn.utils.rnn as rnn_utils
+from torch.nn.utils.rnn import pad_sequence
 from itertools import chain
 from torch.utils.data import Dataset
 from clm.functions import read_smiles
@@ -15,11 +15,9 @@ from clm.functions import read_smiles
 class SmilesDataset(Dataset):
     """
     A dataset of chemical structures, provided in SMILES format.
-    """
+   """
 
-    def __init__(
-        self, smiles=None, smiles_file=None, vocab_file=None, training_split=0.9
-    ):
+    def __init__(self, smiles, max_len=None, vocab_file=None, training_split=0.9):
         """
         Can be initiated from either a list of SMILES, or a line-delimited
         file.
@@ -34,137 +32,57 @@ class SmilesDataset(Dataset):
             training_split (numeric): proportion of the dataset to withhold for
               validation loss calculation
         """
-        if smiles:
-            self.smiles = smiles
-        elif smiles_file:
-            self.smiles = read_smiles(smiles_file)
-        else:
-            raise ValueError(
-                "must provide SMILES list or file to" + " instantiate SmilesDataset"
-            )
 
-        # create vocabulary
+        # shuffle the SMILES
+        self.smiles = smiles
+        np.random.shuffle(self.smiles)
+
+        # create vocabulary or else read from file
         if vocab_file:
             self.vocabulary = Vocabulary(vocab_file=vocab_file)
         else:
             self.vocabulary = Vocabulary(smiles=self.smiles)
 
-        # split into training and validation sets
+        # remove SMILES greater than max_len
+        self.max_len = max_len
+        if self.max_len is not None:
+            self.smiles = [
+                sm
+                for sm in self.smiles
+                if len(self.vocabulary.tokenize(sm)) <= self.max_len
+            ]
+
+        # split out a validation set
         n_smiles = len(self.smiles)
-        split = np.random.choice(
-            range(n_smiles), size=int(n_smiles * training_split), replace=False
-        )
-        self.training = [
-            self.smiles[idx] for idx in range(len(self.smiles)) if idx in split
-        ]
-        self.validation = [
-            self.smiles[idx] for idx in range(len(self.smiles)) if idx not in split
-        ]
+        border = int(n_smiles * training_split)
+        self.training_set = self.smiles[:border]
+        self.validation_set = self.smiles[border:]
+
+        # define collate function
+        self.collate = SmilesCollate(self.vocabulary)
+
+    def __len__(self):
+        return len(self.training_set)
+
+    def __getitem__(self, idx):
+        smiles = self.training_set[idx]
+        tokenized = self.vocabulary.tokenize(smiles)
+        encoded = self.vocabulary.encode(tokenized)
+        return encoded
 
     def get_validation(self, n_smiles):
-        validation_size = len(self.validation)
-        idxs = np.random.choice(np.asarray(range(validation_size)), size=n_smiles)
-        encoded = [
-            Variable(
-                self.vocabulary.encode(self.vocabulary.tokenize(self.validation[idx]))
-            )
-            for idx in idxs
-        ]
-        collate_fn = SmilesCollate(self.vocabulary)
-        return collate_fn(encoded)
-
-    def __len__(self):
-        return len(self.training)
-
-    def __getitem__(self, idx):
-        return Variable(
-            self.vocabulary.encode(self.vocabulary.tokenize(self.training[idx]))
-        )
+        smiles = np.random.choice(self.validation_set, n_smiles)
+        tokenized = [self.vocabulary.tokenize(sm) for sm in smiles]
+        encoded = [self.vocabulary.encode(tk) for tk in tokenized]
+        return self.collate(encoded)
 
     def __str__(self):
         return (
-            "dataset containing "
-            + str(len(self))
-            + " SMILES with a vocabulary of "
-            + str(len(self.vocabulary))
-            + " characters"
-        )
-
-
-class SelfiesDataset(Dataset):
-    """
-    A dataset of chemical structures, provided in SELFIES format.
-    """
-
-    def __init__(
-        self, selfies=None, selfies_file=None, vocab_file=None, training_split=0.9
-    ):
-        """
-        Can be initiated from either a list of SELFIES, or a line-delimited
-        file.
-
-        Args:
-            selfies (list): the complete set of SELFIES that constitute the
-              training dataset
-            selfies_file (string): line-delimited file containing the complete
-              set of SELFIES that constitute the training dataset
-            training_split (numeric): proportion of the dataset to withhold for
-              validation loss calculation
-        """
-        if selfies is not None:
-            self.selfies = selfies
-        elif selfies_file is not None:
-            self.selfies = read_smiles(selfies_file)
-        else:
-            raise ValueError(
-                "must provide SELFIES list or file to" + " instantiate SelfiesDataset"
-            )
-
-        # create vocabulary
-        if vocab_file:
-            self.vocabulary = Vocabulary(vocab_file=vocab_file)
-        else:
-            self.vocabulary = SelfiesVocabulary(selfies=self.selfies)
-
-        # split into training and validation sets
-        n_selfies = len(self.selfies)
-        split = np.random.choice(
-            range(n_selfies), size=int(n_selfies * training_split), replace=False
-        )
-        self.training = [
-            self.selfies[idx] for idx in range(len(self.selfies)) if idx in split
-        ]
-        self.validation = [
-            self.selfies[idx] for idx in range(len(self.selfies)) if idx not in split
-        ]
-
-    def get_validation(self, n_selfies):
-        validation_size = len(self.validation)
-        idxs = np.random.choice(np.asarray(range(validation_size)), size=n_selfies)
-        encoded = [
-            Variable(
-                self.vocabulary.encode(self.vocabulary.tokenize(self.validation[idx]))
-            )
-            for idx in idxs
-        ]
-        collate_fn = SmilesCollate(self.vocabulary)
-        return collate_fn(encoded)
-
-    def __len__(self):
-        return len(self.training)
-
-    def __getitem__(self, idx):
-        return Variable(
-            self.vocabulary.encode(self.vocabulary.tokenize(self.training[idx]))
-        )
-
-    def __str__(self):
-        return (
-            "dataset containing "
-            + str(len(self))
-            + " SELFIES with a vocabulary of "
-            + str(len(self.vocabulary))
-            + " characters"
+                "dataset containing "
+                + str(len(self))
+                + " SMILES with a vocabulary of "
+                + str(len(self.vocabulary))
+                + " characters"
         )
 
 
@@ -177,8 +95,8 @@ class SmilesCollate:
 
     Args:
         batch (list): a list of numeric tensors, each derived from a single
-          SMILES string, where the value at each position in the tensor
-          is the index of the SMILES token in the vocabulary dictionary
+        SMILES string, where the value at each position in the tensor
+        is the index of the SMILES token in the vocabulary dictionary
 
     Return:
         a tensor of dimension (batch_size, seq_len) containing encoded and
@@ -186,22 +104,85 @@ class SmilesCollate:
     """
 
     def __init__(self, vocabulary):
-        padding_token = vocabulary.dictionary["<PAD>"]
-        self.padding_token = padding_token
+        self.padding_token = vocabulary.dictionary["<PAD>"]
 
-    def __call__(self, batch):
-        # sort batch in descending order of length
-        sorted_batch = sorted(batch, key=lambda x: x.shape[0], reverse=True)
-        # get each sequence and pad it
-        sequences = [x for x in sorted_batch]
-        padded = Variable(
-            rnn_utils.pad_sequence(
-                sequences, padding_value=self.padding_token
-            ).transpose_(1, 0)
-        )
-        # also store lengths of each sequence (needed to unpad)
-        lengths = torch.LongTensor([len(x) for x in sequences])
+    def __call__(self, encoded):
+        padded = pad_sequence(encoded, padding_value=self.padding_token)
+        lengths = [len(seq) for seq in encoded]
         return padded, lengths
+
+
+class SelfiesDataset(Dataset):
+    """
+    A dataset of chemical structures, provided in SELFIES format.
+    """
+
+    def __init__(self, selfies, max_len=None, vocab_file=None, training_split=0.9):
+        """
+        Can be initiated from either a list of SELFIES, or a line-delimited
+        file.
+
+        Args:
+            selfies (list): the complete set of SELFIES that constitute the
+              training dataset
+            selfies_file (string): line-delimited file containing the complete
+              set of SELFIES that constitute the training dataset
+            training_split (numeric): proportion of the dataset to withhold for
+              validation loss calculation
+        """
+
+        # shuffle the SELFIES
+        self.selfies = selfies
+        np.random.shuffle(self.selfies)
+
+        # create vocabulary or else read from file
+        if vocab_file:
+            self.vocabulary = SelfiesVocabulary(vocab_file=vocab_file)
+        else:
+            self.vocabulary = SelfiesVocabulary(selfies=self.selfies)
+
+        # remove SMILES greater than max_len
+        self.max_len = max_len
+        if self.max_len is not None:
+            self.selfies = [
+                sf
+                for sf in self.selfies
+                if len(self.vocabulary.tokenize(sf)) <= self.max_len
+            ]
+
+        # split out a validation set
+        n_selfies = len(self.selfies)
+        border = int(n_selfies * training_split)
+        self.training_set = self.selfies[:border]
+        self.validation_set = self.selfies[border:]
+
+        # define collate function
+        self.collate = SmilesCollate(self.vocabulary)
+
+    def __len__(self):
+        return len(self.training_set)
+
+    def __getitem__(self, idx):
+        selfies = self.training_set[idx]
+        tokenized = self.vocabulary.tokenize(selfies)
+        encoded = self.vocabulary.encode(tokenized)
+        return encoded
+
+    def get_validation(self, n_selfies):
+        selfies = np.random.choice(self.validation_set, n_selfies)
+        tokenized = [self.vocabulary.tokenize(sf) for sf in selfies]
+        encoded = [self.vocabulary.encode(tk) for tk in tokenized]
+        return self.collate(encoded)
+
+    def __str__(self):
+        return (
+                "dataset containing "
+                + str(len(self))
+                + " SELFIES with a vocabulary of "
+                + str(len(self.vocabulary))
+                + " characters"
+        )
+
 
 
 class Vocabulary:
