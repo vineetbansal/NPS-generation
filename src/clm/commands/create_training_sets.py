@@ -86,8 +86,10 @@ def add_args(parser):
     return parser
 
 
-def get_similar_smiles(input_smiles, min_tc, n_molecules=100, max_tries=200):
-    mols = clean_mols(input_smiles)
+def get_similar_smiles(
+    input_smiles, min_tc, n_molecules=100, max_tries=200, representation="SMILES"
+):
+    mols = clean_mols(input_smiles, selfies=representation == "SELFIES")
     input_smiles = [
         input_smiles[idx] for idx, mol in enumerate(mols) if mol is not None
     ]
@@ -157,7 +159,11 @@ def create_training_sets(
     if min_tc > 0:
         logger.info(f"picking {n_molecules} molecules with min_tc={min_tc} ...")
         smiles = get_similar_smiles(
-            smiles, min_tc=min_tc, n_molecules=n_molecules, max_tries=max_tries
+            smiles,
+            min_tc=min_tc,
+            n_molecules=n_molecules,
+            max_tries=max_tries,
+            representation=representation,
         )
 
     generate_test_data = folds > 0

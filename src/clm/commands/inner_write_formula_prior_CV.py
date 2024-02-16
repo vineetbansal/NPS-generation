@@ -5,8 +5,7 @@ import pandas as pd
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
-from clm.python.functions import clean_mol, clean_mols, read_smiles
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, read_smiles, clean_mol, clean_mols
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -25,6 +24,9 @@ def add_args(parser):
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
+    parser.add_argument(
+        "--representation", type=str, default="SMILES", help="SMILES/SELFIES"
+    )
     return parser
 
 
@@ -37,6 +39,7 @@ def inner_write_formula_prior_CV(
     err_ppm,
     chunk_size,
     seed,
+    representation="SMILES",
 ):
     set_seed(seed)
 
@@ -49,7 +52,12 @@ def inner_write_formula_prior_CV(
     with tqdm(total=len(all_train_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
             smiles = all_train_smiles[i : i + chunk_size]
-            mols = clean_mols(smiles, disable_progress=True, return_dict=True)
+            mols = clean_mols(
+                smiles,
+                selfies=representation == "SELFIES",
+                disable_progress=True,
+                return_dict=True,
+            )
             for smile, mol in mols.items():
                 if mol is not None:
                     all_valid_train_smiles.append(smile)
@@ -69,7 +77,12 @@ def inner_write_formula_prior_CV(
     with tqdm(total=len(all_test_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
             smiles = all_test_smiles[i : i + chunk_size]
-            mols = clean_mols(smiles, disable_progress=True, return_dict=True)
+            mols = clean_mols(
+                smiles,
+                selfies=representation == "SELFIES",
+                disable_progress=True,
+                return_dict=True,
+            )
             for smile, mol in mols.items():
                 if mol is not None:
                     all_valid_test_smiles.append(smile)
@@ -111,7 +124,7 @@ def inner_write_formula_prior_CV(
         print(f"Generating statistics for model {key}")
         for row in tqdm(test.itertuples(), total=test.shape[0]):
             # get formula and exact mass
-            query_mol = clean_mol(row.smiles)
+            query_mol = clean_mol(row.smiles, selfies=representation == "SELFIES")
             query_mass = Descriptors.ExactMolWt(query_mol)
 
             # compute 10 ppm range
@@ -184,6 +197,7 @@ def main(args):
         err_ppm=args.err_ppm,
         chunk_size=args.chunk_size,
         seed=args.seed,
+        representation=args.representation,
     )
 
 
