@@ -51,35 +51,43 @@ def write_structural_prior_CV(
 
     # read training and test sets
     all_train_smiles = read_smiles(train_file)
+    all_valid_train_smiles = []
 
     train_masses = []
     train_fmlas = []
     with tqdm(total=len(all_train_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
             smiles = all_train_smiles[i : i + chunk_size]
-            mols = clean_mols(smiles, disable_progress=True)
-            train_masses.extend([round(Descriptors.ExactMolWt(mol), 4) for mol in mols])
-            train_fmlas.extend([rdMolDescriptors.CalcMolFormula(mol) for mol in mols])
+            mols = clean_mols(smiles, disable_progress=True, return_dict=True)
+            for smile, mol in mols.items():
+                if mol is not None:
+                    all_valid_train_smiles.append(smile)
+                    train_masses.append(round(Descriptors.ExactMolWt(mol), 4))
+                    train_fmlas.append(rdMolDescriptors.CalcMolFormula(mol))
             pbar.update(len(smiles))
 
     train = pd.DataFrame(
-        {"smiles": all_train_smiles, "mass": train_masses, "formula": train_fmlas}
+        {"smiles": all_valid_train_smiles, "mass": train_masses, "formula": train_fmlas}
     )
 
     all_test_smiles = read_smiles(test_file)
+    all_valid_test_smiles = []
 
     test_masses = []
     test_fmlas = []
     with tqdm(total=len(all_test_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
             smiles = all_test_smiles[i : i + chunk_size]
-            mols = clean_mols(smiles, disable_progress=True)
-            test_masses.extend([round(Descriptors.ExactMolWt(mol), 4) for mol in mols])
-            test_fmlas.extend([rdMolDescriptors.CalcMolFormula(mol) for mol in mols])
+            mols = clean_mols(smiles, disable_progress=True, return_dict=True)
+            for smile, mol in mols.items():
+                if mol is not None:
+                    all_valid_test_smiles.append(smile)
+                    test_masses.append(round(Descriptors.ExactMolWt(mol), 4))
+                    test_fmlas.append(rdMolDescriptors.CalcMolFormula(mol))
             pbar.update(len(smiles))
 
     test = pd.DataFrame(
-        {"smiles": all_test_smiles, "mass": test_masses, "formula": test_fmlas}
+        {"smiles": all_valid_test_smiles, "mass": test_masses, "formula": test_fmlas}
     )
     test = test.assign(mass_known=test["mass"].isin(train_masses))
     test = test.assign(formula_known=test["formula"].isin(train_fmlas))
