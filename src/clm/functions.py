@@ -37,7 +37,13 @@ def clean_mol(smiles, stereochem=False, selfies=False, deepsmiles=False):
     return mol
 
 
-def clean_mols(all_smiles, stereochem=False, selfies=False, deepsmiles=False, disable_progress=False):
+def clean_mols(
+    all_smiles,
+    stereochem=False,
+    selfies=False,
+    deepsmiles=False,
+    disable_progress=False,
+):
     """
     Construct a list of molecules from a list of SMILES strings, replacing
     invalid molecules with None in the list.
@@ -80,7 +86,6 @@ def remove_salts_solvents(mol, hac=3):
         return fragments[0]
 
 
-
 def get_ecfp6_fingerprints(mols, include_none=False):
     """
     Get ECFP6 fingerprints for a list of molecules. Optionally,
@@ -95,6 +100,7 @@ def get_ecfp6_fingerprints(mols, include_none=False):
             fp = AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024)
             fps.append(fp)
     return fps
+
 
 def read_smiles(smiles_file, max_lines=None):
     """
@@ -119,7 +125,6 @@ def write_smiles(smiles, smiles_file, mode="w"):
     with open(smiles_file, mode) as f:
         for sm in smiles:
             _ = f.write(sm + "\n")
-
 
 
 """

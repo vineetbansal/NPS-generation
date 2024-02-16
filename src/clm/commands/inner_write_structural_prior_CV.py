@@ -12,7 +12,7 @@ from clm.functions import (
     set_seed,
     seed_type,
     clean_mols,
-    clean_mol
+    clean_mol,
 )
 
 # suppress rdkit errors
