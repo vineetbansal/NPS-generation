@@ -295,6 +295,7 @@ rule write_structural_prior_CV:
         '--err_ppm {ERR_PPM} '
         '--seed {config[random_seed]} '
 
+
 rule write_formula_prior_CV:
     """
     NOTE: Analogous to `write_structural_prior_CV`, but "correctness" is based
@@ -331,6 +332,7 @@ rule write_formula_prior_CV:
         '--sample_file {input.sample_file} '
         '--err_ppm {ERR_PPM} '
         '--seed {config[random_seed]} '
+
 
 rule write_structural_prior_CV_overall:
     """
