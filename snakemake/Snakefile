@@ -86,6 +86,7 @@ rule create_training_sets:
         '--test-file {output.test_file} '
         '--enum-factor {wildcards.enum_factor} '
         '--folds {FOLDS} '
+        '--which-fold {wildcards.fold} '
         '--representation {wildcards.repr} '
         '--min-tc {config[min_tc]} '
         '--seed {config[random_seed]} '
@@ -135,7 +136,6 @@ rule train_models_RNN:
         slurm_extra="--gres=gpu:1"
     shell:
             'clm inner_train_models_RNN '
-            '--database {wildcards.dataset} '
             '--representation {wildcards.repr} '
             '--seed {wildcards.seed} '
             '--rnn_type {MODEL_PARAMS[rnn_type]} '
@@ -295,6 +295,7 @@ rule write_structural_prior_CV:
         '--err_ppm {ERR_PPM} '
         '--seed {config[random_seed]} '
 
+
 rule write_formula_prior_CV:
     """
     NOTE: Analogous to `write_structural_prior_CV`, but "correctness" is based
@@ -331,6 +332,7 @@ rule write_formula_prior_CV:
         '--sample_file {input.sample_file} '
         '--err_ppm {ERR_PPM} '
         '--seed {config[random_seed]} '
+
 
 rule write_structural_prior_CV_overall:
     """

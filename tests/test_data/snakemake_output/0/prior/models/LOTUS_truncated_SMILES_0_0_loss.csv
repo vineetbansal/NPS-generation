@@ -1,0 +1,8 @@
+epoch,minibatch,outcome,value
+1,10,training loss,135.1773223876953
+1,10,validation loss,135.30433654785156
+2,20,training loss,137.16006469726562
+2,20,validation loss,145.1481475830078
+3,30,training loss,141.76841735839844
+3,30,validation loss,143.06243896484375
+,25,training loss,117.98983001708984

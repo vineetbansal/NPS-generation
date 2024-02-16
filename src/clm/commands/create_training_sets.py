@@ -50,6 +50,12 @@ def add_args(parser):
         help="Number of CV Folds to generate for train/test split (default %(default)s, 0 to not generate test data)",
     )
     parser.add_argument(
+        "--which-fold",
+        type=int,
+        required=True,
+        help="Which fold to generate? (0 to folds-1)",
+    )
+    parser.add_argument(
         "--representation",
         type=str,
         default="SMILES",
@@ -86,8 +92,10 @@ def add_args(parser):
     return parser
 
 
-def get_similar_smiles(input_smiles, min_tc, n_molecules=100, max_tries=200):
-    mols = clean_mols(input_smiles)
+def get_similar_smiles(
+    input_smiles, min_tc, n_molecules=100, max_tries=200, representation="SMILES"
+):
+    mols = clean_mols(input_smiles, selfies=representation == "SELFIES")
     input_smiles = [
         input_smiles[idx] for idx, mol in enumerate(mols) if mol is not None
     ]
@@ -143,6 +151,7 @@ def create_training_sets(
     test_file=None,
     vocab_file=None,
     folds=10,
+    which_fold=0,
     enum_factor=0,
     representation="SMILES",
     min_tc=0,
@@ -157,7 +166,11 @@ def create_training_sets(
     if min_tc > 0:
         logger.info(f"picking {n_molecules} molecules with min_tc={min_tc} ...")
         smiles = get_similar_smiles(
-            smiles, min_tc=min_tc, n_molecules=n_molecules, max_tries=max_tries
+            smiles,
+            min_tc=min_tc,
+            n_molecules=n_molecules,
+            max_tries=max_tries,
+            representation=representation,
         )
 
     generate_test_data = folds > 0
@@ -188,42 +201,41 @@ def create_training_sets(
                 enum.extend(tries)
             folds[idx] = enum
 
-    for fold in range(len(folds)):
-        if generate_test_data:
-            test = folds[fold]
-            train = folds[:fold] + folds[fold + 1 :]
-            train = list(itertools.chain.from_iterable(train))
-        else:
-            train = folds[0]
-            test = None
+    if generate_test_data:
+        test = folds[which_fold]
+        train = folds[:which_fold] + folds[which_fold + 1 :]
+        train = list(itertools.chain.from_iterable(train))
+    else:
+        train = folds[0]
+        test = None
 
-        if representation == "SELFIES":
-            logger.info("converting SMILES strings to SELFIES ...")
-            train_out = []
-            for sm in train:
+    if representation == "SELFIES":
+        logger.info("converting SMILES strings to SELFIES ...")
+        train_out = []
+        for sm in train:
+            try:
+                sf = selfies_encoder(sm)
+                train_out.append(sf)
+            except EncoderError:
+                pass
+        train = train_out
+
+        if test is not None:
+            test_out = []
+            for sm in test:
                 try:
                     sf = selfies_encoder(sm)
-                    train_out.append(sf)
+                    test_out.append(sf)
                 except EncoderError:
                     pass
-            train = train_out
+            test = test_out
 
-            if test is not None:
-                test_out = []
-                for sm in test:
-                    try:
-                        sf = selfies_encoder(sm)
-                        test_out.append(sf)
-                    except EncoderError:
-                        pass
-                test = test_out
-
-        write_smiles(train, train_file.format(fold=fold))
-        vocabulary = vocabulary_from_representation(representation, train)
-        logger.info("vocabulary of {} characters".format(len(vocabulary)))
-        vocabulary.write(output_file=vocab_file.format(fold=fold))
-        if test is not None:
-            write_smiles(test, test_file.format(fold=fold))
+    write_smiles(train, str(train_file).format(fold=which_fold))
+    vocabulary = vocabulary_from_representation(representation, train)
+    logger.info("vocabulary of {} characters".format(len(vocabulary)))
+    vocabulary.write(output_file=str(vocab_file).format(fold=which_fold))
+    if test is not None:
+        write_smiles(test, str(test_file).format(fold=which_fold))
 
 
 def main(args):
@@ -233,6 +245,7 @@ def main(args):
         test_file=args.test_file,
         vocab_file=args.vocab_file,
         folds=args.folds,
+        which_fold=args.which_fold,
         enum_factor=args.enum_factor,
         representation=args.representation,
         min_tc=args.min_tc,

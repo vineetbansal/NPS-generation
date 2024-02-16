@@ -7,9 +7,8 @@ import os.path
 import torch
 from tqdm import tqdm
 
-from clm.python.datasets import Vocabulary, SelfiesDataset
-from clm.python.models import RNN
-from clm.python.functions import read_smiles
+from clm.datasets import Vocabulary, SelfiesVocabulary
+from clm.models import RNN
 from clm.functions import set_seed, seed_type
 
 
@@ -62,9 +61,7 @@ def sample_molecules_RNN(
 
     # load vocabulary
     if representation == "SELFIES":
-        inputs = read_smiles(input_file)
-        dataset = SelfiesDataset(selfies=inputs, vocab_file=vocab_file)
-        vocab = dataset.vocabulary
+        vocab = SelfiesVocabulary(vocab_file=vocab_file)
     else:
         vocab = Vocabulary(vocab_file=vocab_file)
 
