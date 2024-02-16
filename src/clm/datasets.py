@@ -15,7 +15,7 @@ from clm.functions import read_smiles
 class SmilesDataset(Dataset):
     """
     A dataset of chemical structures, provided in SMILES format.
-   """
+    """
 
     def __init__(self, smiles, max_len=None, vocab_file=None, training_split=0.9):
         """
@@ -78,11 +78,11 @@ class SmilesDataset(Dataset):
 
     def __str__(self):
         return (
-                "dataset containing "
-                + str(len(self))
-                + " SMILES with a vocabulary of "
-                + str(len(self.vocabulary))
-                + " characters"
+            "dataset containing "
+            + str(len(self))
+            + " SMILES with a vocabulary of "
+            + str(len(self.vocabulary))
+            + " characters"
         )
 
 
@@ -176,13 +176,12 @@ class SelfiesDataset(Dataset):
 
     def __str__(self):
         return (
-                "dataset containing "
-                + str(len(self))
-                + " SELFIES with a vocabulary of "
-                + str(len(self.vocabulary))
-                + " characters"
+            "dataset containing "
+            + str(len(self))
+            + " SELFIES with a vocabulary of "
+            + str(len(self.vocabulary))
+            + " characters"
         )
-
 
 
 class Vocabulary:
