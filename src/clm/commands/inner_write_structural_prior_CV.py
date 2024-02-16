@@ -6,13 +6,14 @@ from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors
 from rdkit.DataStructs import FingerprintSimilarity
 from tqdm import tqdm
 
-from clm.python.functions import (
-    clean_mol,
-    clean_mols,
+from clm.functions import (
     get_ecfp6_fingerprints,
     read_smiles,
+    set_seed,
+    seed_type,
+    clean_mols,
+    clean_mol
 )
-from clm.functions import set_seed, seed_type
 
 # suppress rdkit errors
 from rdkit import rdBase

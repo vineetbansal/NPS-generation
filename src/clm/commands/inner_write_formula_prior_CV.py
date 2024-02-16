@@ -5,8 +5,7 @@ import pandas as pd
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
-from clm.python.functions import clean_mol, clean_mols, read_smiles
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, read_smiles, clean_mol, clean_mols
 
 # suppress rdkit errors
 from rdkit import rdBase

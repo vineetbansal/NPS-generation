@@ -9,8 +9,7 @@ from tqdm import tqdm
 
 from clm.python.datasets import Vocabulary, SelfiesDataset
 from clm.python.models import RNN
-from clm.python.functions import read_smiles
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, read_smiles
 
 
 def add_args(parser):

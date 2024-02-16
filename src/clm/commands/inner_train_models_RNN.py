@@ -15,9 +15,8 @@ from rdkit import rdBase
 
 from clm.python.datasets import SmilesDataset, SelfiesDataset
 from clm.python.models import RNN
-from clm.python.functions import read_smiles, write_smiles
 from clm.python.loggers import EarlyStopping, track_loss, print_update
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, read_smiles, write_smiles
 
 # suppress Chem.MolFromSmiles error output
 rdBase.DisableLog("rdApp.error")
