@@ -33,9 +33,6 @@ def add_args(parser):
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
-    parser.add_argument(
-        "--representation", type=str, default="SMILES", help="SMILES/SELFIES"
-    )
     return parser
 
 
@@ -49,7 +46,6 @@ def write_structural_prior_CV(
     err_ppm,
     chunk_size,
     seed,
-    representation="SMILES",
 ):
     set_seed(seed)
 
@@ -64,7 +60,7 @@ def write_structural_prior_CV(
             smiles = all_train_smiles[i : i + chunk_size]
             mols = clean_mols(
                 smiles,
-                selfies=representation == "SELFIES",
+                selfies=False,
                 disable_progress=True,
                 return_dict=True,
             )
@@ -89,7 +85,7 @@ def write_structural_prior_CV(
             smiles = all_test_smiles[i : i + chunk_size]
             mols = clean_mols(
                 smiles,
-                selfies=representation == "SELFIES",
+                selfies=False,
                 disable_progress=True,
                 return_dict=True,
             )
@@ -137,7 +133,7 @@ def write_structural_prior_CV(
             # get formula and exact mass
             query_mol = clean_mol(
                 row.smiles,
-                selfies=representation == "SELFIES",
+                selfies=False,
             )
             query_mass = Descriptors.ExactMolWt(query_mol)
             query_fp = AllChem.GetMorganFingerprintAsBitVect(query_mol, 3, nBits=1024)
@@ -196,7 +192,7 @@ def write_structural_prior_CV(
             if tc.shape[0] > 0:
                 target_mols = clean_mols(
                     tc["target_smiles"].values,
-                    selfies=representation == "SELFIES",
+                    selfies=False,
                     disable_progress=True,
                 )
                 keep = [idx for idx, mol in enumerate(target_mols) if mol]
@@ -266,7 +262,6 @@ def main(args):
         err_ppm=args.err_ppm,
         chunk_size=args.chunk_size,
         seed=args.seed,
-        representation=args.representation,
     )
 
 

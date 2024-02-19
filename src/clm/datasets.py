@@ -343,11 +343,12 @@ class SelfiesVocabulary:
             alphabet = sorted(list(sf.get_alphabet_from_selfies(self.selfies)))
             self.characters = alphabet
 
-        # add padding token
-        self.characters.append("<PAD>")
-        # add SOS/EOS tokens
-        self.characters.append("SOS")
-        self.characters.append("EOS")
+            # add padding token
+            self.characters.append("<PAD>")
+            # add SOS/EOS tokens
+            self.characters.append("SOS")
+            self.characters.append("EOS")
+
         # create dictionaries
         self.dictionary = {key: idx for idx, key in enumerate(self.characters)}
         self.reverse_dictionary = {value: key for key, value in self.dictionary.items()}

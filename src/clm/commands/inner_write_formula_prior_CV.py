@@ -24,9 +24,6 @@ def add_args(parser):
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
-    parser.add_argument(
-        "--representation", type=str, default="SMILES", help="SMILES/SELFIES"
-    )
     return parser
 
 
@@ -39,7 +36,6 @@ def inner_write_formula_prior_CV(
     err_ppm,
     chunk_size,
     seed,
-    representation="SMILES",
 ):
     set_seed(seed)
 
@@ -54,7 +50,7 @@ def inner_write_formula_prior_CV(
             smiles = all_train_smiles[i : i + chunk_size]
             mols = clean_mols(
                 smiles,
-                selfies=representation == "SELFIES",
+                selfies=False,
                 disable_progress=True,
                 return_dict=True,
             )
@@ -79,7 +75,7 @@ def inner_write_formula_prior_CV(
             smiles = all_test_smiles[i : i + chunk_size]
             mols = clean_mols(
                 smiles,
-                selfies=representation == "SELFIES",
+                selfies=False,
                 disable_progress=True,
                 return_dict=True,
             )
@@ -124,7 +120,7 @@ def inner_write_formula_prior_CV(
         print(f"Generating statistics for model {key}")
         for row in tqdm(test.itertuples(), total=test.shape[0]):
             # get formula and exact mass
-            query_mol = clean_mol(row.smiles, selfies=representation == "SELFIES")
+            query_mol = clean_mol(row.smiles, selfies=False)
             query_mass = Descriptors.ExactMolWt(query_mol)
 
             # compute 10 ppm range
@@ -197,7 +193,6 @@ def main(args):
         err_ppm=args.err_ppm,
         chunk_size=args.chunk_size,
         seed=args.seed,
-        representation=args.representation,
     )
 
 
