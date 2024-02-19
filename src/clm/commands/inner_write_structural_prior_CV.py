@@ -33,7 +33,9 @@ def add_args(parser):
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
-
+    parser.add_argument(
+        "--representation", type=str, default="SMILES", help="SMILES/SELFIES"
+    )
     return parser
 
 
@@ -47,40 +49,59 @@ def write_structural_prior_CV(
     err_ppm,
     chunk_size,
     seed,
+    representation="SMILES",
 ):
     set_seed(seed)
 
     # read training and test sets
     all_train_smiles = read_smiles(train_file)
+    all_valid_train_smiles = []
 
     train_masses = []
     train_fmlas = []
     with tqdm(total=len(all_train_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
             smiles = all_train_smiles[i : i + chunk_size]
-            mols = clean_mols(smiles, disable_progress=True)
-            train_masses.extend([round(Descriptors.ExactMolWt(mol), 4) for mol in mols])
-            train_fmlas.extend([rdMolDescriptors.CalcMolFormula(mol) for mol in mols])
+            mols = clean_mols(
+                smiles,
+                selfies=representation == "SELFIES",
+                disable_progress=True,
+                return_dict=True,
+            )
+            for smile, mol in mols.items():
+                if mol is not None:
+                    all_valid_train_smiles.append(smile)
+                    train_masses.append(round(Descriptors.ExactMolWt(mol), 4))
+                    train_fmlas.append(rdMolDescriptors.CalcMolFormula(mol))
             pbar.update(len(smiles))
 
     train = pd.DataFrame(
-        {"smiles": all_train_smiles, "mass": train_masses, "formula": train_fmlas}
+        {"smiles": all_valid_train_smiles, "mass": train_masses, "formula": train_fmlas}
     )
 
     all_test_smiles = read_smiles(test_file)
+    all_valid_test_smiles = []
 
     test_masses = []
     test_fmlas = []
     with tqdm(total=len(all_test_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
             smiles = all_test_smiles[i : i + chunk_size]
-            mols = clean_mols(smiles, disable_progress=True)
-            test_masses.extend([round(Descriptors.ExactMolWt(mol), 4) for mol in mols])
-            test_fmlas.extend([rdMolDescriptors.CalcMolFormula(mol) for mol in mols])
+            mols = clean_mols(
+                smiles,
+                selfies=representation == "SELFIES",
+                disable_progress=True,
+                return_dict=True,
+            )
+            for smile, mol in mols.items():
+                if mol is not None:
+                    all_valid_test_smiles.append(smile)
+                    test_masses.append(round(Descriptors.ExactMolWt(mol), 4))
+                    test_fmlas.append(rdMolDescriptors.CalcMolFormula(mol))
             pbar.update(len(smiles))
 
     test = pd.DataFrame(
-        {"smiles": all_test_smiles, "mass": test_masses, "formula": test_fmlas}
+        {"smiles": all_valid_test_smiles, "mass": test_masses, "formula": test_fmlas}
     )
     test = test.assign(mass_known=test["mass"].isin(train_masses))
     test = test.assign(formula_known=test["formula"].isin(train_fmlas))
@@ -114,7 +135,10 @@ def write_structural_prior_CV(
         print(f"Generating statistics for model {key}")
         for row in tqdm(test.itertuples(), total=test.shape[0]):
             # get formula and exact mass
-            query_mol = clean_mol(row.smiles)
+            query_mol = clean_mol(
+                row.smiles,
+                selfies=representation == "SELFIES",
+            )
             query_mass = Descriptors.ExactMolWt(query_mol)
             query_fp = AllChem.GetMorganFingerprintAsBitVect(query_mol, 3, nBits=1024)
 
@@ -171,7 +195,9 @@ def write_structural_prior_CV(
             # compute Tc
             if tc.shape[0] > 0:
                 target_mols = clean_mols(
-                    tc["target_smiles"].values, disable_progress=True
+                    tc["target_smiles"].values,
+                    selfies=representation == "SELFIES",
+                    disable_progress=True,
                 )
                 keep = [idx for idx, mol in enumerate(target_mols) if mol]
                 tc = tc.iloc[keep, :]
@@ -240,6 +266,7 @@ def main(args):
         err_ppm=args.err_ppm,
         chunk_size=args.chunk_size,
         seed=args.seed,
+        representation=args.representation,
     )
 
 

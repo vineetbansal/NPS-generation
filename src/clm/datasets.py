@@ -327,7 +327,7 @@ class SelfiesVocabulary:
             all_chars = read_smiles(vocab_file)
             # prevent chain popping open multi-character tokens
             self.characters = np.unique(
-                np.array(chain(*[[char] for char in all_chars]))
+                np.array(list(chain(*[[char] for char in all_chars])))
             ).tolist()
         else:
             # read SMILES

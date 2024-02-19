@@ -13,7 +13,7 @@ import torch
 converter = deepsmiles.Converter(rings=True, branches=True)
 
 
-def clean_mol(smiles, stereochem=False, selfies=False, deepsmiles=False):
+def clean_mol(smiles, *, stereochem=False, selfies=False, deepsmiles=False):
     """
     Construct a molecule from a SMILES string, removing stereochemistry and
     explicit hydrogens, and setting aromaticity.
@@ -39,23 +39,31 @@ def clean_mol(smiles, stereochem=False, selfies=False, deepsmiles=False):
 
 def clean_mols(
     all_smiles,
+    *,
     stereochem=False,
     selfies=False,
     deepsmiles=False,
     disable_progress=False,
+    return_dict=False,
 ):
     """
     Construct a list of molecules from a list of SMILES strings, replacing
     invalid molecules with None in the list.
     """
-    mols = []
-    for smiles in tqdm(all_smiles, disable=disable_progress):
+    mols = {}
+    for smile in tqdm(all_smiles, disable=disable_progress):
         try:
-            mol = clean_mol(smiles, stereochem, selfies, deepsmiles)
-            mols.append(mol)
+            mol = clean_mol(
+                smile, stereochem=stereochem, selfies=selfies, deepsmiles=deepsmiles
+            )
+            mols[smile] = mol
         except ValueError:
-            mols.append(None)
-    return mols
+            mols[smile] = None
+
+    if return_dict:
+        return mols
+    else:
+        return list(mols.values())
 
 
 def remove_salts_solvents(mol, hac=3):
