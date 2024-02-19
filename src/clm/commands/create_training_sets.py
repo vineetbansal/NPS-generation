@@ -224,12 +224,12 @@ def create_training_sets(
                         pass
                 test = test_out
 
-        write_smiles(train, train_file.format(fold=fold))
+        write_smiles(train, str(train_file).format(fold=fold))
         vocabulary = vocabulary_from_representation(representation, train)
         logger.info("vocabulary of {} characters".format(len(vocabulary)))
-        vocabulary.write(output_file=vocab_file.format(fold=fold))
+        vocabulary.write(output_file=str(vocab_file).format(fold=fold))
         if test is not None:
-            write_smiles(test, test_file.format(fold=fold))
+            write_smiles(test, str(test_file).format(fold=fold))
 
 
 def main(args):
