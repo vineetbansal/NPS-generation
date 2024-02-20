@@ -243,11 +243,13 @@ def write_structural_prior_CV(
     rank_df.to_csv(
         ranks_file,
         index=False,
-        compression="gzip" if ranks_file.endswith(".gz") else None,
+        compression="gzip" if str(ranks_file).endswith(".gz") else None,
     )
     os.makedirs(os.path.dirname(tc_file), exist_ok=True)
     tc_df.to_csv(
-        tc_file, index=False, compression="gzip" if tc_file.endswith(".gz") else None
+        tc_file,
+        index=False,
+        compression="gzip" if str(tc_file).endswith(".gz") else None,
     )
 
 

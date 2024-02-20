@@ -27,7 +27,7 @@ def add_args(parser):
     return parser
 
 
-def inner_write_formula_prior_CV(
+def write_formula_prior_CV(
     ranks_file,
     train_file,
     test_file,
@@ -179,12 +179,12 @@ def inner_write_formula_prior_CV(
     rank_df.to_csv(
         ranks_file,
         index=False,
-        compression="gzip" if ranks_file.endswith(".gz") else None,
+        compression="gzip" if str(ranks_file).endswith(".gz") else None,
     )
 
 
 def main(args):
-    inner_write_formula_prior_CV(
+    write_formula_prior_CV(
         ranks_file=args.ranks_file,
         train_file=args.train_file,
         test_file=args.test_file,
