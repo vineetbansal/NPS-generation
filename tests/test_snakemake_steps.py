@@ -97,7 +97,7 @@ def test_02_train_models_RNN():
 
 def test_03_sample_molecules_RNN():
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = Path(temp_dir) / "0/prior/samples"
+        temp_dir = Path(temp_dir)
         inner_sample_molecules_RNN.sample_molecules_RNN(
             database="LOTUS_truncated",
             representation="SMILES",
