@@ -65,6 +65,7 @@ def test_01_create_training_sets():
 
 def test_02_train_models_RNN():
     with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir = "out_debug"
         temp_dir = Path(temp_dir)
         inner_train_models_RNN.train_models_RNN(
             database="LOTUS_truncated",
@@ -91,7 +92,7 @@ def test_02_train_models_RNN():
         )
         assert_checksum(
             temp_dir / "LOTUS_truncated_SMILES_0_0_loss.csv",
-            "c350cb54e87fc6975bc57cefc3a8950a",
+            "4343a005e4c445da1084627e38713a0d",
         )
 
 

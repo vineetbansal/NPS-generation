@@ -35,6 +35,7 @@ def test_snakemake():
     assert success, "Snakemake did not complete successfully"
 
     output_dir = os.path.join(os.path.join(snakefile), out_dir)
+    output_dir = out_dir
     ranks_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv"
     checksum = hashlib.md5(
         "".join(open(ranks_file_overall, "r").readlines()).encode("utf8")
