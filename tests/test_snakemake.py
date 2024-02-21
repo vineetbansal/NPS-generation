@@ -24,6 +24,8 @@ def test_snakemake():
                 "random_seed": 5831,
                 "dataset": dataset,
                 "pubchem_tsv_file": pubchem_tsv_file,
+                "representation": ["SMILES"],
+                "enum_factors": [0],
                 "output_dir": temp_dir,
             },
             dryrun=False,
