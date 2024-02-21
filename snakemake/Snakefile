@@ -86,6 +86,7 @@ rule create_training_sets:
         '--test-file {output.test_file} '
         '--enum-factor {wildcards.enum_factor} '
         '--folds {FOLDS} '
+        '--which-fold {wildcards.fold} '
         '--representation {wildcards.repr} '
         '--min-tc {config[min_tc]} '
         '--seed {config[random_seed]} '
