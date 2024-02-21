@@ -14,8 +14,7 @@ from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-# import functions
-from clm.python.functions import clean_mol, read_smiles
+from clm.functions import read_smiles, clean_mol
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -60,7 +59,8 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
 
             # try to parse the molecule
             try:
-                mol = clean_mol(smiles, representation=representation)
+                is_selfie = True if representation == "SELFIE" else False
+                mol = clean_mol(smiles, selfies=is_selfie)
 
                 # calculate exact mass
                 exact_mass = Descriptors.ExactMolWt(mol)

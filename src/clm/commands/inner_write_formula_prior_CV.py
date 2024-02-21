@@ -5,8 +5,7 @@ import pandas as pd
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
-from clm.python.functions import clean_mol, clean_mols, read_smiles
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, read_smiles, clean_mol, clean_mols
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -28,7 +27,7 @@ def add_args(parser):
     return parser
 
 
-def inner_write_formula_prior_CV(
+def write_formula_prior_CV(
     ranks_file,
     train_file,
     test_file,
@@ -42,35 +41,53 @@ def inner_write_formula_prior_CV(
 
     # read training and test sets
     all_train_smiles = read_smiles(train_file)
+    all_valid_train_smiles = []
 
     train_masses = []
     train_fmlas = []
     with tqdm(total=len(all_train_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
             smiles = all_train_smiles[i : i + chunk_size]
-            mols = clean_mols(smiles, disable_progress=True)
-            train_masses.extend([round(Descriptors.ExactMolWt(mol), 4) for mol in mols])
-            train_fmlas.extend([rdMolDescriptors.CalcMolFormula(mol) for mol in mols])
+            mols = clean_mols(
+                smiles,
+                selfies=False,
+                disable_progress=True,
+                return_dict=True,
+            )
+            for smile, mol in mols.items():
+                if mol is not None:
+                    all_valid_train_smiles.append(smile)
+                    train_masses.append(round(Descriptors.ExactMolWt(mol), 4))
+                    train_fmlas.append(rdMolDescriptors.CalcMolFormula(mol))
             pbar.update(len(smiles))
 
     train = pd.DataFrame(
-        {"smiles": all_train_smiles, "mass": train_masses, "formula": train_fmlas}
+        {"smiles": all_valid_train_smiles, "mass": train_masses, "formula": train_fmlas}
     )
 
     all_test_smiles = read_smiles(test_file)
+    all_valid_test_smiles = []
 
     test_masses = []
     test_fmlas = []
     with tqdm(total=len(all_test_smiles)) as pbar:
         for i in range(0, len(all_train_smiles), chunk_size):
             smiles = all_test_smiles[i : i + chunk_size]
-            mols = clean_mols(smiles, disable_progress=True)
-            test_masses.extend([round(Descriptors.ExactMolWt(mol), 4) for mol in mols])
-            test_fmlas.extend([rdMolDescriptors.CalcMolFormula(mol) for mol in mols])
+            mols = clean_mols(
+                smiles,
+                selfies=False,
+                disable_progress=True,
+                return_dict=True,
+            )
+            for smile, mol in mols.items():
+                if mol is not None:
+                    all_valid_test_smiles.append(smile)
+                    test_masses.append(round(Descriptors.ExactMolWt(mol), 4))
+                    test_fmlas.append(rdMolDescriptors.CalcMolFormula(mol))
             pbar.update(len(smiles))
 
     test = pd.DataFrame(
-        {"smiles": all_test_smiles, "mass": test_masses, "formula": test_fmlas}
+        {"smiles": all_valid_test_smiles, "mass": test_masses, "formula": test_fmlas}
     )
     test = test.assign(mass_known=test["mass"].isin(train_masses))
     test = test.assign(formula_known=test["formula"].isin(train_fmlas))
@@ -103,7 +120,7 @@ def inner_write_formula_prior_CV(
         print(f"Generating statistics for model {key}")
         for row in tqdm(test.itertuples(), total=test.shape[0]):
             # get formula and exact mass
-            query_mol = clean_mol(row.smiles)
+            query_mol = clean_mol(row.smiles, selfies=False)
             query_mass = Descriptors.ExactMolWt(query_mol)
 
             # compute 10 ppm range
@@ -162,12 +179,12 @@ def inner_write_formula_prior_CV(
     rank_df.to_csv(
         ranks_file,
         index=False,
-        compression="gzip" if ranks_file.endswith(".gz") else None,
+        compression="gzip" if str(ranks_file).endswith(".gz") else None,
     )
 
 
 def main(args):
-    inner_write_formula_prior_CV(
+    write_formula_prior_CV(
         ranks_file=args.ranks_file,
         train_file=args.train_file,
         test_file=args.test_file,
