@@ -136,7 +136,6 @@ rule train_models_RNN:
         slurm_extra="--gres=gpu:1"
     shell:
             'clm inner_train_models_RNN '
-            '--database {wildcards.dataset} '
             '--representation {wildcards.repr} '
             '--seed {wildcards.seed} '
             '--rnn_type {MODEL_PARAMS[rnn_type]} '

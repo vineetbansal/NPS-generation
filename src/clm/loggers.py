@@ -60,18 +60,20 @@ class EarlyStopping:
         torch.save(model.state_dict(), output_file)
 
 
-def track_loss(output_file, epoch, batch_idx, training_loss, validation_loss):
+def track_loss(
+    output_file, epoch, batch_no, value, outcome=("training loss", "validation loss")
+):
     sched = pd.DataFrame(
         {
-            "epoch": epoch + 1,
-            "minibatch": batch_idx,
-            "outcome": ["training loss", "validation loss"],
-            "value": [training_loss, validation_loss],
+            "epoch": epoch,
+            "minibatch": batch_no,
+            "outcome": outcome,
+            "value": value,
         }
     )
 
     # write training schedule (write header if file does not exist)
-    if not os.path.isfile(output_file) or batch_idx == 0:
+    if not os.path.isfile(output_file) or batch_no == 0:
         sched.to_csv(output_file, index=False)
     else:
         sched.to_csv(output_file, index=False, mode="a", header=False)

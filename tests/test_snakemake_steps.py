@@ -78,7 +78,6 @@ def test_02_train_models_RNN():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
         inner_train_models_RNN.train_models_RNN(
-            database="LOTUS_truncated",
             representation="SMILES",
             seed=0,
             rnn_type="LSTM",
