@@ -169,13 +169,13 @@ def test_06_process_tabulated_molecules():
                 test_dir / "0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv",
                 test_dir / "0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv",
             ],
-            cv_file=[
+            cv_files=[
                 test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
                 test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi",
                 test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi",
             ],
             output_file=temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
-            summary_fn="freq_avg",
+            summary_fn="freq-avg",
         )
         assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
