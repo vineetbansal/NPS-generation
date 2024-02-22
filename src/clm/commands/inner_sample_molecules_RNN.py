@@ -43,7 +43,9 @@ def add_args(parser):
 
     parser.add_argument("--batch_size", type=int, help="Batch size for training")
 
-    parser.add_argument("--sample_mols", type=int, help="Number of molecules to generate")
+    parser.add_argument(
+        "--sample_mols", type=int, help="Number of molecules to generate"
+    )
 
     parser.add_argument(
         "--vocab_file",
@@ -130,7 +132,7 @@ def main(args):
         sample_mols=args.sample_mols,
         vocab_file=args.vocab_file,
         model_file=args.model_file,
-        output_file=args.output_file
+        output_file=args.output_file,
     )
 
 

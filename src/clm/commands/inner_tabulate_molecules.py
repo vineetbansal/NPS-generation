@@ -60,14 +60,14 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
         except ValueError:
             pass
 
-    df = pd.DataFrame(
-        new_smiles, columns=["smiles", "mass", "formula"])
-    ((((df
-        .groupby(["smiles", "mass", "formula"])
-        .size())
-        .to_frame("size"))
-        .reset_index())
-        .sort_values("size", ascending=False)).to_csv(output_file, index=False)
+    df = pd.DataFrame(new_smiles, columns=["smiles", "mass", "formula"])
+    (
+        (
+            (
+                (df.groupby(["smiles", "mass", "formula"]).size()).to_frame("size")
+            ).reset_index()
+        ).sort_values("size", ascending=False)
+    ).to_csv(output_file, index=False)
 
 
 def main(args):
