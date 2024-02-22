@@ -114,15 +114,15 @@ def read_smiles(smiles_file, max_lines=None):
     """
     Read a list of SMILES from a line-delimited file.
     """
-    smiles = []
-    lines = 0
     with open(smiles_file, "r") as f:
-        while line := f.readline().strip():
-            smiles.append(line)
-            lines += 1
-            if max_lines != 0 and max_lines is not None and lines == max_lines:
-                break
-    return smiles
+        lines = np.array(f.readlines())
+
+    lines = np.char.strip(lines)
+
+    if max_lines is not None and max_lines > 0:
+        lines = lines[:max_lines]
+
+    return lines
 
 
 def write_smiles(smiles, smiles_file, mode="w"):
