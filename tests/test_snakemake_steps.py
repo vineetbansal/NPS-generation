@@ -21,10 +21,14 @@ dataset = base_dir / "tests/test_data/LOTUS_truncated.txt"
 pubchem_tsv_file = base_dir / "tests/test_data/PubChem_truncated.tsv"
 
 
-def assert_checksum(file, checksum):
+def assert_checksum_equals(generated_file, oracle):
     assert (
-        hashlib.md5("".join(open(file, "r").readlines()).encode("utf8")).hexdigest()
-        == checksum
+        hashlib.md5(
+            "".join(open(generated_file, "r").readlines()).encode("utf8")
+        ).hexdigest()
+        == hashlib.md5(
+            "".join(open(oracle, "r").readlines()).encode("utf8")
+        ).hexdigest()
     )
 
 
@@ -36,8 +40,8 @@ def test_00_preprocess():
             output_file=temp_dir / "preprocessed.smi",
             max_input_smiles=1000,
         )
-        assert_checksum(
-            temp_dir / "preprocessed.smi", "a7911f5e21e07911b8898c83f53cad17"
+        assert_checksum_equals(
+            temp_dir / "preprocessed.smi", test_dir / "prior/raw/LOTUS_truncated.txt"
         )
 
 
@@ -56,11 +60,18 @@ def test_01_create_training_sets():
             seed=5831,
             max_input_smiles=1000,
         )
-        assert_checksum(temp_dir / "train_file_0", "5fb4ff667b8d4e3c7485c4755f775104")
-        assert_checksum(
-            temp_dir / "vocabulary_file_0", "cbe3bbefa44233ccb5c5b36150f5efc6"
+        assert_checksum_equals(
+            temp_dir / "train_file_0",
+            test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         )
-        assert_checksum(temp_dir / "test_file_0", "078876be8b883513f56ed95e8d0008a0")
+        assert_checksum_equals(
+            temp_dir / "vocabulary_file_0",
+            test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
+        )
+        assert_checksum_equals(
+            temp_dir / "test_file_0",
+            test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
+        )
 
 
 def test_02_train_models_RNN():
@@ -89,10 +100,8 @@ def test_02_train_models_RNN():
             loss_file=temp_dir / "LOTUS_truncated_SMILES_0_0_loss.csv",
             smiles_file=None,
         )
-        assert_checksum(
-            temp_dir / "LOTUS_truncated_SMILES_0_0_loss.csv",
-            "c350cb54e87fc6975bc57cefc3a8950a",
-        )
+        # Model loss values can vary between platforms and architectures,
+        # so we simply ensure that this step runs without errors.
 
 
 def test_03_sample_molecules_RNN():
@@ -117,10 +126,9 @@ def test_03_sample_molecules_RNN():
             model_file=test_dir / "0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt",
             output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_samples.csv",
         )
-        assert_checksum(
-            temp_dir / "LOTUS_truncated_SMILES_0_0_samples.csv",
-            "ed8ed8614c2922d3458067eba5318a00",
-        )
+        # Samples and their associated loss values can vary between platforms
+        # and architectures, so we simply ensure that this step runs without
+        # errors.
 
 
 def test_04_tabulate_molecules():
@@ -133,9 +141,9 @@ def test_04_tabulate_molecules():
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
             output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_samples_masses.csv",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_0_samples_masses.csv",
-            "b106ac6b78a4602d8ac029e02479458b",
+            test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples_masses.csv",
         )
 
 
@@ -151,9 +159,9 @@ def test_05_collect_tabulated_molecules():
             ],
             output_file=temp_dir / "LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_unique_masses.csv",
-            "b106ac6b78a4602d8ac029e02479458b",
+            test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
 
 
@@ -174,9 +182,9 @@ def test_06_process_tabulated_molecules():
             output_file=temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
             summary_fn="freq_avg",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
-            "32c00675ac2e6b08d798579eeb7a0e86",
+            test_dir / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
         )
 
 
@@ -195,13 +203,14 @@ def test_07_write_structural_prior_CV():
             seed=5831,
             chunk_size=100000,
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
-            "23ec8c0dfe23d41d8cf054f41b811d84",
+            test_dir
+            / "0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_CV_tc.csv",
-            "01c39b3dc2e9e8840ecda5c4b39efad1",
+            test_dir / "0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_tc.csv",
         )
 
 
@@ -219,9 +228,10 @@ def test_08_write_formula_prior_CV():
             seed=5831,
             chunk_size=100000,
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
-            "586b1feed685bd424d54dc812d3733f0",
+            test_dir
+            / "0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
         )
 
 
@@ -241,11 +251,13 @@ def test_08_write_structural_prior_CV():
             seed=5831,
             chunk_size=100000,
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES__all_freq-avg_CV_ranks_structure.csv",
-            "eb1b8299b54fc36eef4f067ac0819d7d",
+            test_dir
+            / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
-            "c6e24fa270b159239835f83ace71ff1f",
+            test_dir
+            / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
         )
