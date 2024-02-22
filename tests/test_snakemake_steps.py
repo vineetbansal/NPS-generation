@@ -107,7 +107,6 @@ def test_03_sample_molecules_RNN():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
         inner_sample_molecules_RNN.sample_molecules_RNN(
-            database="LOTUS_truncated",
             representation="SMILES",
             seed=0,
             rnn_type="LSTM",
@@ -116,10 +115,7 @@ def test_03_sample_molecules_RNN():
             n_layers=3,
             dropout=0,
             batch_size=64,
-            learning_rate=0.001,
             sample_mols=100,
-            input_file=None,
-            time_file=None,
             vocab_file=test_dir
             / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
             model_file=test_dir / "0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt",

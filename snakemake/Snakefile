@@ -172,7 +172,6 @@ rule sample_molecules_RNN:
         slurm_extra="--gres=gpu:1"
     shell:
         'clm inner_sample_molecules_RNN '
-        '--database {wildcards.dataset} '
         '--representation {wildcards.repr} '
         '--seed {wildcards.seed} '
         '--rnn_type {MODEL_PARAMS[rnn_type]} '
@@ -181,7 +180,6 @@ rule sample_molecules_RNN:
         '--n_layers {MODEL_PARAMS[n_layers]} '
         '--dropout {MODEL_PARAMS[dropout]} '
         '--batch_size {MODEL_PARAMS[batch_size]} '
-        '--learning_rate {MODEL_PARAMS[learning_rate]} '
         '--sample_mols {MODEL_PARAMS[sample_mols]} '
         '--vocab_file {input.vocab_file} '
         '--model_file {input.model_file} '
