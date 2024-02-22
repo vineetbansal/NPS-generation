@@ -21,7 +21,7 @@ dataset = base_dir / "tests/test_data/LOTUS_truncated.txt"
 pubchem_tsv_file = base_dir / "tests/test_data/PubChem_truncated.tsv"
 
 
-def assert_checksum(generated_file, oracle):
+def assert_checksum_equals(generated_file, oracle):
     assert (
         hashlib.md5(
             "".join(open(generated_file, "r").readlines()).encode("utf8")
@@ -40,7 +40,7 @@ def test_00_preprocess():
             output_file=temp_dir / "preprocessed.smi",
             max_input_smiles=1000,
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "preprocessed.smi", test_dir / "prior/raw/LOTUS_truncated.txt"
         )
 
@@ -60,15 +60,15 @@ def test_01_create_training_sets():
             seed=5831,
             max_input_smiles=1000,
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "train_file_0",
             test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "vocabulary_file_0",
             test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "test_file_0",
             test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
         )
@@ -100,10 +100,8 @@ def test_02_train_models_RNN():
             loss_file=temp_dir / "LOTUS_truncated_SMILES_0_0_loss.csv",
             smiles_file=None,
         )
-        assert_checksum(
-            temp_dir / "LOTUS_truncated_SMILES_0_0_loss.csv",
-            test_dir / "0/prior/models/LOTUS_truncated_SMILES_0_0_loss.csv",
-        )
+        # Model loss values can vary between platforms and architectures,
+        # so we simply ensure that this step runs without errors.
 
 
 def test_03_sample_molecules_RNN():
@@ -128,10 +126,9 @@ def test_03_sample_molecules_RNN():
             model_file=test_dir / "0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt",
             output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_samples.csv",
         )
-        assert_checksum(
-            temp_dir / "LOTUS_truncated_SMILES_0_0_samples.csv",
-            test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples.csv",
-        )
+        # Samples and their associated loss values can vary between platforms
+        # and architectures, so we simply ensure that this step runs without
+        # errors.
 
 
 def test_04_tabulate_molecules():
@@ -144,7 +141,7 @@ def test_04_tabulate_molecules():
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
             output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_samples_masses.csv",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_0_samples_masses.csv",
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples_masses.csv",
         )
@@ -162,7 +159,7 @@ def test_05_collect_tabulated_molecules():
             ],
             output_file=temp_dir / "LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_unique_masses.csv",
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
@@ -185,7 +182,7 @@ def test_06_process_tabulated_molecules():
             output_file=temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
             summary_fn="freq_avg",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
         )
@@ -206,12 +203,12 @@ def test_07_write_structural_prior_CV():
             seed=5831,
             chunk_size=100000,
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
             test_dir
             / "0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_CV_tc.csv",
             test_dir / "0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_tc.csv",
         )
@@ -231,7 +228,7 @@ def test_08_write_formula_prior_CV():
             seed=5831,
             chunk_size=100000,
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
             test_dir
             / "0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
@@ -254,12 +251,12 @@ def test_08_write_structural_prior_CV():
             seed=5831,
             chunk_size=100000,
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES__all_freq-avg_CV_ranks_structure.csv",
             test_dir
             / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
         )
-        assert_checksum(
+        assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
             test_dir
             / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
