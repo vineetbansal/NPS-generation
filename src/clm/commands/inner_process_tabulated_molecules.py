@@ -77,7 +77,11 @@ def process_tabulated_molecules(input_file, cv_file, output_file, summary_fn):
 
     if not data.empty:
         # Add metadata (mass and formula)
-        data = data.merge(meta[["smiles", "mass", "formula"]], how="left", on="smiles")
+        data = data.merge(
+            meta.drop_duplicates("smiles")[["smiles", "mass", "formula"]],
+            how="left",
+            on="smiles",
+        )
 
     output_dir = os.path.dirname(output_file)
     os.makedirs(output_dir, exist_ok=True)

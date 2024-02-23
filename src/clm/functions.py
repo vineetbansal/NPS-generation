@@ -184,9 +184,10 @@ def NeutraliseCharges(mol, reactions=None):
 
 
 def set_seed(seed):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
+    if seed is not None:
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
 
 
 def seed_type(value):
