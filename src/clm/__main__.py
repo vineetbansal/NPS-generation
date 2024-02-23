@@ -12,6 +12,7 @@ from clm.commands import (
     inner_process_tabulated_molecules,
     inner_write_structural_prior_CV,
     inner_write_formula_prior_CV,
+    calculate_outcomes,
 )
 
 
@@ -32,6 +33,7 @@ def main():
         inner_process_tabulated_molecules,
         inner_write_structural_prior_CV,
         inner_write_formula_prior_CV,
+        calculate_outcomes,
     )
 
     subparsers = parser.add_subparsers(title="Choose a command")
