@@ -64,9 +64,14 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
             if canonical_smile not in train_smiles:
                 new_smiles.append([canonical_smile, mass, formula])
 
-    freqs = pd.DataFrame(new_smiles, columns=["smiles", "mass", "formula"]). \
-        groupby(["smiles", "mass", "formula"]).size().to_frame("size"). \
-        sort_values("size", ascending=False).reset_index()
+    freqs = (
+        pd.DataFrame(new_smiles, columns=["smiles", "mass", "formula"])
+        .groupby(["smiles", "mass", "formula"])
+        .size()
+        .to_frame("size")
+        .sort_values("size", ascending=False)
+        .reset_index()
+    )
 
     freqs.to_csv(output_file, index=False)
 
