@@ -114,7 +114,7 @@ def sample_molecules_RNN(
 
             with open(output_file, "a+") as f:
                 for loss, sm in zip(losses, sampled_smiles):
-                    f.write(f"{round(loss, 4)}, {sm} \n")
+                    f.write(f"{loss:0.4f}, {sm} \n")
 
             pbar.update(batch_size)
 
