@@ -2,13 +2,17 @@ import deepsmiles
 import numpy as np
 import os
 import os.path
-
+import random
 import warnings
 from selfies import decoder
 from tqdm import tqdm
 from rdkit import Chem
-from rdkit.Chem import AllChem, rdmolops
+from rdkit.Chem import AllChem, Lipinski, rdmolops
+from rdkit.DataStructs import FingerprintSimilarity
 import torch
+from scipy import histogram
+from scipy.stats import gaussian_kde
+from scipy.spatial.distance import jensenshannon
 
 converter = deepsmiles.Converter(rings=True, branches=True)
 
@@ -110,6 +114,22 @@ def get_ecfp6_fingerprints(mols, include_none=False):
     return fps
 
 
+def get_rdkit_fingerprints(mols, include_none=False):
+    """
+    Get RDKIT fingerprints for a list of molecules. Optionally,
+    handle `None` values by returning a `None` value in that
+    position.
+    """
+    fps = []
+    for mol in mols:
+        if mol is None and include_none:
+            fps.append(None)
+        else:
+            fp = Chem.RDKFingerprint(mol)
+            fps.append(fp)
+    return fps
+
+
 def read_smiles(smiles_file, max_lines=None):
     """
     Read a list of SMILES from a line-delimited file.
@@ -184,12 +204,153 @@ def NeutraliseCharges(mol, reactions=None):
 
 
 def set_seed(seed):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
+    if seed is not None:
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
 
 
 def seed_type(value):
     # A "type" useful for argparse arguments for random seeds
     # that can come in as "None" (e.g. from a snakemake workflow)
     return None if value == "None" else int(value)
+
+
+def continuous_JSD(generated_dist, original_dist, tol=1e-10):
+    try:
+        gen_kde = gaussian_kde(generated_dist)
+    except np.linalg.LinAlgError:
+        generated_dist += np.random.normal(0, 1e-5, len(generated_dist))
+        gen_kde = gaussian_kde(generated_dist)
+
+    org_kde = gaussian_kde(original_dist)
+    vec = np.hstack([generated_dist, original_dist])
+    x_eval = np.linspace(vec.min(), vec.max(), num=1000)
+    P = gen_kde(x_eval) + tol
+    Q = org_kde(x_eval) + tol
+    return jensenshannon(P, Q)
+
+
+def discrete_JSD(generated_dist, original_dist, tol=1e-10):
+    min_v = min(min(generated_dist), min(original_dist))
+    max_v = max(max(generated_dist), max(original_dist))
+    gen, bins = histogram(generated_dist, bins=range(min_v, max_v + 1, 1), density=True)
+    org, bins = histogram(original_dist, bins=range(min_v, max_v + 1, 1), density=True)
+    gen += tol
+    org += tol
+    return jensenshannon(gen, org)
+
+
+def internal_diversity(fps, sample_size=1e4, summarise=True):
+    """
+    Calculate the internal diversity, defined as the mean intra-set Tanimoto
+    coefficient, between a set of fingerprints. For large sets, calculating the
+    entire matrix is prohibitive, so a random set of molecules are sampled.
+    """
+    tcs = []
+    counter = 0
+    while counter < sample_size:
+        idx1 = random.randint(0, len(fps) - 1)
+        idx2 = random.randint(0, len(fps) - 1)
+        fp1 = fps[idx1]
+        fp2 = fps[idx2]
+        tcs.append(FingerprintSimilarity(fp1, fp2))
+        counter += 1
+    if summarise:
+        return np.mean(tcs)
+    else:
+        return tcs
+
+
+def external_diversity(fps1, fps2, sample_size=1e4, summarise=True):
+    """
+    Calculate the external diversity, defined as the mean inter-set Tanimoto
+    coefficient, between two sets of fingerprints. For large sets, calculating
+    the entire matrix is prohibitive, so a random set of molecules are sampled.
+    """
+    #
+    tcs = []
+    counter = 0
+    while counter < sample_size:
+        idx1 = random.randint(0, len(fps1) - 1)
+        idx2 = random.randint(0, len(fps2) - 1)
+        fp1 = fps1[idx1]
+        fp2 = fps2[idx2]
+        tcs.append(FingerprintSimilarity(fp1, fp2))
+        counter += 1
+    if summarise:
+        if len(tcs) == 0:
+            return np.nan
+        else:
+            return np.mean(tcs)
+    else:
+        return tcs
+
+
+def internal_nn(fps, sample_size=1e3, summarise=True):
+    """
+    Calculate the nearest-neighbor Tanimoto coefficient within a set of
+    fingerprints.
+    """
+    counter = 0
+    nns = []
+    while counter < sample_size:
+        idx1 = random.randint(0, len(fps) - 1)
+        fp1 = fps[idx1]
+        tcs = []
+        for idx2 in range(len(fps)):
+            if idx1 != idx2:
+                fp2 = fps[idx2]
+                tcs.append(FingerprintSimilarity(fp1, fp2))
+        nn = np.max(tcs)
+        nns.append(nn)
+        counter += 1
+    if summarise:
+        if len(nns) == 0:
+            return np.nan
+        else:
+            return np.mean(nns)
+    else:
+        return nns
+
+
+def external_nn(fps1, fps2, sample_size=1e3, summarise=True):
+    """i
+    Calculate the nearest-neighbor Tanimoto coefficient, searching one set of
+    fingerprints against a second set.
+    """
+    counter = 0
+    nns = []
+    while counter < sample_size:
+        idx1 = random.randint(0, len(fps1) - 1)
+        fp1 = fps1[idx1]
+        tcs = []
+        for idx2 in range(len(fps2)):
+            fp2 = fps2[idx2]
+            tcs.append(FingerprintSimilarity(fp1, fp2))
+        nn = np.max(tcs)
+        nns.append(nn)
+        counter += 1
+    if summarise:
+        return np.mean(nns)
+    else:
+        return nns
+
+
+def pct_rotatable_bonds(mol):
+    n_bonds = mol.GetNumBonds()
+    if n_bonds > 0:
+        rot_bonds = Lipinski.NumRotatableBonds(mol) / n_bonds
+    else:
+        rot_bonds = 0
+    return rot_bonds
+
+
+def pct_stereocenters(mol):
+    n_atoms = mol.GetNumAtoms()
+    if n_atoms > 0:
+        Chem.AssignStereochemistry(mol)
+        pct_stereo = AllChem.CalcNumAtomStereoCenters(mol) / n_atoms
+    else:
+        pct_stereo = 0
+    return pct_stereo

@@ -46,28 +46,34 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
 
     new_smiles = []
     for line in tqdm(sampled_smiles, total=len(sampled_smiles)):
-        *_, smiles = line.split(",")
+        *_, smile = line.split(",")
+
+        # input file may have empty value for smile
+        if smile.strip() == "":
+            continue
 
         try:
-            mol = clean_mol(smiles, selfies=representation == "SELFIE")
+            mol = clean_mol(smile, selfies=representation == "SELFIE")
+        except ValueError:
+            continue
+        else:
             mass = round(Descriptors.ExactMolWt(mol), 6)
             formula = rdMolDescriptors.CalcMolFormula(mol)
             canonical_smile = Chem.MolToSmiles(mol, isomericSmiles=False)
 
-            if canonical_smile not in train_smiles and canonical_smile:
+            if canonical_smile not in train_smiles:
                 new_smiles.append([canonical_smile, mass, formula])
 
-        except ValueError:
-            pass
+    freqs = (
+        pd.DataFrame(new_smiles, columns=["smiles", "mass", "formula"])
+        .groupby(["smiles", "mass", "formula"])
+        .size()
+        .to_frame("size")
+        .sort_values("size", ascending=False)
+        .reset_index()
+    )
 
-    df = pd.DataFrame(new_smiles, columns=["smiles", "mass", "formula"])
-    (
-        (
-            (
-                (df.groupby(["smiles", "mass", "formula"]).size()).to_frame("size")
-            ).reset_index()
-        ).sort_values("size", ascending=False)
-    ).to_csv(output_file, index=False)
+    freqs.to_csv(output_file, index=False)
 
 
 def main(args):

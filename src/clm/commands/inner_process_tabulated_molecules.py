@@ -43,23 +43,30 @@ def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
         if not cv_dat.empty:
             data[cv_dat["smiles"], fold_idx] = np.nan
 
-    match summary_fn:
-        case "fp10k":
-            data = 10e3 * data / np.nansum(data, axis=0)
-        case "freq-sum":
-            data = pd.DataFrame(
-                {"smiles": list(uniq_smiles), "size": np.nansum(data, axis=1)}
-            )
-        case _:
-            data = pd.DataFrame(
-                {"smiles": list(uniq_smiles), "size": np.nanmean(data, axis=1)}
-            )
+    # Calculate mean/sum
+    if summary_fn == "freq-sum":
+        # With what frequency (across all folds)
+        # were valid molecules produced by our models?
+        data = pd.DataFrame(
+            {"smiles": list(uniq_smiles), "size": np.nansum(data, axis=1)}
+        )
+    else:
+        # With what average frequency (across all folds)
+        # were valid molecules produced by our models?
+        data = pd.DataFrame(
+            {"smiles": list(uniq_smiles), "size": np.nanmean(data, axis=1)}
+        )
 
     data = data.sort_values(by="size", ascending=False).query("size > 0")
 
     if not data.empty:
-        data = data.merge(meta[["smiles", "mass", "formula"]], how="left", on="smiles")
-
+        # Add metadata (mass and formula)
+        data = data.merge(
+            meta.drop_duplicates("smiles")[["smiles", "mass", "formula"]],
+            how="left",
+            on="smiles",
+        )
+        
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     data.to_csv(output_file, index=False)
 
