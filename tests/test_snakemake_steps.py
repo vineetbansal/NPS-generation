@@ -107,7 +107,6 @@ def test_03_sample_molecules_RNN():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir) / "0/prior/samples"
         inner_sample_molecules_RNN.sample_molecules_RNN(
-            database="LOTUS_truncated",
             representation="SMILES",
             seed=0,
             rnn_type="LSTM",
@@ -116,10 +115,7 @@ def test_03_sample_molecules_RNN():
             n_layers=3,
             dropout=0,
             batch_size=64,
-            learning_rate=0.001,
             sample_mols=100,
-            input_file=None,
-            time_file=None,
             vocab_file=test_dir
             / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
             model_file=test_dir / "0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt",
@@ -173,13 +169,13 @@ def test_06_process_tabulated_molecules():
                 test_dir / "0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv",
                 test_dir / "0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv",
             ],
-            cv_file=[
+            cv_files=[
                 test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
                 test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi",
                 test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi",
             ],
             output_file=temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
-            summary_fn="freq_avg",
+            summary_fn="freq-avg",
         )
         assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",

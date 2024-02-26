@@ -1,8 +1,5 @@
-"""
-Sample generated molecules from a trained chemical language model.
-"""
-
 import argparse
+import logging
 import os.path
 import torch
 from tqdm import tqdm
@@ -11,32 +8,63 @@ from clm.datasets import Vocabulary, SelfiesVocabulary
 from clm.models import RNN
 from clm.functions import set_seed, seed_type
 
+logger = logging.getLogger(__name__)
+
 
 def add_args(parser):
-    parser.add_argument("--database", type=str)
-    parser.add_argument("--representation", type=str)
     parser.add_argument(
-        "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
+        "--representation",
+        type=str,
+        default="SMILES",
+        help="Molecular representation format (one of: SMILES/SELFIES)",
     )
-    parser.add_argument("--rnn_type", type=str)
-    parser.add_argument("--embedding_size", type=int)
-    parser.add_argument("--hidden_size", type=int)
-    parser.add_argument("--n_layers", type=int)
-    parser.add_argument("--dropout", type=int)
-    parser.add_argument("--batch_size", type=int)
-    parser.add_argument("--learning_rate", type=float)
-    parser.add_argument("--sample_mols", type=int)
-    parser.add_argument("--input_file", type=str, default=None)
-    parser.add_argument("--vocab_file", type=str)
-    parser.add_argument("--model_file", type=str)
-    parser.add_argument("--output_file", type=str)
-    parser.add_argument("--time_file", type=str)
+
+    parser.add_argument(
+        "--seed",
+        type=seed_type,
+        default=None,
+        nargs="?",
+        help="Random seed for reproducibility",
+    )
+
+    parser.add_argument(
+        "--rnn_type", type=str, help="Type of RNN used (e.g., LSTM, GRU)"
+    )
+
+    parser.add_argument(
+        "--embedding_size", type=int, help="Size of the embedding layer"
+    )
+
+    parser.add_argument("--hidden_size", type=int, help="Size of the hidden layers")
+
+    parser.add_argument("--n_layers", type=int, help="Number of layers in the RNN")
+
+    parser.add_argument("--dropout", type=float, help="Dropout rate for the RNN")
+
+    parser.add_argument("--batch_size", type=int, help="Batch size for training")
+
+    parser.add_argument(
+        "--sample_mols", type=int, help="Number of molecules to generate"
+    )
+
+    parser.add_argument(
+        "--vocab_file",
+        type=str,
+        required=True,
+        help="Output path for the vocabulary file ({fold} is populated automatically)",
+    )
+
+    parser.add_argument(
+        "--model_file", type=str, help="File path to the saved trained model"
+    )
+    parser.add_argument(
+        "--output_file", type=str, help="File path to save the output file"
+    )
 
     return parser
 
 
 def sample_molecules_RNN(
-    database,
     representation,
     seed,
     rnn_type,
@@ -45,27 +73,21 @@ def sample_molecules_RNN(
     n_layers,
     dropout,
     batch_size,
-    learning_rate,
     sample_mols,
-    input_file,
     vocab_file,
     model_file,
     output_file,
-    time_file,
 ):
     set_seed(seed)
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    # detect device
-    print("cuda: {}".format(torch.cuda.is_available()))
+    logging.info(f"cuda: {torch.cuda.is_available()}")
 
-    # load vocabulary
     if representation == "SELFIES":
         vocab = SelfiesVocabulary(vocab_file=vocab_file)
     else:
         vocab = Vocabulary(vocab_file=vocab_file)
 
-    # set up model
     model = RNN(
         vocab,
         rnn_type=rnn_type,
@@ -74,37 +96,31 @@ def sample_molecules_RNN(
         hidden_size=hidden_size,
         dropout=dropout,
     )
-    print(vocab.dictionary)
+    logging.info(vocab.dictionary)
 
-    # load the trained model parameters
     if torch.cuda.is_available():
         model.load_state_dict(torch.load(model_file))
     else:
         model.load_state_dict(torch.load(model_file, map_location=torch.device("cpu")))
 
-    model.eval()  # enable evaluation mode
+    model.eval()
 
-    # wipe the file before writing
+    # Erase file contents if there are any
     open(output_file, "w").close()
 
-    # sample a set of SMILES from the final, trained model
-    batch_size = 32
-    sampled_count = 0
     with tqdm(total=sample_mols) as pbar:
-        while sampled_count < sample_mols:
+        for _ in range(0, sample_mols, batch_size):
             sampled_smiles, losses = model.sample(batch_size, return_losses=True)
-            # increment counter
-            sampled_count += batch_size
-            # write sampled SMILES
+
             with open(output_file, "a+") as f:
                 for loss, sm in zip(losses, sampled_smiles):
-                    f.write(str(round(loss, 4)) + "," + sm + "\n")
+                    f.write(f"{loss:0.4f}, {sm} \n")
+
             pbar.update(batch_size)
 
 
 def main(args):
     sample_molecules_RNN(
-        database=args.database,
         representation=args.representation,
         seed=args.seed,
         rnn_type=args.rnn_type,
@@ -113,13 +129,10 @@ def main(args):
         n_layers=args.n_layers,
         dropout=args.dropout,
         batch_size=args.batch_size,
-        learning_rate=args.learning_rate,
         sample_mols=args.sample_mols,
-        input_file=args.input_file,
         vocab_file=args.vocab_file,
         model_file=args.model_file,
         output_file=args.output_file,
-        time_file=args.time_file,
     )
 
 
