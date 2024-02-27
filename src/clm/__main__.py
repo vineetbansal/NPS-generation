@@ -13,7 +13,7 @@ from clm.commands import (
     inner_write_structural_prior_CV,
     inner_write_formula_prior_CV,
     calculate_outcomes,
-    write_nn_Tc
+    write_nn_Tc,
 )
 
 
@@ -35,7 +35,7 @@ def main():
         inner_write_structural_prior_CV,
         inner_write_formula_prior_CV,
         calculate_outcomes,
-        write_nn_Tc
+        write_nn_Tc,
     )
 
     subparsers = parser.add_subparsers(title="Choose a command")

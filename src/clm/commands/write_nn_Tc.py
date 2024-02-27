@@ -30,20 +30,20 @@ def write_nn_Tc(query_file, reference_file, output_file):
     ref = pd.read_csv(reference_file)
 
     # calculate the masses and molecular formulas of the query set
-    ref_smiles = ref['smiles'].values
+    ref_smiles = ref["smiles"].values
     ref_mols = clean_mols(ref_smiles)
-    ## remove invalid molecules
-    ref_smiles = [ref_smiles[idx] for idx, mol in enumerate(ref_mols) if \
-                  mol is not None]
-    ref_mols = [ref_mols[idx] for idx, mol in enumerate(ref_mols) if \
-                mol is not None]
+    # remove invalid molecules
+    ref_smiles = [
+        ref_smiles[idx] for idx, mol in enumerate(ref_mols) if mol is not None
+    ]
+    ref_mols = [ref_mols[idx] for idx, mol in enumerate(ref_mols) if mol is not None]
     # compute fingerprints
     ref_fps = get_rdkit_fingerprints(ref_mols)
 
     # compute nearest-neighbor Tc between training and test sets
     ncol = len(list(query))
-    query[['nn_tc']] = np.nan
-    query[['nn']] = ""
+    query[["nn_tc"]] = np.nan
+    query[["nn"]] = ""
     counter = 0
     for row in tqdm(query.itertuples(), total=query.shape[0]):
         try:
@@ -62,14 +62,14 @@ def write_nn_Tc(query_file, reference_file, output_file):
         counter = counter + 1
 
     # write to output file
-    query.to_csv(output_file, index=False, compression='gzip')
+    query.to_csv(output_file, index=False, compression="gzip")
 
 
 def main(args):
     write_nn_Tc(
         query_file=args.query_file,
         reference_file=args.reference_file,
-        output_file=args.output_file
+        output_file=args.output_file,
     )
 
 
