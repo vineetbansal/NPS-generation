@@ -5,7 +5,7 @@ import pandas as pd
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
-from clm.functions import set_seed, seed_type, read_smiles, clean_mol, clean_mols
+from clm.functions import set_seed, seed_type, read_file, clean_mol, clean_mols
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -40,7 +40,7 @@ def write_formula_prior_CV(
     set_seed(seed)
 
     # read training and test sets
-    all_train_smiles = read_smiles(train_file)
+    all_train_smiles = read_file(train_file)
     all_valid_train_smiles = []
 
     train_masses = []
@@ -65,7 +65,7 @@ def write_formula_prior_CV(
         {"smiles": all_valid_train_smiles, "mass": train_masses, "formula": train_fmlas}
     )
 
-    all_test_smiles = read_smiles(test_file)
+    all_test_smiles = read_file(test_file)
     all_valid_test_smiles = []
 
     test_masses = []

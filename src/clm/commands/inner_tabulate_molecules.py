@@ -5,7 +5,7 @@ from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-from clm.functions import read_smiles, clean_mol
+from clm.functions import read_file, clean_mol
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -41,8 +41,8 @@ def add_args(parser):
 def tabulate_molecules(input_file, train_file, representation, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    train_smiles = read_smiles(train_file)
-    sampled_smiles = read_smiles(input_file)
+    train_smiles = read_file(train_file)
+    sampled_smiles = read_file(input_file)
 
     new_smiles = []
     for line in tqdm(sampled_smiles, total=len(sampled_smiles)):

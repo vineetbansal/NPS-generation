@@ -22,7 +22,7 @@ from tqdm import tqdm
 from rdkit import rdBase
 from clm.functions import (
     clean_mols,
-    read_smiles,
+    read_file,
     continuous_JSD,
     discrete_JSD,
     internal_diversity,
@@ -65,7 +65,7 @@ def add_args(parser):
 def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
     set_seed(seed)
 
-    org_smiles = read_smiles(train_file)
+    org_smiles = read_file(train_file)
 
     # optionally, subsample to a more tractable number of molecules
     if len(org_smiles) > max_orig_mols:
@@ -134,7 +134,7 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
         sample = pd.read_csv(sampled_file)
         gen_smiles = sample["smiles"].tolist()
     else:
-        gen_smiles = read_smiles(sampled_file)
+        gen_smiles = read_file(sampled_file)
 
     # convert to molecules
     gen_mols = [mol for mol in clean_mols(gen_smiles) if mol]
