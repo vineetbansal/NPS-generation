@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from clm.functions import (
     get_ecfp6_fingerprints,
-    read_smiles,
+    read_file,
     set_seed,
     seed_type,
     clean_mols,
@@ -48,7 +48,7 @@ def write_to_file(file_name, df):
 
 
 def generate_df(smiles_file, chunk_size):
-    smiles = read_smiles(smiles_file)
+    smiles = read_file(smiles_file)
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
     for i in tqdm(range(0, len(smiles), chunk_size)):

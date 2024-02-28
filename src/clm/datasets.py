@@ -9,7 +9,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 from itertools import chain
 from torch.utils.data import Dataset
-from clm.functions import read_smiles
+from clm.functions import read_file
 
 
 class SmilesDataset(Dataset):
@@ -204,13 +204,13 @@ class Vocabulary:
         """
         if vocab_file is not None:
             # read tokens from file, and add to vocabulary
-            self.characters = read_smiles(vocab_file)
+            self.characters = read_file(vocab_file)
         else:
             # read SMILES
             if smiles is not None:
                 self.smiles = smiles
             elif smiles_file is not None:
-                self.smiles = read_smiles(smiles_file)
+                self.smiles = read_file(smiles_file)
             else:
                 raise ValueError(
                     "must provide SMILES list or file to" + " instantiate Vocabulary"
@@ -324,7 +324,7 @@ class SelfiesVocabulary:
         """
         if vocab_file is not None:
             # read tokens from file, and add to vocabulary
-            all_chars = read_smiles(vocab_file)
+            all_chars = read_file(vocab_file)
             # prevent chain popping open multi-character tokens
             self.characters = np.unique(
                 np.array(list(chain(*[[char] for char in all_chars])))
@@ -334,7 +334,7 @@ class SelfiesVocabulary:
             if selfies is not None:
                 self.selfies = selfies
             elif selfies_file is not None:
-                self.selfies = read_smiles(selfies_file)
+                self.selfies = read_file(selfies_file)
             else:
                 raise ValueError(
                     "must provide SELFIES list or file to" + " instantiate Vocabulary"
