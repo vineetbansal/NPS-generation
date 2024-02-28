@@ -131,16 +131,18 @@ def get_rdkit_fingerprints(mols, include_none=False):
 
 
 def read_file(smiles_file, max_lines=None):
-    lines = []
-    with open(smiles_file, "r") as f:
-        for i, line in enumerate(f):
-            lines.append(line.strip())
-            if max_lines is not None and i + 1 == max_lines:
-                break
-
+    lines = [line for line in read_file_incremental(smiles_file, max_lines)]
     lines_array = np.array(lines)
-
     return lines_array
+
+
+def read_file_incremental(input_file, max_lines=None):
+    count = 0
+    for line in open(input_file, "r").readlines():
+        yield line.strip()
+        count += 1
+        if max_lines is not None and count == max_lines:
+            return
 
 
 def write_smiles(smiles, smiles_file, mode="w"):
