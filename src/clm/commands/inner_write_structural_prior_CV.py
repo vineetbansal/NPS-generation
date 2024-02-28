@@ -51,35 +51,31 @@ def generate_df(smiles_file, chunk_size):
     smiles = read_smiles(smiles_file)
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
-    with tqdm(total=len(smiles)) as pbar:
-        for i in tqdm(range(0, len(smiles), chunk_size)):
-            smiles_chunk = smiles[i : i + chunk_size]
+    for i in tqdm(range(0, len(smiles), chunk_size)):
+        mols = clean_mols(
+            smiles[i : i + chunk_size],
+            selfies=False,
+            disable_progress=True,
+            return_dict=True,
+        )
 
-            mols = clean_mols(
-                smiles_chunk, selfies=False, disable_progress=True, return_dict=True
-            )
+        chunk_data = [
+            {
+                "smiles": smile,
+                "mass": round(Descriptors.ExactMolWt(mol), 4),
+                "formula": rdMolDescriptors.CalcMolFormula(mol),
+            }
+            for smile, mol in mols.items()
+            if mol
+        ]
 
-            chunk_data = [
-                {
-                    "smiles": smile,
-                    "mass": round(Descriptors.ExactMolWt(mol), 4),
-                    "formula": rdMolDescriptors.CalcMolFormula(mol),
-                }
-                for smile, mol in mols.items()
-                if mol
-            ]
-
-            if chunk_data:
-                df = pd.concat([df, pd.DataFrame(chunk_data)], ignore_index=True)
-
-            pbar.update(len(smiles_chunk))
+        if chunk_data:
+            df = pd.concat([df, pd.DataFrame(chunk_data)], ignore_index=True)
 
     return df
 
 
-def get_mass_range(mol, err_ppm):
-    mass = Descriptors.ExactMolWt(mol)
-
+def get_mass_range(mass, err_ppm):
     min_mass = (-err_ppm / 1e6 * mass) + mass
     max_mass = (err_ppm / 1e6 * mass) + mass
 
@@ -167,13 +163,16 @@ def write_structural_prior_CV(
     set_seed(seed)
 
     train = generate_df(train_file, chunk_size)
-    test = generate_df(test_file, chunk_size)
-
-    test = (test.assign(mass_known=test["mass"].isin(train["mass"]))).assign(
-        formula_known=test["formula"].isin(train["formula"])
-    )
-
     train = train.assign(size=np.nan)
+
+    test = generate_df(test_file, chunk_size)
+    test["mol"] = test["smiles"].apply(clean_mol)
+    test["mass_range"] = test.apply(
+        lambda x: get_mass_range(x["mass"], err_ppm), axis=1
+    )
+    test = test.assign(mass_known=test["mass"].isin(train["mass"]))
+    test = test.assign(formula_known=test["formula"].isin(train["formula"]))
+
     logger.info("Reading PubChem file")
     pubchem = pd.read_csv(
         pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
@@ -183,23 +182,23 @@ def write_structural_prior_CV(
     logger.info("Reading sample file from generative model")
     gen = pd.read_csv(sample_file)
 
-    # iterate through PubChem vs. generative model
     inputs = {
         "model": gen.assign(source="model"),
         "PubChem": pubchem.assign(source="PubChem"),
         "train": train.assign(source="train"),
     }
-    test["mol"] = test["smiles"].apply(clean_mol)
-    test["mass_range"] = test.apply(lambda x: get_mass_range(x["mol"], err_ppm), axis=1)
 
     rank_df, tc_df = pd.DataFrame(), pd.DataFrame()
-    for key, query in inputs.items():
-        logging.info(f"Generating statistics for model {key}")
+    for datatype, dataset in inputs.items():
+        logging.info(f"Generating statistics for model {datatype}")
 
-        results = test.apply(lambda x: match_molecules(x, test, query, key), axis=1)
+        results = test.apply(
+            lambda x: match_molecules(x, test, dataset, datatype), axis=1
+        )
 
         rank_df = pd.concat([rank_df, pd.concat(results[0].to_list())])
         tc_df = pd.concat([tc_df, pd.concat(results[1].to_list())])
+
     write_to_file(ranks_file, rank_df)
     write_to_file(tc_file, tc_df)
 
