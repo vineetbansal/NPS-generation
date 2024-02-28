@@ -4,7 +4,7 @@ from tqdm import tqdm
 import numpy as np
 from rdkit import Chem
 from clm.functions import (
-    read_smiles,
+    read_file,
     write_smiles,
     clean_mols,
     remove_salts_solvents,
@@ -66,7 +66,7 @@ def preprocess(
     chunk_size=100000,
 ):
     logger.info("reading input SMILES ...")
-    all_smiles = read_smiles(smiles_file=input_file, max_lines=max_input_smiles)
+    all_smiles = read_file(smiles_file=input_file, max_lines=max_input_smiles)
 
     def preprocess_chunk(
         input_smiles, neutralise=True, min_heavy_atoms=3, valid_atoms=None

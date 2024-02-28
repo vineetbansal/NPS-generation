@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from clm.functions import (
     get_ecfp6_fingerprints,
-    read_smiles,
+    read_file,
     set_seed,
     seed_type,
     clean_mols,
@@ -50,7 +50,7 @@ def write_structural_prior_CV(
     set_seed(seed)
 
     # read training and test sets
-    all_train_smiles = read_smiles(train_file)
+    all_train_smiles = read_file(train_file)
     all_valid_train_smiles = []
 
     train_masses = []
@@ -75,7 +75,7 @@ def write_structural_prior_CV(
         {"smiles": all_valid_train_smiles, "mass": train_masses, "formula": train_fmlas}
     )
 
-    all_test_smiles = read_smiles(test_file)
+    all_test_smiles = read_file(test_file)
     all_valid_test_smiles = []
 
     test_masses = []

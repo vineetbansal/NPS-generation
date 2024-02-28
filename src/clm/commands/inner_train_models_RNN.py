@@ -12,7 +12,7 @@ from rdkit import rdBase
 from clm.datasets import SmilesDataset, SelfiesDataset
 from clm.models import RNN
 from clm.loggers import EarlyStopping, track_loss, print_update
-from clm.functions import set_seed, seed_type, read_smiles, write_smiles
+from clm.functions import set_seed, seed_type, read_file, write_smiles
 
 # suppress Chem.MolFromSmiles error output
 rdBase.DisableLog("rdApp.error")
@@ -106,7 +106,7 @@ def add_args(parser):
 
 
 def load_dataset(representation, input_file, vocab_file):
-    inputs = read_smiles(input_file)
+    inputs = read_file(input_file)
     if representation == "SELFIES":
         return SelfiesDataset(selfies=inputs, vocab_file=vocab_file)
     else:

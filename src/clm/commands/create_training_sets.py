@@ -7,7 +7,7 @@ from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
 from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
-from clm.functions import read_smiles, write_smiles, clean_mols, seed_type
+from clm.functions import read_file, write_smiles, clean_mols, seed_type
 from clm.datasets import vocabulary_from_representation
 from clm.util.SmilesEnumerator import SmilesEnumerator
 
@@ -161,7 +161,7 @@ def create_training_sets(
     max_input_smiles=None,
 ):
     logger.info("reading input SMILES ...")
-    smiles = read_smiles(smiles_file=input_file, max_lines=max_input_smiles)
+    smiles = read_file(smiles_file=input_file, max_lines=max_input_smiles)
 
     if min_tc > 0:
         logger.info(f"picking {n_molecules} molecules with min_tc={min_tc} ...")
