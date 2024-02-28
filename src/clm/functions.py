@@ -130,19 +130,17 @@ def get_rdkit_fingerprints(mols, include_none=False):
     return fps
 
 
-def read_smiles(smiles_file, max_lines=None):
-    """
-    Read a list of SMILES from a line-delimited file.
-    """
+def read_file(smiles_file, max_lines=None):
+    lines = []
     with open(smiles_file, "r") as f:
-        lines = np.array(f.readlines())
+        for i, line in enumerate(f):
+            lines.append(line.strip())
+            if max_lines is not None and i + 1 == max_lines:
+                break
 
-    lines = np.char.strip(lines)
+    lines_array = np.array(lines)
 
-    if max_lines is not None and max_lines > 0:
-        lines = lines[:max_lines]
-
-    return lines
+    return lines_array
 
 
 def write_smiles(smiles, smiles_file, mode="w"):
