@@ -47,6 +47,17 @@ def write_to_file(file_name, df):
     )
 
 
+def pd_concat(row, data, col):
+    return pd.concat(
+        [
+            pd.DataFrame([row[col]])
+            .reset_index(drop=True),
+            data.reset_index(drop=True),
+        ],
+        axis=1,
+    )
+
+
 def generate_df(smiles_file, chunk_size):
     smiles = read_file(smiles_file)
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
@@ -116,11 +127,14 @@ def match_molecules(row, test, dataset, data_type):
         tc = pd.concat([tc, match.tail(-1).sample()])
 
     if tc.shape[0] > 0:
-        target_mols = test[test["smiles"] == tc["target_smiles"].values[0]]["mol"]
+        target_mols = clean_mols(
+            tc["target_smiles"].values,
+            selfies=False,
+            disable_progress=True,
+        )
         target_fps = get_ecfp6_fingerprints(target_mols)
         query_fp = AllChem.GetMorganFingerprintAsBitVect(row["mol"], 3, nBits=1024)
-        tcs = [FingerprintSimilarity(query_fp, target_fp) for target_fp in target_fps]
-        tc["Tc"] = pd.Series(tcs)
+        tc["Tc"] = [FingerprintSimilarity(query_fp, target_fp) for target_fp in target_fps]
     else:
         tc = pd.DataFrame(
             {
@@ -132,33 +146,22 @@ def match_molecules(row, test, dataset, data_type):
             index=[0],
         )
 
-    tc = pd.concat(
-        [
-            pd.DataFrame([row[:-2]])
-            .iloc[np.full(tc.shape[0], 0)]
-            .reset_index(drop=True),
-            tc.reset_index(drop=True),
-        ],
-        axis=1,
-    )
-    rank = pd.concat(
-        [pd.DataFrame([row[:-2]]).reset_index(drop=True), rank.reset_index(drop=True)],
-        axis=1,
-    )
+    tc = pd_concat(row, tc, col=["smiles", "mass", "formula", "mass_known", "formula_known"])
+    rank = pd_concat(row, rank, col=["smiles", "mass", "formula", "mass_known", "formula_known"])
 
     return pd.Series((rank, tc))
 
 
 def write_structural_prior_CV(
-    ranks_file,
-    tc_file,
-    train_file,
-    test_file,
-    pubchem_file,
-    sample_file,
-    err_ppm,
-    chunk_size,
-    seed,
+        ranks_file,
+        tc_file,
+        train_file,
+        test_file,
+        pubchem_file,
+        sample_file,
+        err_ppm,
+        chunk_size,
+        seed,
 ):
     set_seed(seed)
 
@@ -196,8 +199,12 @@ def write_structural_prior_CV(
             lambda x: match_molecules(x, test, dataset, datatype), axis=1
         )
 
-        rank_df = pd.concat([rank_df, pd.concat(results[0].to_list())])
-        tc_df = pd.concat([tc_df, pd.concat(results[1].to_list())])
+        rank = pd.concat(results[0].to_list())
+        rank.insert(0, "Index", range(len(rank)))
+        tc = pd.concat(results[1].to_list())
+        tc.insert(0, "Index", range(len(tc)))
+        rank_df = pd.concat([rank_df, rank])
+        tc_df = pd.concat([tc_df, tc])
 
     write_to_file(ranks_file, rank_df)
     write_to_file(tc_file, tc_df)
