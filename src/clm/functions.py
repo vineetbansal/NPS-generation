@@ -2,12 +2,14 @@ import deepsmiles
 import numpy as np
 import os
 import os.path
+import pandas as pd
 import random
 import warnings
 from selfies import decoder
 from tqdm import tqdm
 from rdkit import Chem
-from rdkit.Chem import AllChem, Lipinski, rdmolops
+from rdkit.Chem import AllChem, Lipinski, rdmolops, Descriptors, rdMolDescriptors
+
 from rdkit.DataStructs import FingerprintSimilarity
 import torch
 from scipy import histogram
@@ -354,3 +356,47 @@ def pct_stereocenters(mol):
     else:
         pct_stereo = 0
     return pct_stereo
+
+
+def generate_df(smiles_file, chunk_size):
+    smiles = read_file(smiles_file)
+    df = pd.DataFrame(columns=["smiles", "mass", "formula"])
+
+    for i in tqdm(range(0, len(smiles), chunk_size)):
+        mols = clean_mols(
+            smiles[i: i + chunk_size],
+            selfies=False,
+            disable_progress=True,
+            return_dict=True,
+        )
+
+        chunk_data = [
+            {
+                "smiles": smile,
+                "mass": round(Descriptors.ExactMolWt(mol), 4),
+                "formula": rdMolDescriptors.CalcMolFormula(mol),
+            }
+            for smile, mol in mols.items()
+            if mol
+        ]
+
+        if chunk_data:
+            df = pd.concat([df, pd.DataFrame(chunk_data)], ignore_index=True)
+
+    return df
+
+
+def get_mass_range(mass, err_ppm):
+    min_mass = (-err_ppm / 1e6 * mass) + mass
+    max_mass = (err_ppm / 1e6 * mass) + mass
+
+    return min_mass, max_mass
+
+
+def write_to_csv_file(file_name, df):
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    df.to_csv(
+        file_name,
+        index=False,
+        compression="gzip" if str(file_name).endswith(".gz") else None,
+    )

@@ -3,17 +3,16 @@ import numpy as np
 import logging
 import os
 import pandas as pd
-from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors
+from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
-from tqdm import tqdm
 
 from clm.functions import (
     get_ecfp6_fingerprints,
-    read_file,
     set_seed,
     seed_type,
     clean_mols,
     clean_mol,
+    generate_df, get_mass_range, write_to_csv_file
 )
 
 # suppress rdkit errors
@@ -38,15 +37,6 @@ def add_args(parser):
     return parser
 
 
-def write_to_file(file_name, df):
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    df.to_csv(
-        file_name,
-        index=False,
-        compression="gzip" if str(file_name).endswith(".gz") else None,
-    )
-
-
 def pd_concat(row, data, col):
     return pd.concat(
         [
@@ -58,42 +48,7 @@ def pd_concat(row, data, col):
     )
 
 
-def generate_df(smiles_file, chunk_size):
-    smiles = read_file(smiles_file)
-    df = pd.DataFrame(columns=["smiles", "mass", "formula"])
-
-    for i in tqdm(range(0, len(smiles), chunk_size)):
-        mols = clean_mols(
-            smiles[i: i + chunk_size],
-            selfies=False,
-            disable_progress=True,
-            return_dict=True,
-        )
-
-        chunk_data = [
-            {
-                "smiles": smile,
-                "mass": round(Descriptors.ExactMolWt(mol), 4),
-                "formula": rdMolDescriptors.CalcMolFormula(mol),
-            }
-            for smile, mol in mols.items()
-            if mol
-        ]
-
-        if chunk_data:
-            df = pd.concat([df, pd.DataFrame(chunk_data)], ignore_index=True)
-
-    return df
-
-
-def get_mass_range(mass, err_ppm):
-    min_mass = (-err_ppm / 1e6 * mass) + mass
-    max_mass = (err_ppm / 1e6 * mass) + mass
-
-    return min_mass, max_mass
-
-
-def match_molecules(row, test, dataset, data_type):
+def match_molecules(row, dataset, data_type):
     match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
     match = (
@@ -196,7 +151,7 @@ def write_structural_prior_CV(
         logging.info(f"Generating statistics for model {datatype}")
 
         results = test.apply(
-            lambda x: match_molecules(x, test, dataset, datatype), axis=1
+            lambda x: match_molecules(x, dataset, datatype), axis=1
         )
 
         rank = pd.concat(results[0].to_list())
@@ -206,8 +161,8 @@ def write_structural_prior_CV(
         rank_df = pd.concat([rank_df, rank])
         tc_df = pd.concat([tc_df, tc])
 
-    write_to_file(ranks_file, rank_df)
-    write_to_file(tc_file, tc_df)
+    write_to_csv_file(ranks_file, rank_df)
+    write_to_csv_file(tc_file, tc_df)
 
 
 def main(args):
