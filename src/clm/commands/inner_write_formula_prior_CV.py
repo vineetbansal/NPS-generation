@@ -1,12 +1,15 @@
 import argparse
 import numpy as np
-import os
 import pandas as pd
-from rdkit.Chem import Descriptors, rdMolDescriptors
-from tqdm import tqdm
 
-from clm.functions import set_seed, seed_type, read_file, clean_mol, clean_mols, generate_df, get_mass_range, \
-    write_to_csv_file
+from clm.functions import (
+    set_seed,
+    seed_type,
+    clean_mol,
+    generate_df,
+    get_mass_range,
+    write_to_csv_file,
+)
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -18,10 +21,25 @@ def add_args(parser):
     parser.add_argument("--ranks_file", type=str, help="Path to the rank file.")
     parser.add_argument("--train_file", type=str, help="Path to the training dataset.")
     parser.add_argument("--test_file", type=str, help="Path to the test dataset.")
-    parser.add_argument("--pubchem_file", type=str, help="Path to the file containing PubChem information.")
-    parser.add_argument("--sample_file", type=str, help="Path to the file containing sample molecules.")
-    parser.add_argument("--err_ppm", type=int, help="Error margin in parts per million for chemical analysis.")
-    parser.add_argument("--chunk_size", type=int, default=100000, help="Size of chunks for processing large files.")
+    parser.add_argument(
+        "--pubchem_file",
+        type=str,
+        help="Path to the file containing PubChem information.",
+    )
+    parser.add_argument(
+        "--sample_file", type=str, help="Path to the file containing sample molecules."
+    )
+    parser.add_argument(
+        "--err_ppm",
+        type=int,
+        help="Error margin in parts per million for chemical analysis.",
+    )
+    parser.add_argument(
+        "--chunk_size",
+        type=int,
+        default=100000,
+        help="Size of chunks for processing large files.",
+    )
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
     )
@@ -57,15 +75,15 @@ def match_molecules(row, dataset, data_type):
 
     rank = pd.concat(
         [
-            pd.DataFrame([row[["smiles", "mass", "formula", "mass_known", "formula_known"]]])
-            .reset_index(drop=True),
+            pd.DataFrame(
+                [row[["smiles", "mass", "formula", "mass_known", "formula_known"]]]
+            ).reset_index(drop=True),
             rank.reset_index(drop=True),
         ],
         axis=1,
-            )
+    )
 
     return rank
-
 
 
 def write_formula_prior_CV(
@@ -91,7 +109,6 @@ def write_formula_prior_CV(
     test = test.assign(mass_known=test["mass"].isin(train["mass"]))
     test = test.assign(formula_known=test["formula"].isin(train["formula"]))
 
-
     print("Reading PubChem file")
     pubchem = pd.read_csv(
         pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
@@ -108,14 +125,11 @@ def write_formula_prior_CV(
         "train": train.assign(source="train"),
     }
 
-
     rank_df = pd.DataFrame()
     for datatype, dataset in inputs.items():
         print(f"Generating statistics for model {datatype}")
 
-        result = test.apply(
-            lambda x: match_molecules(x, dataset, datatype), axis=1
-        )
+        result = test.apply(lambda x: match_molecules(x, dataset, datatype), axis=1)
 
         rank = pd.concat(result.to_list())
         rank.insert(0, "Index", range(len(rank)))

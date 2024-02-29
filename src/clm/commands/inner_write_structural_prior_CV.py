@@ -1,7 +1,6 @@
 import argparse
 import numpy as np
 import logging
-import os
 import pandas as pd
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
@@ -12,7 +11,9 @@ from clm.functions import (
     seed_type,
     clean_mols,
     clean_mol,
-    generate_df, get_mass_range, write_to_csv_file
+    generate_df,
+    get_mass_range,
+    write_to_csv_file,
 )
 
 # suppress rdkit errors
@@ -27,10 +28,25 @@ def add_args(parser):
     parser.add_argument("--tc_file", type=str, help="Path to the tc file.")
     parser.add_argument("--train_file", type=str, help="Path to the training dataset.")
     parser.add_argument("--test_file", type=str, help="Path to the test dataset.")
-    parser.add_argument("--pubchem_file", type=str, help="Path to the file containing PubChem information.")
-    parser.add_argument("--sample_file", type=str, help="Path to the file containing sample molecules.")
-    parser.add_argument("--err_ppm", type=int, help="Error margin in parts per million for chemical analysis.")
-    parser.add_argument("--chunk_size", type=int, default=100000, help="Size of chunks for processing large files.")
+    parser.add_argument(
+        "--pubchem_file",
+        type=str,
+        help="Path to the file containing PubChem information.",
+    )
+    parser.add_argument(
+        "--sample_file", type=str, help="Path to the file containing sample molecules."
+    )
+    parser.add_argument(
+        "--err_ppm",
+        type=int,
+        help="Error margin in parts per million for chemical analysis.",
+    )
+    parser.add_argument(
+        "--chunk_size",
+        type=int,
+        default=100000,
+        help="Size of chunks for processing large files.",
+    )
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
     )
@@ -40,8 +56,7 @@ def add_args(parser):
 def pd_concat(row, data, col):
     return pd.concat(
         [
-            pd.DataFrame([row[col]])
-            .reset_index(drop=True),
+            pd.DataFrame([row[col]]).reset_index(drop=True),
             data.reset_index(drop=True),
         ],
         axis=1,
@@ -89,7 +104,9 @@ def match_molecules(row, dataset, data_type):
         )
         target_fps = get_ecfp6_fingerprints(target_mols)
         query_fp = AllChem.GetMorganFingerprintAsBitVect(row["mol"], 3, nBits=1024)
-        tc["Tc"] = [FingerprintSimilarity(query_fp, target_fp) for target_fp in target_fps]
+        tc["Tc"] = [
+            FingerprintSimilarity(query_fp, target_fp) for target_fp in target_fps
+        ]
     else:
         tc = pd.DataFrame(
             {
@@ -101,22 +118,26 @@ def match_molecules(row, dataset, data_type):
             index=[0],
         )
 
-    tc = pd_concat(row, tc, col=["smiles", "mass", "formula", "mass_known", "formula_known"])
-    rank = pd_concat(row, rank, col=["smiles", "mass", "formula", "mass_known", "formula_known"])
+    tc = pd_concat(
+        row, tc, col=["smiles", "mass", "formula", "mass_known", "formula_known"]
+    )
+    rank = pd_concat(
+        row, rank, col=["smiles", "mass", "formula", "mass_known", "formula_known"]
+    )
 
     return pd.Series((rank, tc))
 
 
 def write_structural_prior_CV(
-        ranks_file,
-        tc_file,
-        train_file,
-        test_file,
-        pubchem_file,
-        sample_file,
-        err_ppm,
-        chunk_size,
-        seed,
+    ranks_file,
+    tc_file,
+    train_file,
+    test_file,
+    pubchem_file,
+    sample_file,
+    err_ppm,
+    chunk_size,
+    seed,
 ):
     set_seed(seed)
 
@@ -150,9 +171,7 @@ def write_structural_prior_CV(
     for datatype, dataset in inputs.items():
         logging.info(f"Generating statistics for model {datatype}")
 
-        results = test.apply(
-            lambda x: match_molecules(x, dataset, datatype), axis=1
-        )
+        results = test.apply(lambda x: match_molecules(x, dataset, datatype), axis=1)
 
         rank = pd.concat(results[0].to_list())
         rank.insert(0, "Index", range(len(rank)))

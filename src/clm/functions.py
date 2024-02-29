@@ -364,7 +364,7 @@ def generate_df(smiles_file, chunk_size):
 
     for i in tqdm(range(0, len(smiles), chunk_size)):
         mols = clean_mols(
-            smiles[i: i + chunk_size],
+            smiles[i : i + chunk_size],
             selfies=False,
             disable_progress=True,
             return_dict=True,
