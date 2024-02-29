@@ -24,16 +24,16 @@ logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
-    parser.add_argument("--ranks_file", type=str)
-    parser.add_argument("--tc_file", type=str)
-    parser.add_argument("--train_file", type=str)
-    parser.add_argument("--test_file", type=str)
-    parser.add_argument("--pubchem_file", type=str)
-    parser.add_argument("--sample_file", type=str)
-    parser.add_argument("--err_ppm", type=int)
-    parser.add_argument("--chunk_size", type=int, default=100000)
+    parser.add_argument("--ranks_file", type=str, help="Path to the rank file.")
+    parser.add_argument("--tc_file", type=str, help="Path to the tc file.")
+    parser.add_argument("--train_file", type=str, help="Path to the training dataset.")
+    parser.add_argument("--test_file", type=str, help="Path to the test dataset.")
+    parser.add_argument("--pubchem_file", type=str, help="Path to the file containing PubChem information.")
+    parser.add_argument("--sample_file", type=str, help="Path to the file containing sample molecules.")
+    parser.add_argument("--err_ppm", type=int, help="Error margin in parts per million for chemical analysis.")
+    parser.add_argument("--chunk_size", type=int, default=100000, help="Size of chunks for processing large files.")
     parser.add_argument(
-        "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
+        "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
     )
     return parser
 
@@ -53,7 +53,7 @@ def generate_df(smiles_file, chunk_size):
 
     for i in tqdm(range(0, len(smiles), chunk_size)):
         mols = clean_mols(
-            smiles[i : i + chunk_size],
+            smiles[i: i + chunk_size],
             selfies=False,
             disable_progress=True,
             return_dict=True,
