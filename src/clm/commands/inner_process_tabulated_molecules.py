@@ -40,7 +40,7 @@ def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
         cv_dat = cv_dat[cv_dat["smiles"].isin(uniq_smiles)]
 
         if not cv_dat.empty:
-            data[cv_dat["smiles"], fold_idx] = np.nan
+            data.loc[cv_dat["smiles"], fold_idx] = np.nan
 
     # Optionally normalize by total sampling frequency
     if summary_fn == "fp10k":
