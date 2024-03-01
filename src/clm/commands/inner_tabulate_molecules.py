@@ -41,7 +41,7 @@ def add_args(parser):
 def tabulate_molecules(input_file, train_file, representation, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    train_smiles = set(read_file(train_file))
+    train_smiles = read_file(train_file)
     sampled_smiles = read_file_incremental(input_file, max_lines=1000)
 
     new_smiles = []
