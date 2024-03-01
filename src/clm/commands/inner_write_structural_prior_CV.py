@@ -146,6 +146,7 @@ def write_structural_prior_CV(
 
     test = generate_df(test_file, chunk_size)
     test["mol"] = test["smiles"].apply(clean_mol)
+    test = test[test["mol"].notna()]
     test["mass_range"] = test.apply(
         lambda x: get_mass_range(x["mass"], err_ppm), axis=1
     )
@@ -173,6 +174,7 @@ def write_structural_prior_CV(
 
         results = test.apply(lambda x: match_molecules(x, dataset, datatype), axis=1)
 
+        logging.info(f"Generated statistics for model {datatype}")
         rank = pd.concat(results[0].to_list())
         rank.insert(0, "Index", range(len(rank)))
         tc = pd.concat(results[1].to_list())
