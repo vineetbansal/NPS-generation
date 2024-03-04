@@ -19,7 +19,9 @@ from scipy.spatial.distance import jensenshannon
 converter = deepsmiles.Converter(rings=True, branches=True)
 
 
-def clean_mol(smiles, *, stereochem=False, selfies=False, deepsmiles=False):
+def clean_mol(
+    smiles, *, stereochem=False, selfies=False, deepsmiles=False, raise_error=True
+):
     """
     Construct a molecule from a SMILES string, removing stereochemistry and
     explicit hydrogens, and setting aromaticity.
@@ -35,7 +37,10 @@ def clean_mol(smiles, *, stereochem=False, selfies=False, deepsmiles=False):
             raise ValueError(f"invalid DeepSMILES: {deepsmiles}")
     mol = Chem.MolFromSmiles(str(smiles))
     if mol is None:
-        raise ValueError("invalid SMILES: " + str(smiles))
+        if raise_error:
+            raise ValueError("invalid SMILES: " + str(smiles))
+        else:
+            return None
     if not stereochem:
         Chem.RemoveStereochemistry(mol)
     Chem.SanitizeMol(mol)

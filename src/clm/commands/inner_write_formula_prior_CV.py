@@ -49,6 +49,14 @@ def add_args(parser):
 def match_molecules(row, dataset, data_type):
     match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
+    # For the PubChem dataset, not all SMILES might be valid; consider only the ones that are.
+    if len(match) > 0 and data_type == "PubChem":
+        match = match[
+            match.apply(
+                lambda x: clean_mol(x["smiles"], raise_error=False) is not None, axis=1
+            )
+        ]
+
     match = (
         match.sort_values("size", ascending=False)
         if data_type == "model"
@@ -102,7 +110,6 @@ def write_formula_prior_CV(
     train = train.assign(size=np.nan)
 
     test = generate_df(test_file, chunk_size)
-    test["mol"] = test["smiles"].apply(clean_mol)
     test["mass_range"] = test.apply(
         lambda x: get_mass_range(x["mass"], err_ppm), axis=1
     )
