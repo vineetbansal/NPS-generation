@@ -66,6 +66,14 @@ def pd_concat(row, data, col):
 def match_molecules(row, dataset, data_type):
     match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
+    # For the PubChem dataset, not all SMILES might be valid; consider only the ones that are.
+    if len(match) > 0 and data_type == "PubChem":
+        match = match[
+            match.apply(
+                lambda x: clean_mol(x["smiles"], raise_error=False) is not None, axis=1
+            )
+        ]
+
     match = (
         match.sort_values("size", ascending=False)
         if data_type == "model"
@@ -103,9 +111,8 @@ def match_molecules(row, dataset, data_type):
             disable_progress=True,
         )
         target_fps = get_ecfp6_fingerprints(target_mols)
-        query_fp = AllChem.GetMorganFingerprintAsBitVect(row["mol"], 3, nBits=1024)
         tc["Tc"] = [
-            FingerprintSimilarity(query_fp, target_fp) for target_fp in target_fps
+            FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
     else:
         tc = pd.DataFrame(
@@ -145,8 +152,12 @@ def write_structural_prior_CV(
     train = train.assign(size=np.nan)
 
     test = generate_df(test_file, chunk_size)
-    test["mol"] = test["smiles"].apply(clean_mol)
-    test = test[test["mol"].notna()]
+    test["fp"] = test.apply(
+        lambda row: AllChem.GetMorganFingerprintAsBitVect(
+            clean_mol(row["smiles"]), 3, nBits=1024
+        ),
+        axis=1,
+    )
     test["mass_range"] = test.apply(
         lambda x: get_mass_range(x["mass"], err_ppm), axis=1
     )
