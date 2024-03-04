@@ -4,7 +4,7 @@ on:
   push:
     branches: [master, dev]
   pull_request:
-    branches: [master, dev]
+    branches: [master, dev, aa/refactor_struct]
 
 jobs:
   build_and_test:
