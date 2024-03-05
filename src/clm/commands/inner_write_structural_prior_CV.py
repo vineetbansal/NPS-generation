@@ -74,18 +74,23 @@ def match_molecules(row, dataset, data_type):
             )
         ]
 
+    # Assign sequential ranks based on decreasing frequency of sampling
     match = (
         match.sort_values("size", ascending=False)
         if data_type == "model"
         else match.sample(frac=1)
     )
     match = match.assign(rank=np.arange(match.shape[0]))
+    # We'll be adding columns to `match` later. For now keep track of
+    # what the `target_<rank/smiles/mass/formula>` values are for the given
+    # source (model/train/PubChem)
     match.columns = "target_" + match.columns
 
     rank = match[match["target_smiles"] == row["smiles"]][
         ["target_size", "target_rank", "target_source"]
     ]
 
+    # `rank` denotes the best match
     if rank.shape[0] > 1:
         rank = rank.head(1)
     elif rank.shape[0] == 0:
@@ -96,12 +101,16 @@ def match_molecules(row, dataset, data_type):
                 "target_source": [data_type],
             }
         )
+    # `n_candidates` is the number of candidates close enough to the NPS
+    # in terms of molecular mass.
     rank = rank.assign(n_candidates=match.shape[0])
 
     tc = match
     if tc.shape[0] > 1:
         tc = tc.head(1)
     if data_type == "model" and match.shape[0] > 1:
+        # For the generative model, we'll pick a molecule sampled less
+        # frequently against which to compare fingerprints.
         tc = pd.concat([tc, match.tail(-1).sample()])
 
     if tc.shape[0] > 0:

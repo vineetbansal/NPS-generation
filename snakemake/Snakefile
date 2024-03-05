@@ -269,6 +269,12 @@ rule write_structural_prior_CV:
 
     This output is written to `ranks_file`.
 
+    For the <sampled_smiles> model, the fingerprint similarity value is
+    calculated wrt a molecule that is sampled less frequently but still falls
+    within a short molecular-mass range of it.
+    ("The molecules nominated by the structural prior were dramatically more
+    similar to the unidentified NPS than either baseline").
+
     Fingerprint similarity values are written out to `tc_file`.
     """
     input:
