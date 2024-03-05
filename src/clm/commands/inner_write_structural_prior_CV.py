@@ -1,39 +1,138 @@
 import argparse
 import numpy as np
-import os
+import logging
 import pandas as pd
-from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors
+from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
-from tqdm import tqdm
 
 from clm.functions import (
     get_ecfp6_fingerprints,
-    read_file,
     set_seed,
     seed_type,
     clean_mols,
     clean_mol,
+    generate_df,
+    get_mass_range,
+    write_to_csv_file,
 )
 
 # suppress rdkit errors
 from rdkit import rdBase
 
 rdBase.DisableLog("rdApp.error")
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
-    parser.add_argument("--ranks_file", type=str)
-    parser.add_argument("--tc_file", type=str)
-    parser.add_argument("--train_file", type=str)
-    parser.add_argument("--test_file", type=str)
-    parser.add_argument("--pubchem_file", type=str)
-    parser.add_argument("--sample_file", type=str)
-    parser.add_argument("--err_ppm", type=int)
-    parser.add_argument("--chunk_size", type=int, default=100000)
+    parser.add_argument("--ranks_file", type=str, help="Path to the rank file.")
+    parser.add_argument("--tc_file", type=str, help="Path to the tc file.")
+    parser.add_argument("--train_file", type=str, help="Path to the training dataset.")
+    parser.add_argument("--test_file", type=str, help="Path to the test dataset.")
     parser.add_argument(
-        "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
+        "--pubchem_file",
+        type=str,
+        help="Path to the file containing PubChem information.",
+    )
+    parser.add_argument(
+        "--sample_file", type=str, help="Path to the file containing sample molecules."
+    )
+    parser.add_argument(
+        "--err_ppm",
+        type=int,
+        help="Error margin in parts per million for chemical analysis.",
+    )
+    parser.add_argument(
+        "--chunk_size",
+        type=int,
+        default=100000,
+        help="Size of chunks for processing large files.",
+    )
+    parser.add_argument(
+        "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
     )
     return parser
+
+
+def pd_concat(row, data, col):
+    return pd.concat(
+        [
+            pd.DataFrame([row[col]]).reset_index(drop=True),
+            data.reset_index(drop=True),
+        ],
+        axis=1,
+    )
+
+
+def match_molecules(row, dataset, data_type):
+    match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
+
+    # For the PubChem dataset, not all SMILES might be valid; consider only the ones that are.
+    if len(match) > 0 and data_type == "PubChem":
+        match = match[
+            match.apply(
+                lambda x: clean_mol(x["smiles"], raise_error=False) is not None, axis=1
+            )
+        ]
+
+    match = (
+        match.sort_values("size", ascending=False)
+        if data_type == "model"
+        else match.sample(frac=1)
+    )
+    match = match.assign(rank=np.arange(match.shape[0]))
+    match.columns = "target_" + match.columns
+
+    rank = match[match["target_smiles"] == row["smiles"]][
+        ["target_size", "target_rank", "target_source"]
+    ]
+
+    if rank.shape[0] > 1:
+        rank = rank.head(1)
+    elif rank.shape[0] == 0:
+        rank = pd.DataFrame(
+            {
+                "target_size": [np.nan],
+                "target_rank": [np.nan],
+                "target_source": [data_type],
+            }
+        )
+    rank = rank.assign(n_candidates=match.shape[0])
+
+    tc = match
+    if tc.shape[0] > 1:
+        tc = tc.head(1)
+    if data_type == "model" and match.shape[0] > 1:
+        tc = pd.concat([tc, match.tail(-1).sample()])
+
+    if tc.shape[0] > 0:
+        target_mols = clean_mols(
+            tc["target_smiles"].values,
+            selfies=False,
+            disable_progress=True,
+        )
+        target_fps = get_ecfp6_fingerprints(target_mols)
+        tc["Tc"] = [
+            FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
+        ]
+    else:
+        tc = pd.DataFrame(
+            {
+                "target_size": np.nan,
+                "target_rank": np.nan,
+                "target_source": data_type,
+                "Tc": np.nan,
+            },
+            index=[0],
+        )
+
+    tc = pd_concat(
+        row, tc, col=["smiles", "mass", "formula", "mass_known", "formula_known"]
+    )
+    rank = pd_concat(
+        row, rank, col=["smiles", "mass", "formula", "mass_known", "formula_known"]
+    )
+
+    return pd.Series((rank, tc))
 
 
 def write_structural_prior_CV(
@@ -49,208 +148,53 @@ def write_structural_prior_CV(
 ):
     set_seed(seed)
 
-    # read training and test sets
-    all_train_smiles = read_file(train_file)
-    all_valid_train_smiles = []
-
-    train_masses = []
-    train_fmlas = []
-    with tqdm(total=len(all_train_smiles)) as pbar:
-        for i in range(0, len(all_train_smiles), chunk_size):
-            smiles = all_train_smiles[i : i + chunk_size]
-            mols = clean_mols(
-                smiles,
-                selfies=False,
-                disable_progress=True,
-                return_dict=True,
-            )
-            for smile, mol in mols.items():
-                if mol is not None:
-                    all_valid_train_smiles.append(smile)
-                    train_masses.append(round(Descriptors.ExactMolWt(mol), 4))
-                    train_fmlas.append(rdMolDescriptors.CalcMolFormula(mol))
-            pbar.update(len(smiles))
-
-    train = pd.DataFrame(
-        {"smiles": all_valid_train_smiles, "mass": train_masses, "formula": train_fmlas}
-    )
-
-    all_test_smiles = read_file(test_file)
-    all_valid_test_smiles = []
-
-    test_masses = []
-    test_fmlas = []
-    with tqdm(total=len(all_test_smiles)) as pbar:
-        for i in range(0, len(all_train_smiles), chunk_size):
-            smiles = all_test_smiles[i : i + chunk_size]
-            mols = clean_mols(
-                smiles,
-                selfies=False,
-                disable_progress=True,
-                return_dict=True,
-            )
-            for smile, mol in mols.items():
-                if mol is not None:
-                    all_valid_test_smiles.append(smile)
-                    test_masses.append(round(Descriptors.ExactMolWt(mol), 4))
-                    test_fmlas.append(rdMolDescriptors.CalcMolFormula(mol))
-            pbar.update(len(smiles))
-
-    test = pd.DataFrame(
-        {"smiles": all_valid_test_smiles, "mass": test_masses, "formula": test_fmlas}
-    )
-    test = test.assign(mass_known=test["mass"].isin(train_masses))
-    test = test.assign(formula_known=test["formula"].isin(train_fmlas))
-
-    # assign frequencies as NAs
+    train = generate_df(train_file, chunk_size)
     train = train.assign(size=np.nan)
 
-    print("Reading PubChem file")
+    test = generate_df(test_file, chunk_size)
+    test["fp"] = test.apply(
+        lambda row: AllChem.GetMorganFingerprintAsBitVect(
+            clean_mol(row["smiles"]), 3, nBits=1024
+        ),
+        axis=1,
+    )
+    test["mass_range"] = test.apply(
+        lambda x: get_mass_range(x["mass"], err_ppm), axis=1
+    )
+    test = test.assign(mass_known=test["mass"].isin(train["mass"]))
+    test = test.assign(formula_known=test["formula"].isin(train["formula"]))
+
+    logger.info("Reading PubChem file")
     pubchem = pd.read_csv(
         pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
     )
-    # assign frequencies as NAs
     pubchem = pubchem.assign(size=np.nan)
 
-    print("Reading sample file from generative model")
+    logger.info("Reading sample file from generative model")
     gen = pd.read_csv(sample_file)
 
-    # set up outputs
-    rank_df = pd.DataFrame()
-    tc_df = pd.DataFrame()
-
-    # iterate through PubChem vs. generative model
     inputs = {
         "model": gen.assign(source="model"),
         "PubChem": pubchem.assign(source="PubChem"),
         "train": train.assign(source="train"),
     }
 
-    # match on formula and mass
-    for key, query in inputs.items():
-        print(f"Generating statistics for model {key}")
-        for row in tqdm(test.itertuples(), total=test.shape[0]):
-            # get formula and exact mass
-            query_mol = clean_mol(
-                row.smiles,
-                selfies=False,
-            )
-            query_mass = Descriptors.ExactMolWt(query_mol)
-            query_fp = AllChem.GetMorganFingerprintAsBitVect(query_mol, 3, nBits=1024)
+    rank_df, tc_df = pd.DataFrame(), pd.DataFrame()
+    for datatype, dataset in inputs.items():
+        logging.info(f"Generating statistics for model {datatype}")
 
-            # compute 10 ppm range
-            min_mass = (-err_ppm / 1e6 * query_mass) + query_mass
-            max_mass = (err_ppm / 1e6 * query_mass) + query_mass
+        results = test.apply(lambda x: match_molecules(x, dataset, datatype), axis=1)
 
-            # get matches to mass
-            if key != "model":
-                # get matches to mass and shuffle them to random order
-                matches = query[query["mass"].between(min_mass, max_mass)].sample(
-                    frac=1
-                )
-                matches = matches.assign(rank=np.arange(matches.shape[0]))
-            else:
-                # generative model: sort descending by mass
-                matches = query[query["mass"].between(min_mass, max_mass)].sort_values(
-                    "size", ascending=False
-                )
-                matches = matches.assign(rank=np.arange(matches.shape[0]))
+        logging.info(f"Generated statistics for model {datatype}")
+        rank = pd.concat(results[0].to_list())
+        rank.insert(0, "Index", range(len(rank)))
+        tc = pd.concat(results[1].to_list())
+        tc.insert(0, "Index", range(len(tc)))
+        rank_df = pd.concat([rank_df, rank])
+        tc_df = pd.concat([tc_df, tc])
 
-            # add 'target_' to all columns in matches
-            matches.columns = "target_" + matches.columns
-
-            # get the rank of the correct molecule
-            rank = matches[matches["target_smiles"] == row.smiles][
-                ["target_size", "target_rank", "target_source"]
-            ]
-            if rank.shape[0] > 1:
-                rank = rank.head(1)
-            elif rank.shape[0] == 0:
-                rank = pd.DataFrame(
-                    {
-                        "target_size": np.nan,
-                        "target_rank": np.nan,
-                        "target_source": key,
-                    },
-                    index=[0],
-                )
-
-            # assign number of candidates
-            rank = rank.assign(n_candidates=matches.shape[0])
-
-            # get the Tc of the top match
-            top_n = 1
-            tc = matches
-            if tc.shape[0] > top_n:
-                tc = tc.head(top_n)
-            # add a random match
-            if key == "model" and matches.shape[0] > 1:
-                rnd = matches.tail(-top_n).sample()
-                tc = pd.concat([tc, rnd])
-
-            # compute Tc
-            if tc.shape[0] > 0:
-                target_mols = clean_mols(
-                    tc["target_smiles"].values,
-                    selfies=False,
-                    disable_progress=True,
-                )
-                keep = [idx for idx, mol in enumerate(target_mols) if mol]
-                tc = tc.iloc[keep, :]
-                target_mols = [mol for mol in target_mols if mol]
-                target_fps = get_ecfp6_fingerprints(target_mols)
-                tcs = [
-                    FingerprintSimilarity(query_fp, target_fp)
-                    for target_fp in target_fps
-                ]
-                tc = tc.assign(Tc=tcs)
-            else:
-                # fill with empty data frame if there were no matches
-                tc = pd.DataFrame(
-                    {
-                        "target_size": np.nan,
-                        "target_rank": np.nan,
-                        "target_source": key,
-                        "Tc": np.nan,
-                    },
-                    index=[0],
-                )
-
-            # now, append Tc to the growing data frame
-            tc_row = pd.concat(
-                [
-                    pd.DataFrame([row])
-                    .iloc[np.full(tc.shape[0], 0)]
-                    .reset_index(drop=True),
-                    tc.reset_index(drop=True),
-                ],
-                axis=1,
-            )
-            tc_df = pd.concat([tc_df, tc_row])
-
-            # do the same for rank
-            rank_row = pd.concat(
-                [
-                    pd.DataFrame([row]).reset_index(drop=True),
-                    rank.reset_index(drop=True),
-                ],
-                axis=1,
-            )
-            rank_df = pd.concat([rank_df, rank_row])
-
-    # write to output files
-    os.makedirs(os.path.dirname(ranks_file), exist_ok=True)
-    rank_df.to_csv(
-        ranks_file,
-        index=False,
-        compression="gzip" if str(ranks_file).endswith(".gz") else None,
-    )
-    os.makedirs(os.path.dirname(tc_file), exist_ok=True)
-    tc_df.to_csv(
-        tc_file,
-        index=False,
-        compression="gzip" if str(tc_file).endswith(".gz") else None,
-    )
+    write_to_csv_file(ranks_file, rank_df)
+    write_to_csv_file(tc_file, tc_df)
 
 
 def main(args):

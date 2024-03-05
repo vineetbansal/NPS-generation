@@ -35,7 +35,6 @@ def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
 
     uniq_smiles = data.index.to_numpy()
 
-    # TODO: is this part even necessary, isn't the filtering done in inner_tabulate_molecules?
     for fold_idx, cv_file in enumerate(cv_files):
         cv_dat = pd.read_csv(cv_file, names=["smiles"])
         cv_dat = cv_dat[cv_dat["smiles"].isin(uniq_smiles)]
