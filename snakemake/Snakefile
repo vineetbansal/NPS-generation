@@ -132,7 +132,7 @@ rule train_models_RNN:
         loss_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_loss.csv"
     resources:
         mem_mb=32000,
-        runtime=MODEL_PARAMS["max_epochs"]*120,
+        runtime=MODEL_PARAMS["max_epochs"]*15,
         slurm_extra="--gres=gpu:1"
     shell:
             'clm inner_train_models_RNN '
@@ -197,8 +197,8 @@ rule tabulate_molecules:
     output:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_samples_masses.csv",
     resources:
-        mem_mb=4000,
-        runtime=MODEL_PARAMS["sample_mols"]//1000,
+        mem_mb=32000,
+        runtime=MODEL_PARAMS["sample_mols"]//100000,
     shell:
         'clm inner_tabulate_molecules '
         '--input_file {input.input_file} '
@@ -218,7 +218,7 @@ rule collect_tabulated_molecules:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
     resources:
         mem_mb=4000,
-        runtime=MODEL_PARAMS["sample_mols"]//1000,
+        runtime=MODEL_PARAMS["sample_mols"]//1000000,
     shell:
         'clm inner_collect_tabulated_molecules '
         '--input_files {input.input_files} '
@@ -243,8 +243,8 @@ rule process_tabulated_molecules:
     output:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv",
     resources:
-        mem_mb=4000,
-        runtime=MODEL_PARAMS["sample_mols"]//1000,
+        mem_mb=64000,
+        runtime=MODEL_PARAMS["sample_mols"]//100000,
     shell:
         'clm inner_process_tabulated_molecules '
         '--input_file {input.input_file} '
@@ -287,7 +287,7 @@ rule write_structural_prior_CV:
          tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv"
     resources:
         mem_mb=32000,
-        runtime=180,
+        runtime=MODEL_PARAMS["sample_mols"]//10000,
     shell:
         'clm inner_write_structural_prior_CV '
         '--ranks_file {output.ranks_file} '
@@ -326,7 +326,7 @@ rule write_formula_prior_CV:
          ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv"
     resources:
         mem_mb=32000,
-        runtime=180,
+        runtime=MODEL_PARAMS["sample_mols"]//10000,
     shell:
         'clm inner_write_formula_prior_CV '
         '--ranks_file {output.ranks_file} '
@@ -366,8 +366,8 @@ rule write_structural_prior_CV_overall:
         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv"
     resources:
-        mem_mb=32000,
-        runtime=180,
+        mem_mb=64000,
+        runtime=MODEL_PARAMS["sample_mols"]/5000,
     shell:
         'clm inner_write_structural_prior_CV '
         '--ranks_file {output.ranks_file} '
