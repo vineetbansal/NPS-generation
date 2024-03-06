@@ -1,7 +1,10 @@
 import argparse
 import logging
+
+import pandas as pd
 from tqdm import tqdm
 import numpy as np
+from pathlib import Path
 from rdkit import Chem
 from clm.functions import (
     read_file,
@@ -66,7 +69,9 @@ def preprocess(
     chunk_size=100000,
 ):
     logger.info("reading input SMILES ...")
-    all_smiles = read_file(smiles_file=input_file, max_lines=max_input_smiles)
+
+    all_smiles = pd.read_csv(input_file)["smiles"].to_list() if Path(input_file).suffix == ".csv" \
+        else read_file(smiles_file=input_file, max_lines=max_input_smiles)
 
     def preprocess_chunk(
         input_smiles, neutralise=True, min_heavy_atoms=3, valid_atoms=None
