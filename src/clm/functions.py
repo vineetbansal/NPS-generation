@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import deepsmiles
 import numpy as np
 import os
@@ -145,14 +143,18 @@ def read_file(smiles_file, max_lines=None):
     return lines_array
 
 
-def read_file_incremental(input_file, max_lines=None):
-    is_csv = Path(input_file).suffix == ".csv"
+def read_file_incremental(
+    input_file,
+    max_lines=None,
+    smile_only=True,
+):
     count = 0
     with open(input_file, "r") as f:
-        if is_csv:
-            f.readline()
+        # Extract index of smiles from header
+        if not smile_only:
+            smile_idx = f.readline().strip().split(",").index("smiles")
         for line in f:
-            smile = line.split(",")[1].strip() if is_csv else line.strip()
+            smile = line.strip() if smile_only else line.split(",")[smile_idx].strip()
             yield smile
             count += 1
             if max_lines is not None and count == max_lines:

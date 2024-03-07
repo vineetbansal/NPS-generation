@@ -42,7 +42,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     train_smiles = set(read_file(train_file))
-    sampled_smiles = read_file_incremental(input_file)
+    sampled_smiles = read_file_incremental(input_file, smile_only=True)
 
     new_smiles = []
     for i, line in enumerate(tqdm(sampled_smiles)):
