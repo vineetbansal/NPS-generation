@@ -1,6 +1,5 @@
 import argparse
 import logging
-from pathlib import Path
 from tqdm import tqdm
 import numpy as np
 from rdkit import Chem
@@ -71,7 +70,7 @@ def preprocess(
     all_smiles = read_file(
         smiles_file=input_file,
         max_lines=max_input_smiles,
-        smile_only=Path(input_file).suffix == ".csv",
+        smile_only=True,
     )
 
     def preprocess_chunk(
