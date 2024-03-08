@@ -65,7 +65,7 @@ def add_args(parser):
 def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
     set_seed(seed)
 
-    org_smiles = read_file(train_file)
+    org_smiles = read_file(train_file, smile_only=True)
 
     # optionally, subsample to a more tractable number of molecules
     if len(org_smiles) > max_orig_mols:
@@ -548,6 +548,7 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
     res.to_csv(
         output_file,
         index=False,
+        mode="a+",
         compression="gzip" if str(output_file).endswith(".gz") else None,
     )
 
