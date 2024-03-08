@@ -66,7 +66,12 @@ def preprocess(
     chunk_size=100000,
 ):
     logger.info("reading input SMILES ...")
-    all_smiles = read_file(smiles_file=input_file, max_lines=max_input_smiles)
+
+    all_smiles = read_file(
+        smiles_file=input_file,
+        max_lines=max_input_smiles,
+        smile_only=True,
+    )
 
     def preprocess_chunk(
         input_smiles, neutralise=True, min_heavy_atoms=3, valid_atoms=None
