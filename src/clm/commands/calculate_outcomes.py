@@ -548,7 +548,6 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
     res.to_csv(
         output_file,
         index=False,
-        mode="a+",
         compression="gzip" if str(output_file).endswith(".gz") else None,
     )
 
