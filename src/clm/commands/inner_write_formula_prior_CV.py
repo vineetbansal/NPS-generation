@@ -50,7 +50,8 @@ def match_molecules(row, dataset, data_type):
     match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
     # For the PubChem dataset, not all SMILES might be valid; consider only the ones that are.
-    if len(match) > 0 and data_type == "PubChem":
+    # If a `fingerprint` column exists, then we have a valid SMILE
+    if len(match) > 0 and data_type == "PubChem" and "fingerprint" not in dataset:
         match = match[
             match.apply(
                 lambda x: clean_mol(x["smiles"], raise_error=False) is not None, axis=1
@@ -117,9 +118,18 @@ def write_formula_prior_CV(
     test = test.assign(formula_known=test["formula"].isin(train["formula"]))
 
     print("Reading PubChem file")
-    pubchem = pd.read_csv(
-        pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
-    )
+    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+
+    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    match len(pubchem.columns):
+        case 3:
+            pubchem.columns = ["smiles", "mass", "formula"]
+        case 4:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+        case _:
+            raise RuntimeError("Unexpected column count for PubChem")
+
     pubchem = pubchem.assign(size=np.nan)
 
     print("Reading sample file from generative model")
