@@ -52,6 +52,7 @@ def test_01_create_training_sets():
             input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
             train_file=temp_dir / "train_file_{fold}",
             vocab_file=temp_dir / "vocabulary_file_{fold}",
+            test0_file=temp_dir / "test0_file_{fold}",
             test_file=temp_dir / "test_file_{fold}",
             enum_factor=0,
             folds=3,
@@ -67,6 +68,10 @@ def test_01_create_training_sets():
         assert_checksum_equals(
             temp_dir / "vocabulary_file_0",
             test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
+        )
+        assert_checksum_equals(
+            temp_dir / "test0_file_0",
+            test_dir / "0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi",
         )
         assert_checksum_equals(
             temp_dir / "test_file_0",
