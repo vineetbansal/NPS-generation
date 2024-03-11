@@ -148,11 +148,15 @@ def read_file(smiles_file, max_lines=None, smile_only=False, stream=False):
             # Detect if we're dealing with a csv file with "smiles" in the header
             first_line = f.readline().strip()
             is_csv = "smiles" in first_line
-            smile_idx = first_line.split(",").index("smiles") if is_csv else None
 
-            f.seek(0)
+            if is_csv:
+                smile_idx = first_line.split(",").index("smiles")
+            else:
+                smile_idx = None
+                f.seek(0)  # go to beginning of file
+
             for line in f:
-                if smile_idx is not None:
+                if is_csv and smile_only:
                     yield line.split(",")[smile_idx].strip()
                 else:
                     yield line.strip()
