@@ -3,7 +3,7 @@ import numpy as np
 import logging
 import pandas as pd
 from rdkit.Chem import AllChem
-from rdkit.DataStructs import FingerprintSimilarity
+from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 
 from clm.functions import (
     get_ecfp6_fingerprints,
@@ -63,11 +63,21 @@ def pd_concat(row, data, col):
     )
 
 
+def get_fp_obj(fp_string, bits=1024):
+    # Get FingerPrint object from a Base64 fingerprint string
+    # There currently seems to be no more concise way to do this since
+    # .FromBase64 doesn't return the modified object
+    fp = ExplicitBitVect(bits)
+    fp.FromBase64(fp_string)
+    return fp
+
+
 def match_molecules(row, dataset, data_type):
     match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
     # For the PubChem dataset, not all SMILES might be valid; consider only the ones that are.
-    if len(match) > 0 and data_type == "PubChem":
+    # If a `fingerprint` column exists, then we have a valid SMILE
+    if len(match) > 0 and data_type == "PubChem" and "fingerprint" not in dataset:
         match = match[
             match.apply(
                 lambda x: clean_mol(x["smiles"], raise_error=False) is not None, axis=1
@@ -114,12 +124,15 @@ def match_molecules(row, dataset, data_type):
         tc = pd.concat([tc, match.tail(-1).sample()])
 
     if tc.shape[0] > 0:
-        target_mols = clean_mols(
-            tc["target_smiles"].values,
-            selfies=False,
-            disable_progress=True,
-        )
-        target_fps = get_ecfp6_fingerprints(target_mols)
+        if "target_fingerprint" in tc:
+            target_fps = [get_fp_obj(fp) for fp in tc["target_fingerprint"]]
+        else:
+            target_mols = clean_mols(
+                tc["target_smiles"].values,
+                selfies=False,
+                disable_progress=True,
+            )
+            target_fps = get_ecfp6_fingerprints(target_mols)
         tc["Tc"] = [
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
@@ -174,9 +187,18 @@ def write_structural_prior_CV(
     test = test.assign(formula_known=test["formula"].isin(train["formula"]))
 
     logger.info("Reading PubChem file")
-    pubchem = pd.read_csv(
-        pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
-    )
+    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+
+    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    match len(pubchem.columns):
+        case 3:
+            pubchem.columns = ["smiles", "mass", "formula"]
+        case 4:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+        case _:
+            raise RuntimeError("Unexpected column count for PubChem")
+
     pubchem = pubchem.assign(size=np.nan)
 
     logger.info("Reading sample file from generative model")
@@ -203,7 +225,9 @@ def write_structural_prior_CV(
         tc_df = pd.concat([tc_df, tc])
 
     write_to_csv_file(ranks_file, rank_df)
-    write_to_csv_file(tc_file, tc_df)
+    write_to_csv_file(
+        tc_file, tc_df.drop("target_fingerprint", axis=1, errors="ignore")
+    )
 
 
 def main(args):
