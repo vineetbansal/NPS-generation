@@ -8,7 +8,7 @@ base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
 
 
-def test_00_preprocess():
+def test_calculate_outcomes():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_file = Path(temp_dir) / "calculate_outcome.csv"
         calculate_outcomes.calculate_outcomes(
