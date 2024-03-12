@@ -42,7 +42,7 @@ for f_range in frequency_ranges:
             sample = pd.DataFrame()
 
     if sample.shape[0] >= sample_no:
-        sample.sample(n=sample_no, ignore_index=True).assign(bin=f_range)
+        sample = sample.sample(n=sample_no, ignore_index=True).assign(bin=str(f_range))
 
     df = pd.concat([df, sample])
 
