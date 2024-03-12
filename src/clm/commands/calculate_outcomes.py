@@ -551,6 +551,9 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
         compression="gzip" if str(output_file).endswith(".gz") else None,
     )
 
+    res.reset_index(inplace=True, drop=True)
+    return res
+
 
 def main(args):
     calculate_outcomes(
