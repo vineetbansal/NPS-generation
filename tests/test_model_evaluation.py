@@ -23,5 +23,5 @@ def test_calculate_outcomes():
             hashlib.md5(
                 "".join(open(output_file, "r").readlines()).encode("utf8")
             ).hexdigest()
-            == "cab305c039f458fdc79d22804c5ba08c"
+            == "c3bb307238b5012b0bac63c9f10ceb61"
         )

@@ -1,9 +1,9 @@
 import deepsmiles
 import numpy as np
+from numpy import random
 import os
 import os.path
 import pandas as pd
-import random
 import warnings
 from selfies import decoder
 from tqdm import tqdm
@@ -232,7 +232,6 @@ def NeutraliseCharges(mol, reactions=None):
 def set_seed(seed):
     if seed is not None:
         random.seed(seed)
-        np.random.seed(seed)
         torch.manual_seed(seed)
         torch.cuda.manual_seed(seed)
 
