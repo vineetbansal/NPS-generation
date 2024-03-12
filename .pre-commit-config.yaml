@@ -20,5 +20,5 @@ repos:
       rev: 22.10.0
       hooks:
         - id: black
-          language_version: python3
+          language_version: python3.10
           exclude: 'tests/test_data/.*'
