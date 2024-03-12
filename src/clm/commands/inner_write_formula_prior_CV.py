@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from clm.functions import (
     set_seed,
@@ -15,6 +16,7 @@ from clm.functions import (
 from rdkit import rdBase
 
 rdBase.DisableLog("rdApp.error")
+tqdm.pandas()
 
 
 def add_args(parser):
@@ -146,7 +148,9 @@ def write_formula_prior_CV(
     for datatype, dataset in inputs.items():
         print(f"Generating statistics for model {datatype}")
 
-        result = test.apply(lambda x: match_molecules(x, dataset, datatype), axis=1)
+        result = test.progress_apply(
+            lambda x: match_molecules(x, dataset, datatype), axis=1
+        )
 
         rank = pd.concat(result.to_list())
         rank.insert(0, "Index", range(len(rank)))
