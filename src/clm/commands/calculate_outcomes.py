@@ -314,7 +314,7 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
 
     # outcome 10: internal diversity
     gen_fps = get_rdkit_fingerprints(gen_mols)
-    internal_div = internal_diversity(gen_fps, seed=seed)
+    internal_div = internal_diversity(gen_fps)
     res = pd.concat(
         [
             res,
@@ -329,7 +329,7 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
     )
 
     # outcome 11: median Tc to original set
-    external_div = external_diversity(gen_fps, org_fps, seed=seed)
+    external_div = external_diversity(gen_fps, org_fps)
     res = pd.concat(
         [
             res,
@@ -344,8 +344,8 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
     )
 
     # also, summarize using nearest-neighbor instead of mean
-    nn1 = internal_nn(gen_fps, seed=seed)
-    nn2 = external_nn(gen_fps, org_fps, seed=seed)
+    nn1 = internal_nn(gen_fps)
+    nn2 = external_nn(gen_fps, org_fps)
     res = pd.concat(
         [
             res,

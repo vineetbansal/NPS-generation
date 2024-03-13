@@ -1,6 +1,5 @@
 import deepsmiles
 import numpy as np
-from numpy import random
 import os
 import os.path
 import pandas as pd
@@ -9,7 +8,6 @@ from selfies import decoder
 from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import AllChem, Lipinski, rdmolops, Descriptors, rdMolDescriptors
-
 from rdkit.DataStructs import FingerprintSimilarity
 import torch
 from scipy import histogram
@@ -231,7 +229,7 @@ def NeutraliseCharges(mol, reactions=None):
 
 def set_seed(seed):
     if seed is not None:
-        random.seed(seed)
+        np.random.seed(seed)
         torch.manual_seed(seed)
         torch.cuda.manual_seed(seed)
 
@@ -267,19 +265,17 @@ def discrete_JSD(generated_dist, original_dist, tol=1e-10):
     return jensenshannon(gen, org)
 
 
-def internal_diversity(fps, sample_size=1e4, summarise=True, seed=None):
+def internal_diversity(fps, sample_size=1e4, summarise=True):
     """
     Calculate the internal diversity, defined as the mean intra-set Tanimoto
     coefficient, between a set of fingerprints. For large sets, calculating the
     entire matrix is prohibitive, so a random set of molecules are sampled.
     """
-    if seed:
-        set_seed(seed)
     tcs = []
     counter = 0
     while counter < sample_size:
-        idx1 = random.randint(0, len(fps) - 1)
-        idx2 = random.randint(0, len(fps) - 1)
+        idx1 = np.random.randint(0, len(fps) - 1)
+        idx2 = np.random.randint(0, len(fps) - 1)
         fp1 = fps[idx1]
         fp2 = fps[idx2]
         tcs.append(FingerprintSimilarity(fp1, fp2))
@@ -290,20 +286,18 @@ def internal_diversity(fps, sample_size=1e4, summarise=True, seed=None):
         return tcs
 
 
-def external_diversity(fps1, fps2, sample_size=1e4, summarise=True, seed=None):
+def external_diversity(fps1, fps2, sample_size=1e4, summarise=True):
     """
     Calculate the external diversity, defined as the mean inter-set Tanimoto
     coefficient, between two sets of fingerprints. For large sets, calculating
     the entire matrix is prohibitive, so a random set of molecules are sampled.
     """
     #
-    if seed:
-        set_seed(seed)
     tcs = []
     counter = 0
     while counter < sample_size:
-        idx1 = random.randint(0, len(fps1) - 1)
-        idx2 = random.randint(0, len(fps2) - 1)
+        idx1 = np.random.randint(0, len(fps1) - 1)
+        idx2 = np.random.randint(0, len(fps2) - 1)
         fp1 = fps1[idx1]
         fp2 = fps2[idx2]
         tcs.append(FingerprintSimilarity(fp1, fp2))
@@ -317,17 +311,15 @@ def external_diversity(fps1, fps2, sample_size=1e4, summarise=True, seed=None):
         return tcs
 
 
-def internal_nn(fps, sample_size=1e3, summarise=True, seed=None):
+def internal_nn(fps, sample_size=1e3, summarise=True):
     """
     Calculate the nearest-neighbor Tanimoto coefficient within a set of
     fingerprints.
     """
-    if seed:
-        set_seed(seed)
     counter = 0
     nns = []
     while counter < sample_size:
-        idx1 = random.randint(0, len(fps) - 1)
+        idx1 = np.random.randint(0, len(fps) - 1)
         fp1 = fps[idx1]
         tcs = []
         for idx2 in range(len(fps)):
@@ -346,17 +338,15 @@ def internal_nn(fps, sample_size=1e3, summarise=True, seed=None):
         return nns
 
 
-def external_nn(fps1, fps2, sample_size=1e3, summarise=True, seed=None):
+def external_nn(fps1, fps2, sample_size=1e3, summarise=True):
     """i
     Calculate the nearest-neighbor Tanimoto coefficient, searching one set of
     fingerprints against a second set.
     """
-    if seed:
-        set_seed(seed)
     counter = 0
     nns = []
     while counter < sample_size:
-        idx1 = random.randint(0, len(fps1) - 1)
+        idx1 = np.random.randint(0, len(fps1) - 1)
         fp1 = fps1[idx1]
         tcs = []
         for idx2 in range(len(fps2)):
