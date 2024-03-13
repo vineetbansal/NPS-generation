@@ -3,13 +3,11 @@ import numpy as np
 import os
 import os.path
 import pandas as pd
-import random
 import warnings
 from selfies import decoder
 from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import AllChem, Lipinski, rdmolops, Descriptors, rdMolDescriptors
-
 from rdkit.DataStructs import FingerprintSimilarity
 import torch
 from scipy import histogram
@@ -279,8 +277,8 @@ def internal_diversity(fps, sample_size=1e4, summarise=True, seed=None):
     tcs = []
     counter = 0
     while counter < sample_size:
-        idx1 = random.randint(0, len(fps) - 1)
-        idx2 = random.randint(0, len(fps) - 1)
+        idx1 = np.random.randint(0, len(fps) - 1)
+        idx2 = np.random.randint(0, len(fps) - 1)
         fp1 = fps[idx1]
         fp2 = fps[idx2]
         tcs.append(FingerprintSimilarity(fp1, fp2))
@@ -303,8 +301,8 @@ def external_diversity(fps1, fps2, sample_size=1e4, summarise=True, seed=None):
     tcs = []
     counter = 0
     while counter < sample_size:
-        idx1 = random.randint(0, len(fps1) - 1)
-        idx2 = random.randint(0, len(fps2) - 1)
+        idx1 = np.random.randint(0, len(fps1) - 1)
+        idx2 = np.random.randint(0, len(fps2) - 1)
         fp1 = fps1[idx1]
         fp2 = fps2[idx2]
         tcs.append(FingerprintSimilarity(fp1, fp2))
@@ -328,7 +326,7 @@ def internal_nn(fps, sample_size=1e3, summarise=True, seed=None):
     counter = 0
     nns = []
     while counter < sample_size:
-        idx1 = random.randint(0, len(fps) - 1)
+        idx1 = np.random.randint(0, len(fps) - 1)
         fp1 = fps[idx1]
         tcs = []
         for idx2 in range(len(fps)):
@@ -357,7 +355,7 @@ def external_nn(fps1, fps2, sample_size=1e3, summarise=True, seed=None):
     counter = 0
     nns = []
     while counter < sample_size:
-        idx1 = random.randint(0, len(fps1) - 1)
+        idx1 = np.random.randint(0, len(fps1) - 1)
         fp1 = fps1[idx1]
         tcs = []
         for idx2 in range(len(fps2)):

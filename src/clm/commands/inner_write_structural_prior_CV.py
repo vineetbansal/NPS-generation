@@ -4,6 +4,7 @@ import logging
 import pandas as pd
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
+from tqdm import tqdm
 
 from clm.functions import (
     get_ecfp6_fingerprints,
@@ -20,6 +21,7 @@ from clm.functions import (
 from rdkit import rdBase
 
 rdBase.DisableLog("rdApp.error")
+tqdm.pandas()
 logger = logging.getLogger(__name__)
 
 
@@ -214,7 +216,9 @@ def write_structural_prior_CV(
     for datatype, dataset in inputs.items():
         logging.info(f"Generating statistics for model {datatype}")
 
-        results = test.apply(lambda x: match_molecules(x, dataset, datatype), axis=1)
+        results = test.progress_apply(
+            lambda x: match_molecules(x, dataset, datatype), axis=1
+        )
 
         logging.info(f"Generated statistics for model {datatype}")
         rank = pd.concat(results[0].to_list())

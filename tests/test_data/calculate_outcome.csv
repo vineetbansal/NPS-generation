@@ -1,0 +1,28 @@
+input_file,outcome,value
+LOTUS_SMILES_processed_freq-avg_trunc.csv,% valid,1.0
+LOTUS_SMILES_processed_freq-avg_trunc.csv,% novel,0.9606535511837279
+LOTUS_SMILES_processed_freq-avg_trunc.csv,% unique,1.0
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"KL divergence, atoms",inf
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, atoms",0.02385683908419892
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Wasserstein distance, atoms",0.0021601785280468814
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, MWs",0.11576784818951809
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, logP",0.048635599442617944
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, Bertz TC",0.09215709859522357
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, QED",0.09002775754661423
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, TPSA",0.09650910271654331
+LOTUS_SMILES_processed_freq-avg_trunc.csv,Internal diversity,0.21220091801907676
+LOTUS_SMILES_processed_freq-avg_trunc.csv,External diversity,0.21747857179359634
+LOTUS_SMILES_processed_freq-avg_trunc.csv,External nearest-neighbor Tc,0.8608008196515755
+LOTUS_SMILES_processed_freq-avg_trunc.csv,Internal nearest-neighbor Tc,0.7854679813910384
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, # of rings",0.08102883626029277
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, # of aliphatic rings",0.09931333903696464
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, # of aromatic rings",0.20675674261077456
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, SA score",0.1313286601998903
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, NP score",0.0825433226630172
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, % sp3 carbons",0.06688240179289551
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, % rotatable bonds",0.07319968268708404
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, % stereocenters",0.07068856518905496
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, Murcko scaffolds",0.56856262599366
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, hydrogen donors",0.09486492853785787
+LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, hydrogen acceptors",0.11623788953312186
+LOTUS_SMILES_processed_freq-avg_trunc.csv,Frechet ChemNet distance,2.002278228050905
