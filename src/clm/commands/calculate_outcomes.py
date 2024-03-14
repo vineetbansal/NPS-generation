@@ -353,8 +353,8 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
                 {
                     "input_file": sampled_file,
                     "outcome": [
-                        "External nearest-neighbor Tc",
                         "Internal nearest-neighbor Tc",
+                        "External nearest-neighbor Tc",
                     ],
                     "value": [nn1, nn2],
                 }
@@ -365,7 +365,7 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
     # outcome 12: K-L divergence of number of rings
     gen_rings1 = [Lipinski.RingCount(mol) for mol in gen_mols]
     gen_rings2 = [Lipinski.NumAliphaticRings(mol) for mol in gen_mols]
-    gen_rings3 = [Lipinski.NumAliphaticRings(mol) for mol in gen_mols]
+    gen_rings3 = [Lipinski.NumAromaticRings(mol) for mol in gen_mols]
     jsd_rings1 = discrete_JSD(gen_rings1, org_rings1)
     jsd_rings2 = discrete_JSD(gen_rings2, org_rings2)
     jsd_rings3 = discrete_JSD(gen_rings3, org_rings3)
