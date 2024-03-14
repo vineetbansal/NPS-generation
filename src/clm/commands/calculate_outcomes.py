@@ -51,10 +51,23 @@ def add_args(parser):
     return parser
 
 
+def safe_qed(mol):
+    try:
+        return qed(mol)
+    except OverflowError:
+        return None
+
+
+def safe_sascorer(mol):
+    try:
+        return sascorer.calculateScore(mol)
+    except (OverflowError, ZeroDivisionError):
+        return None
+
+
 def calculate_molecular_properties(mol):
     fscore = npscorer.readNPModel()
     properties = {
-        "mols": mol,
         "elements": [atom.GetSymbol() for atom in mol.GetAtoms()],
         "mws": Descriptors.MolWt(mol),
         "logp": Descriptors.MolLogP(mol),
@@ -83,23 +96,38 @@ def process_smiles(df, smiles, is_train=False):
             properties = calculate_molecular_properties(mol)
             for key, value in properties.items():
                 df[key].append(value)
-            if is_train:
-                df["canonical"].append(Chem.MolToSmiles(mol))
+
+            # This is redundant here because sampled file needs to keep track of novel molecules
+            if not is_train:
+                df["mols"].append(mol)
+
     return df
 
 
-def safe_qed(mol):
-    try:
-        return qed(mol)
-    except OverflowError:
-        return None
+def process_chunk(smiles, max_chunk_size, train_smiles=None, is_train=False):
+    chunk = []
+    df = defaultdict(list)
 
+    for i, smile in enumerate(smiles):
+        df["smiles"].append(smile)
 
-def safe_sascorer(mol):
-    try:
-        return sascorer.calculateScore(mol)
-    except (OverflowError, ZeroDivisionError):
-        return None
+        if (mol := clean_mol(smile)) is not None:
+            df["canonical"].append(Chem.MolToSmiles(mol))
+
+            # Train file doesn't need to keep track of the molecules
+            if not is_train:
+                df["all_mols"].append(mol)
+
+        # Only store novel smiles from the sampled file
+        if is_train or (train_smiles is not None and smile not in train_smiles):
+            chunk.append(smile)
+
+        if len(chunk) % max_chunk_size == 0:
+            df = process_smiles(df, chunk, is_train=is_train)
+            chunk = []
+
+    df = process_smiles(df, chunk, is_train=is_train)
+    return df
 
 
 def calculate_probabilities(train_counts, gen_counts):
@@ -114,26 +142,7 @@ def calculate_probabilities(train_counts, gen_counts):
     return p1, p2
 
 
-def process_chunk(smiles, max_chunk_size, gen_canonical=None, existing_df=None):
-    chunk = []
-    common_smiles = set() if gen_canonical is not None else None
-    df = defaultdict(list) if existing_df is None else existing_df
-
-    for i, smile in enumerate(smiles):
-        chunk.append(smile)
-        if (i + 1) % max_chunk_size == 0:
-            df = process_smiles(df, chunk, is_train=bool(gen_canonical))
-            chunk = []
-
-        if gen_canonical is not None and smile in gen_canonical:
-            common_smiles.add(smile)
-
-    df = process_smiles(df, chunk, is_train=bool(gen_canonical))
-    return (df, common_smiles) if gen_canonical is not None else df
-
-
 def process_outcomes(train_df, gen_df, output_file, sampled_file):
-
     org_counts = np.unique(np.concatenate(train_df["elements"]), return_counts=True)
     org_murcko_counts = np.unique(train_df["murcko"], return_counts=True)
     gen_counts = np.unique(np.concatenate(gen_df["elements"]), return_counts=True)
@@ -249,7 +258,6 @@ def calculate_outcomes(
     train_file, sampled_file, output_file, max_orig_mols, seed, max_chunk_size=100
 ):
     set_seed(seed)
-    gen_df = defaultdict(list)
 
     gen_smiles = read_file(
         sampled_file, max_lines=max_orig_mols, stream=True, smile_only=True
@@ -258,19 +266,10 @@ def calculate_outcomes(
         train_file, max_lines=max_orig_mols, stream=True, smile_only=True
     )
 
-    # TODO: Can this be done in chunk? This will likely be larger of a file than train
-    for smile in gen_smiles:
-        gen_df["smiles"].append(smile)
-        if (mol := clean_mol(smile)) is not None:
-            gen_df["all_mols"].append(mol)
-            gen_df["canonical"].append(Chem.MolToSmiles(mol))
-    gen_canonical = set(gen_df["canonical"])
-
-    train_df, common = process_chunk(
-        train_smiles, max_chunk_size, gen_canonical=gen_canonical
-    )
-    novel_smiles = gen_canonical.difference(common)
-    gen_df = process_chunk(novel_smiles, max_chunk_size, existing_df=gen_df)
+    train_df = process_chunk(train_smiles, max_chunk_size, is_train=True)
+    # Saving train smiles to check for its presence in sampled file
+    smiles = set(train_df["smiles"])
+    gen_df = process_chunk(gen_smiles, max_chunk_size, train_smiles=smiles)
 
     return process_outcomes(train_df, gen_df, output_file, sampled_file)
 
