@@ -26,4 +26,3 @@ def test_calculate_outcomes():
 
         true_outcomes = pd.read_csv(test_dir / "calculate_outcome.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
-
