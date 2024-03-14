@@ -35,7 +35,7 @@ def test_write_nn_tc():
         outcomes = write_nn_Tc.write_nn_Tc(
             query_file=test_dir / "prep_nn_tc_PubChem.csv",
             reference_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
-            output_file=output_file
+            output_file=output_file,
         )
 
         true_outcomes = pd.read_csv(test_dir / "write_nn_tc.csv")
