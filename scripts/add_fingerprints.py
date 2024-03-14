@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     input_tsv, output_tsv = sys.argv[1:]
 
-    logger.info("Reading PubChem file")
+    logger.info(f"Reading PubChem file")
     df = pd.read_csv(
         input_tsv, delimiter="\t", header=None, names=["smile", "mass", "formula"]
     )

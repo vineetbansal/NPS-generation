@@ -229,7 +229,6 @@ def NeutraliseCharges(mol, reactions=None):
 
 def set_seed(seed):
     if seed is not None:
-        random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
         torch.cuda.manual_seed(seed)
@@ -266,14 +265,12 @@ def discrete_JSD(generated_dist, original_dist, tol=1e-10):
     return jensenshannon(gen, org)
 
 
-def internal_diversity(fps, sample_size=1e4, summarise=True, seed=None):
+def internal_diversity(fps, sample_size=1e4, summarise=True):
     """
     Calculate the internal diversity, defined as the mean intra-set Tanimoto
     coefficient, between a set of fingerprints. For large sets, calculating the
     entire matrix is prohibitive, so a random set of molecules are sampled.
     """
-    if seed:
-        set_seed(seed)
     tcs = []
     counter = 0
     while counter < sample_size:
@@ -289,15 +286,12 @@ def internal_diversity(fps, sample_size=1e4, summarise=True, seed=None):
         return tcs
 
 
-def external_diversity(fps1, fps2, sample_size=1e4, summarise=True, seed=None):
+def external_diversity(fps1, fps2, sample_size=1e4, summarise=True):
     """
     Calculate the external diversity, defined as the mean inter-set Tanimoto
     coefficient, between two sets of fingerprints. For large sets, calculating
     the entire matrix is prohibitive, so a random set of molecules are sampled.
     """
-    #
-    if seed:
-        set_seed(seed)
     tcs = []
     counter = 0
     while counter < sample_size:
@@ -316,13 +310,11 @@ def external_diversity(fps1, fps2, sample_size=1e4, summarise=True, seed=None):
         return tcs
 
 
-def internal_nn(fps, sample_size=1e3, summarise=True, seed=None):
+def internal_nn(fps, sample_size=1e3, summarise=True):
     """
     Calculate the nearest-neighbor Tanimoto coefficient within a set of
     fingerprints.
     """
-    if seed:
-        set_seed(seed)
     counter = 0
     nns = []
     while counter < sample_size:
@@ -345,13 +337,11 @@ def internal_nn(fps, sample_size=1e3, summarise=True, seed=None):
         return nns
 
 
-def external_nn(fps1, fps2, sample_size=1e3, summarise=True, seed=None):
+def external_nn(fps1, fps2, sample_size=1e3, summarise=True):
     """i
     Calculate the nearest-neighbor Tanimoto coefficient, searching one set of
     fingerprints against a second set.
     """
-    if seed:
-        set_seed(seed)
     counter = 0
     nns = []
     while counter < sample_size:
