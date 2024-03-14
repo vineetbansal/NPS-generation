@@ -62,7 +62,8 @@ def write_nn_Tc(query_file, reference_file, output_file):
         counter = counter + 1
 
     # write to output file
-    query.to_csv(output_file, index=False, compression="gzip")
+    query.to_csv(output_file, index=False, compression="gzip" if str(output_file).endswith(".gz") else None,)
+    return query
 
 
 def main(args):
