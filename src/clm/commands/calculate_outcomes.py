@@ -89,24 +89,24 @@ molecular_properties = {
 
 
 def process_chunk(smiles, train_smiles=None, is_train=False):
-    df = defaultdict(list)
-    df["n_old_mols"], df["n_novel_mols"] = 0, 0
+    dict = defaultdict(list)
+    dict["n_old_mols"], dict["n_novel_mols"] = 0, 0
 
     for i, smile in enumerate(smiles):
         if (mol := clean_mol(smile)) is not None:
-            df["canonical"].append(Chem.MolToSmiles(mol))
-            df["n_old_mols"] += 1
+            dict["canonical"].append(Chem.MolToSmiles(mol))
+            dict["n_old_mols"] += 1
 
             # Only store novel smiles from the sampled file
             if is_train or (train_smiles is not None and smile not in train_smiles):
                 for key, fun in molecular_properties.items():
-                    df[key].append(fun(mol))
-                df["n_novel_mols"] += 1
+                    dict[key].append(fun(mol))
+                dict["n_novel_mols"] += 1
 
-    df["n_smiles"] = i + 1
-    df["n_canonical"] = len(set(df["canonical"]))
+    dict["n_smiles"] = i + 1
+    dict["n_unique"] = len(set(dict["canonical"]))
 
-    return df
+    return dict
 
 
 def calculate_probabilities(train_counts, gen_counts):
@@ -121,70 +121,70 @@ def calculate_probabilities(train_counts, gen_counts):
     return p1, p2
 
 
-def process_outcomes(train_df, gen_df, output_file, sampled_file):
-    org_counts = np.unique(np.concatenate(train_df["elements"]), return_counts=True)
-    org_murcko_counts = np.unique(train_df["murcko"], return_counts=True)
-    gen_counts = np.unique(np.concatenate(gen_df["elements"]), return_counts=True)
-    gen_murcko_counts = np.unique(gen_df["murcko"], return_counts=True)
+def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
+    org_counts = np.unique(np.concatenate(train_dict["elements"]), return_counts=True)
+    org_murcko_counts = np.unique(train_dict["murcko"], return_counts=True)
+    gen_counts = np.unique(np.concatenate(gen_dict["elements"]), return_counts=True)
+    gen_murcko_counts = np.unique(gen_dict["murcko"], return_counts=True)
 
     p1, p2 = calculate_probabilities(org_counts, gen_counts)
     p_m1, p_m2 = calculate_probabilities(org_murcko_counts, gen_murcko_counts)
     fcd = FCD(canonize=False)
 
     res = {
-        "% valid": gen_df["n_old_mols"] / gen_df["n_smiles"],
-        "% novel":  gen_df["n_novel_mols"] / gen_df["n_old_mols"],
-        "% unique": gen_df["n_canonical"] / gen_df["n_old_mols"],
+        "% valid": gen_dict["n_old_mols"] / gen_dict["n_smiles"],
+        "% novel":  gen_dict["n_novel_mols"] / gen_dict["n_old_mols"],
+        "% unique": gen_dict["n_unique"] / gen_dict["n_old_mols"],
         "KL divergence, atoms": scipy.stats.entropy(p2, p1),
         "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
         "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
-        "Jensen-Shannon distance, MWs": continuous_JSD(gen_df["mws"], train_df["mws"]),
+        "Jensen-Shannon distance, MWs": continuous_JSD(gen_dict["mws"], train_dict["mws"]),
         "Jensen-Shannon distance, logP": continuous_JSD(
-            gen_df["logp"], train_df["logp"]
+            gen_dict["logp"], train_dict["logp"]
         ),
         "Jensen-Shannon distance, Bertz TC": continuous_JSD(
-            gen_df["tcs"], train_df["tcs"]
+            gen_dict["tcs"], train_dict["tcs"]
         ),
-        "Jensen-Shannon distance, QED": continuous_JSD(gen_df["qed"], train_df["qed"]),
+        "Jensen-Shannon distance, QED": continuous_JSD(gen_dict["qed"], train_dict["qed"]),
         "Jensen-Shannon distance, TPSA": continuous_JSD(
-            gen_df["tpsa"], train_df["tpsa"]
+            gen_dict["tpsa"], train_dict["tpsa"]
         ),
-        "Internal diversity": internal_diversity(gen_df["fps"]),
-        "External diversity": external_diversity(gen_df["fps"], train_df["fps"]),
-        "Internal nearest-neighbor Tc": internal_nn(gen_df["fps"]),
-        "External nearest-neighbor Tc": external_nn(gen_df["fps"], train_df["fps"]),
+        "Internal diversity": internal_diversity(gen_dict["fps"]),
+        "External diversity": external_diversity(gen_dict["fps"], train_dict["fps"]),
+        "Internal nearest-neighbor Tc": internal_nn(gen_dict["fps"]),
+        "External nearest-neighbor Tc": external_nn(gen_dict["fps"], train_dict["fps"]),
         "Jensen-Shannon distance, # of rings": discrete_JSD(
-            gen_df["rings1"], train_df["rings1"]
+            gen_dict["rings1"], train_dict["rings1"]
         ),
         "Jensen-Shannon distance, # of aliphatic rings": discrete_JSD(
-            gen_df["rings2"], train_df["rings2"]
+            gen_dict["rings2"], train_dict["rings2"]
         ),
         "Jensen-Shannon distance, # of aromatic rings": discrete_JSD(
-            gen_df["rings3"], train_df["rings3"]
+            gen_dict["rings3"], train_dict["rings3"]
         ),
         "Jensen-Shannon distance, SA score": continuous_JSD(
-            gen_df["SA"], train_df["SA"]
+            gen_dict["SA"], train_dict["SA"]
         ),
         "Jensen-Shannon distance, NP score": continuous_JSD(
-            gen_df["NP"], train_df["NP"]
+            gen_dict["NP"], train_dict["NP"]
         ),
         "Jensen-Shannon distance, % sp3 carbons": continuous_JSD(
-            gen_df["sp3"], train_df["sp3"]
+            gen_dict["sp3"], train_dict["sp3"]
         ),
         "Jensen-Shannon distance, % rotatable bonds": continuous_JSD(
-            gen_df["rot"], train_df["rot"]
+            gen_dict["rot"], train_dict["rot"]
         ),
         "Jensen-Shannon distance, % stereocenters": continuous_JSD(
-            gen_df["stereo"], train_df["stereo"]
+            gen_dict["stereo"], train_dict["stereo"]
         ),
         "Jensen-Shannon distance, Murcko scaffolds": jensenshannon(p_m2, p_m1),
         "Jensen-Shannon distance, hydrogen donors": discrete_JSD(
-            gen_df["donors"], train_df["donors"]
+            gen_dict["donors"], train_dict["donors"]
         ),
         "Jensen-Shannon distance, hydrogen acceptors": discrete_JSD(
-            gen_df["acceptors"], train_df["acceptors"]
+            gen_dict["acceptors"], train_dict["acceptors"]
         ),
-        "Frechet ChemNet distance": fcd(gen_df["canonical"], train_df["canonical"]),
+        "Frechet ChemNet distance": fcd(gen_dict["canonical"], train_dict["canonical"]),
     }
 
     res = pd.DataFrame(list(res.items()), columns=["outcome", "value"])
@@ -209,10 +209,10 @@ def calculate_outcomes(
     )
     train_smiles = read_file(train_file,  smile_only=True)
 
-    train_df = process_chunk(train_smiles, is_train=True)
-    gen_df = process_chunk(gen_smiles, train_smiles=set(train_smiles))
+    train_dict = process_chunk(train_smiles, is_train=True)
+    gen_dict = process_chunk(gen_smiles, train_smiles=set(train_smiles))
 
-    return process_outcomes(train_df, gen_df, output_file, sampled_file)
+    return process_outcomes(train_dict, gen_dict, output_file, sampled_file)
 
 
 def main(args):
