@@ -7,7 +7,7 @@ ranks_dir = "/media/vineetb/T7/projects/nps/CLM/tmp/aa9078"
 
 if __name__ == "__main__":
 
-    ranks_files = glob.glob(f"{ranks_dir}/*freq-avg*-.csv")
+    ranks_files = glob.glob(f"{ranks_dir}/*freq-avg*.csv")
     df = pd.concat(
         [pd.read_csv(ranks_file, delimiter=",") for ranks_file in ranks_files]
     )
