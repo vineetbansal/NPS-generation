@@ -133,7 +133,7 @@ def process_outcomes(train_df, gen_df, output_file, sampled_file):
 
     res = {
         "% valid": gen_df["n_old_mols"] / gen_df["n_smiles"],
-        "% novel":  gen_df["n_novel_mols"] / gen_df["n_old_mols"],
+        "% novel": gen_df["n_novel_mols"] / gen_df["n_old_mols"],
         "% unique": gen_df["n_canonical"] / gen_df["n_old_mols"],
         "KL divergence, atoms": scipy.stats.entropy(p2, p1),
         "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
@@ -199,15 +199,13 @@ def process_outcomes(train_df, gen_df, output_file, sampled_file):
     return res
 
 
-def calculate_outcomes(
-        train_file, sampled_file, output_file, max_orig_mols, seed
-):
+def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
     set_seed(seed)
 
     gen_smiles = read_file(
         sampled_file, max_lines=max_orig_mols, stream=True, smile_only=True
     )
-    train_smiles = read_file(train_file,  smile_only=True)
+    train_smiles = read_file(train_file, smile_only=True)
 
     train_df = process_chunk(train_smiles, is_train=True)
     gen_df = process_chunk(gen_smiles, train_smiles=set(train_smiles))

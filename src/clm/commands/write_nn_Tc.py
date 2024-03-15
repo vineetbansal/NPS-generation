@@ -45,7 +45,9 @@ def write_nn_Tc(query_file, reference_file, output_file):
     query = pd.read_csv(query_file)
     ref = pd.read_csv(reference_file)
 
-    results = ref["smiles"].apply(lambda x: find_max_similarity_fingerprint(x, query["smiles"]))
+    results = ref["smiles"].apply(
+        lambda x: find_max_similarity_fingerprint(x, query["smiles"])
+    )
 
     query["nn_tc"] = pd.concat(results[0].to_list())
     query["nn"] = pd.concat(results[1].to_list())
