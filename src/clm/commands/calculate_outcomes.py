@@ -18,6 +18,10 @@ from rdkit.Contrib.NP_Score import npscorer
 from collections import defaultdict
 from clm.functions import (
     read_file,
+    seed_type,
+    set_seed,
+    clean_mol,
+    # Functions for calculating metrics
     continuous_JSD,
     discrete_JSD,
     internal_diversity,
@@ -26,9 +30,6 @@ from clm.functions import (
     external_nn,
     pct_rotatable_bonds,
     pct_stereocenters,
-    seed_type,
-    set_seed,
-    clean_mol,
 )
 
 rdBase.DisableLog("rdApp.error")
@@ -88,14 +89,14 @@ molecular_properties = {
 }
 
 
-def process_chunk(smiles, train_smiles=None, is_train=False):
+def process_smiles(smiles, train_smiles=None, is_train=False):
     dict = defaultdict(list)
-    dict["n_old_mols"], dict["n_novel_mols"] = 0, 0
+    dict["n_valid_mols"], dict["n_novel_mols"] = 0, 0
 
-    for i, smile in enumerate(smiles):
+    for i, smile in enumerate(smiles, start=1):
         if (mol := clean_mol(smile)) is not None:
             dict["canonical"].append(Chem.MolToSmiles(mol))
-            dict["n_old_mols"] += 1
+            dict["n_valid_mols"] += 1
 
             # Only store novel smiles from the sampled file
             if is_train or (train_smiles is not None and smile not in train_smiles):
@@ -103,7 +104,7 @@ def process_chunk(smiles, train_smiles=None, is_train=False):
                     dict[key].append(fun(mol))
                 dict["n_novel_mols"] += 1
 
-    dict["n_smiles"] = i + 1
+    dict["n_smiles"] = i
     dict["n_unique"] = len(set(dict["canonical"]))
 
     return dict
@@ -132,9 +133,9 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
     fcd = FCD(canonize=False)
 
     res = {
-        "% valid": gen_dict["n_old_mols"] / gen_dict["n_smiles"],
-        "% novel": gen_dict["n_novel_mols"] / gen_dict["n_old_mols"],
-        "% unique": gen_dict["n_unique"] / gen_dict["n_old_mols"],
+        "% valid": gen_dict["n_valid_mols"] / gen_dict["n_smiles"],
+        "% novel": gen_dict["n_novel_mols"] / gen_dict["n_valid_mols"],
+        "% unique": gen_dict["n_unique"] / gen_dict["n_valid_mols"],
         "KL divergence, atoms": scipy.stats.entropy(p2, p1),
         "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
         "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
@@ -192,9 +193,10 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
     }
 
     res = pd.DataFrame(list(res.items()), columns=["outcome", "value"])
-    res.insert(0, "input_file", os.path.basename(sampled_file))
+    res["input_file"] = os.path.basename(sampled_file)
     res.to_csv(
         output_file,
+        mode="a+",
         index=False,
         compression="gzip" if str(output_file).endswith(".gz") else None,
     )
@@ -203,7 +205,7 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
     return res
 
 
-def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
+def get_dicts(train_file, sampled_file, max_orig_mols, seed):
     set_seed(seed)
 
     gen_smiles = read_file(
@@ -211,9 +213,14 @@ def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, see
     )
     train_smiles = read_file(train_file, smile_only=True)
 
-    train_dict = process_chunk(train_smiles, is_train=True)
-    gen_dict = process_chunk(gen_smiles, train_smiles=set(train_smiles))
+    train_dict = process_smiles(train_smiles, is_train=True)
+    gen_dict = process_smiles(gen_smiles, train_smiles=set(train_smiles))
 
+    return train_dict, gen_dict
+
+
+def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
+    train_dict, gen_dict = get_dicts(train_file, sampled_file, max_orig_mols, seed)
     return process_outcomes(train_dict, gen_dict, output_file, sampled_file)
 
 
