@@ -133,19 +133,23 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
 
     res = {
         "% valid": gen_dict["n_old_mols"] / gen_dict["n_smiles"],
-        "% novel":  gen_dict["n_novel_mols"] / gen_dict["n_old_mols"],
+        "% novel": gen_dict["n_novel_mols"] / gen_dict["n_old_mols"],
         "% unique": gen_dict["n_unique"] / gen_dict["n_old_mols"],
         "KL divergence, atoms": scipy.stats.entropy(p2, p1),
         "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
         "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
-        "Jensen-Shannon distance, MWs": continuous_JSD(gen_dict["mws"], train_dict["mws"]),
+        "Jensen-Shannon distance, MWs": continuous_JSD(
+            gen_dict["mws"], train_dict["mws"]
+        ),
         "Jensen-Shannon distance, logP": continuous_JSD(
             gen_dict["logp"], train_dict["logp"]
         ),
         "Jensen-Shannon distance, Bertz TC": continuous_JSD(
             gen_dict["tcs"], train_dict["tcs"]
         ),
-        "Jensen-Shannon distance, QED": continuous_JSD(gen_dict["qed"], train_dict["qed"]),
+        "Jensen-Shannon distance, QED": continuous_JSD(
+            gen_dict["qed"], train_dict["qed"]
+        ),
         "Jensen-Shannon distance, TPSA": continuous_JSD(
             gen_dict["tpsa"], train_dict["tpsa"]
         ),
@@ -199,15 +203,13 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
     return res
 
 
-def calculate_outcomes(
-        train_file, sampled_file, output_file, max_orig_mols, seed
-):
+def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
     set_seed(seed)
 
     gen_smiles = read_file(
         sampled_file, max_lines=max_orig_mols, stream=True, smile_only=True
     )
-    train_smiles = read_file(train_file,  smile_only=True)
+    train_smiles = read_file(train_file, smile_only=True)
 
     train_dict = process_chunk(train_smiles, is_train=True)
     gen_dict = process_chunk(gen_smiles, train_smiles=set(train_smiles))
