@@ -3,6 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 import scipy.stats
+import re
+import glob
 from fcd_torch import FCD
 from rdkit import Chem
 from rdkit.Chem import Descriptors, Lipinski, RDKFingerprint
@@ -30,6 +32,7 @@ from clm.functions import (
     set_seed,
     clean_mol,
 )
+import time
 
 rdBase.DisableLog("rdApp.error")
 fscore = npscorer.readNPModel()
@@ -50,6 +53,16 @@ def add_args(parser):
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
     return parser
+
+
+def split_df(data):
+    frequency_ranges = [1, 2, (3, 10), (11, 30), (31, 100), '>100']
+
+    list = []
+    for f_range in frequency_ranges:
+        if (subset := data[data['bin'] == str(f_range)]).shape[0] > 0:
+            list.append(subset.to_dict('list'))
+    return list
 
 
 def safe_qed(mol):
@@ -92,18 +105,25 @@ def process_chunk(smiles, train_smiles=None, is_train=False):
     dict = defaultdict(list)
     dict["n_old_mols"], dict["n_novel_mols"] = 0, 0
 
-    for i, smile in enumerate(smiles):
-        if (mol := clean_mol(smile)) is not None:
+    for i, smile in enumerate(smiles, start=1):
+        if (mol := clean_mol(smile, raise_error=False)) is not None:
             dict["canonical"].append(Chem.MolToSmiles(mol))
             dict["n_old_mols"] += 1
 
             # Only store novel smiles from the sampled file
             if is_train or (train_smiles is not None and smile not in train_smiles):
                 for key, fun in molecular_properties.items():
+                    # Metrices involving these values aren't compatible with None values
+                    if (key == 'SA' or key == 'qed') and fun(mol) is None:
+                        continue
                     dict[key].append(fun(mol))
                 dict["n_novel_mols"] += 1
 
-    dict["n_smiles"] = i + 1
+    try:
+        dict["n_smiles"] = i
+    except UnboundLocalError:
+        dict["n_smiles"] = 0
+
     dict["n_unique"] = len(set(dict["canonical"]))
 
     return dict
@@ -121,7 +141,7 @@ def calculate_probabilities(train_counts, gen_counts):
     return p1, p2
 
 
-def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
+def process_outcomes(train_dict, gen_dict, sampled_file, freq_bin):
     org_counts = np.unique(np.concatenate(train_dict["elements"]), return_counts=True)
     org_murcko_counts = np.unique(train_dict["murcko"], return_counts=True)
     gen_counts = np.unique(np.concatenate(gen_dict["elements"]), return_counts=True)
@@ -193,34 +213,54 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
 
     res = pd.DataFrame(list(res.items()), columns=["outcome", "value"])
     res.insert(0, "input_file", os.path.basename(sampled_file))
+    res = res.assign(freq_bin=freq_bin)
+    res.reset_index(inplace=True, drop=True)
+    return res
+
+
+def extract_frequency(file_name):
+    match file_name:
+        case _ if re.search(r'^freq_>(\d+)*', file_name):
+            item = re.findall(r'freq_>(\d+)*', file_name)[0]
+            return f">{item}"
+        case _ if re.search(r'^freq_\((\d+)..(\d+)\)*', file_name):
+            return str(re.findall(r'^freq_\((\d+)..(\d+)\)*', file_name)[0])
+        case _ if re.search(r'freq_(\d+)*', file_name):
+            return re.findall(r'freq_(\d+)*', file_name)[0]
+
+    return None
+
+
+def calculate_outcomes(train_file, sampled_dir, output_file, max_orig_mols, seed):
+    set_seed(seed)
+
+    sampled_files = glob.glob(f"{sampled_dir}/freq_*.csv")
+    train_smiles = read_file(train_file, max_lines=max_orig_mols, smile_only=True)
+    train_dict = process_chunk(train_smiles, is_train=True)
+
+    outcomes = []
+    for sample_file in sampled_files:
+        gen_smiles = read_file(sample_file, stream=True, smile_only=True)
+        freq_bin = extract_frequency(os.path.basename(sample_file))
+        gen_dict = process_chunk(gen_smiles, train_smiles=set(train_smiles))
+
+        if gen_dict["n_smiles"] == 0:
+            continue
+        # Append frequency bin to respective
+        outcomes.append(process_outcomes(train_dict, gen_dict, sample_file, freq_bin))
+
+    res = pd.concat(outcomes)
     res.to_csv(
         output_file,
         index=False,
         compression="gzip" if str(output_file).endswith(".gz") else None,
     )
 
-    res.reset_index(inplace=True, drop=True)
-    return res
-
-
-def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
-    set_seed(seed)
-
-    gen_smiles = read_file(
-        sampled_file, max_lines=max_orig_mols, stream=True, smile_only=True
-    )
-    train_smiles = read_file(train_file, smile_only=True)
-
-    train_dict = process_chunk(train_smiles, is_train=True)
-    gen_dict = process_chunk(gen_smiles, train_smiles=set(train_smiles))
-
-    return process_outcomes(train_dict, gen_dict, output_file, sampled_file)
-
 
 def main(args):
     calculate_outcomes(
         train_file=args.train_file,
-        sampled_file=args.sampled_file,
+        sampled_dir=args.sampled_file,
         output_file=args.output_file,
         max_orig_mols=args.max_orig_mols,
         seed=args.seed,
