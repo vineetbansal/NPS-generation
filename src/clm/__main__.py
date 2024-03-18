@@ -4,6 +4,7 @@ import os
 import clm
 from clm.commands import (
     preprocess,
+    create_test_set,
     create_training_sets,
     inner_train_models_RNN,
     inner_sample_molecules_RNN,
@@ -26,6 +27,7 @@ def main():
 
     modules = (
         preprocess,
+        create_test_set,
         create_training_sets,
         inner_train_models_RNN,
         inner_sample_molecules_RNN,

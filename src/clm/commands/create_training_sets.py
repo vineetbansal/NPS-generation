@@ -32,12 +32,6 @@ def add_args(parser):
         help="Output training smiles vocabulary file path ({fold} in path is populated automatically)",
     )
     parser.add_argument(
-        "--test0-file",
-        type=str,
-        required=True,
-        help="Output test smiles file path with no augmentation ({fold} in path is populated automatically)",
-    )
-    parser.add_argument(
         "--test-file",
         type=str,
         required=True,
@@ -154,7 +148,6 @@ def get_similar_smiles(
 def create_training_sets(
     input_file=None,
     train_file=None,
-    test0_file=None,
     test_file=None,
     vocab_file=None,
     folds=10,
@@ -191,7 +184,7 @@ def create_training_sets(
     if enum_factor > 0:
         enum_folds = [np.array([]) for i in range(len(folds))]
         sme = SmilesEnumerator(canonical=False, enum=True)
-        for idx, fold in enumerate(folds):
+        for idx, fold in enumerate(folds[1:], start=1):
             enum = []
             max_tries = 200  # randomized SMILES to generate for each input structure
             for sm_idx, sm in enumerate(tqdm(fold)):
@@ -212,13 +205,11 @@ def create_training_sets(
         enum_folds = folds
 
     if generate_test_data:
-        test0 = folds[which_fold]
         test = enum_folds[which_fold]
-        train = enum_folds[:which_fold] + enum_folds[which_fold + 1 :]
+        train = enum_folds[1:which_fold] + enum_folds[which_fold + 1 :]
         train = list(itertools.chain.from_iterable(train))
     else:
         train = enum_folds[0]
-        test0 = None
         test = None
 
     if representation == "SELFIES":
@@ -231,16 +222,6 @@ def create_training_sets(
             except EncoderError:
                 pass
         train = train_out
-
-        if test0 is not None:
-            test0_out = []
-            for sm in test0:
-                try:
-                    sf = selfies_encoder(sm)
-                    test0_out.append(sf)
-                except EncoderError:
-                    pass
-            test0 = test0_out
 
         if test is not None:
             test_out = []
@@ -256,8 +237,6 @@ def create_training_sets(
     vocabulary = vocabulary_from_representation(representation, train)
     logger.info("vocabulary of {} characters".format(len(vocabulary)))
     vocabulary.write(output_file=str(vocab_file).format(fold=which_fold))
-    if test0 is not None:
-        write_smiles(test0, str(test0_file).format(fold=which_fold))
     if test is not None:
         write_smiles(test, str(test_file).format(fold=which_fold))
 
@@ -266,7 +245,6 @@ def main(args):
     create_training_sets(
         input_file=args.input_file,
         train_file=args.train_file,
-        test0_file=args.test0_file,
         test_file=args.test_file,
         vocab_file=args.vocab_file,
         folds=args.folds,
