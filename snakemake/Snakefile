@@ -339,7 +339,7 @@ rule write_formula_prior_CV:
     output:
          ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv"
     resources:
-        mem_mb=32000,
+        mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
     shell:
         'clm inner_write_formula_prior_CV '
