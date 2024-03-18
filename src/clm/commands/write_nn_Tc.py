@@ -1,8 +1,12 @@
 import argparse
+import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.DataStructs import FingerprintSimilarity
 from clm.functions import clean_mol
+from tqdm import tqdm
+
+tqdm.pandas()
 
 
 def add_args(parser):
@@ -19,41 +23,37 @@ def calculate_fingerprint(smile):
     return None
 
 
-def find_max_similarity_fingerprint(target_smile, query_smiles):
-    highest_similarity = -1
-    best_match = None  # Using None to signify no match found initially
+def find_max_similarity_fingerprint(target_smile, ref_smiles, ref_fps):
     target_fps = calculate_fingerprint(target_smile)
 
     if target_fps is None:
         return None
 
-    for i, smile in enumerate(query_smiles):
-        query_fps = calculate_fingerprint(smile)
-
-        if query_fps is None:
-            continue  # Skip this iteration if the fingerprint can't be calculated
-
-        similarity_score = FingerprintSimilarity(target_fps, query_fps)
-        if similarity_score > highest_similarity:
-            highest_similarity = similarity_score
-            best_match = (i, smile)  # Store the index and smile of the best match
-
-    return best_match
+    tcs = [FingerprintSimilarity(target_fps, ref_fp) for ref_fp in ref_fps if ref_fp is not None]
+    return np.max(tcs), ref_smiles[np.argmax(tcs)]
 
 
 def write_nn_Tc(query_file, reference_file, output_file):
     query = pd.read_csv(query_file)
     ref = pd.read_csv(reference_file)
 
-    results = ref["smiles"].apply(
-        lambda x: find_max_similarity_fingerprint(x, query["smiles"])
+    ref["fps"] = ref["smiles"].apply(calculate_fingerprint)
+    ref = ref.dropna()
+    ref_smiles = ref["smiles"].values
+
+    results = query["smiles"].apply(
+        lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref["fps"])
     )
 
-    query["nn_tc"] = pd.concat(results[0].to_list())
-    query["nn"] = pd.concat(results[1].to_list())
+    query["nn_tc"] = [i[0] for i in results]
+    query["nn"] = [i[1] for i in results]
 
     query = query.dropna()
-    query.to_csv(output_file, index=False, compression="gzip")
+    query.to_csv(output_file,
+                 index=False,
+                 compression="gzip" if str(output_file).endswith(".gz") else None,
+                 )
+    return query
 
 
 def main(args):
