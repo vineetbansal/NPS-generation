@@ -29,7 +29,11 @@ def find_max_similarity_fingerprint(target_smile, ref_smiles, ref_fps):
     if target_fps is None:
         return None
 
-    tcs = [FingerprintSimilarity(target_fps, ref_fp) for ref_fp in ref_fps if ref_fp is not None]
+    tcs = [
+        FingerprintSimilarity(target_fps, ref_fp)
+        for ref_fp in ref_fps
+        if ref_fp is not None
+    ]
     return np.max(tcs), ref_smiles[np.argmax(tcs)]
 
 
@@ -38,7 +42,9 @@ def write_nn_Tc(query_file, reference_file, output_file):
     ref = pd.read_csv(reference_file)
 
     ref["fps"] = ref["smiles"].apply(calculate_fingerprint)
-    ref_smiles = [ref["smiles"].values[i] for i, fp in enumerate(ref["fps"]) if fp is not None]
+    ref_smiles = [
+        ref["smiles"].values[i] for i, fp in enumerate(ref["fps"]) if fp is not None
+    ]
 
     results = query["smiles"].apply(
         lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref["fps"])
@@ -47,10 +53,11 @@ def write_nn_Tc(query_file, reference_file, output_file):
     query["nn_tc"] = [i[0] for i in results]
     query["nn"] = [i[1] for i in results]
 
-    query.to_csv(output_file,
-                 index=False,
-                 compression="gzip" if str(output_file).endswith(".gz") else None,
-                 )
+    query.to_csv(
+        output_file,
+        index=False,
+        compression="gzip" if str(output_file).endswith(".gz") else None,
+    )
     return query
 
 
