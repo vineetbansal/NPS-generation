@@ -7,8 +7,6 @@ import argparse
 import numpy as np
 import os
 import pandas as pd
-import random
-import sys
 from rdkit import Chem, DataStructs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, \
@@ -17,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 # import functions
-from functions import read_smiles, clean_mols
+from clm.functions import read_file, clean_mols, set_seed, seed_type
 
 def add_args(parser):
     parser.add_argument(
@@ -29,10 +27,14 @@ def add_args(parser):
         help="Sampled csv file with smiles as a column, or a text file with one SMILES per line.",
     )
     parser.add_argument("--output_file", type=str)
+    parser.add_argument(
+        "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
+    )
     return parser
 
 
-def train_discriminator(train_file, sample_file, output_file, ):
+def train_discriminator(train_file, sample_file, output_file, seed):
+    set_seed(seed)
     # create output directory if it does not exist
     output_dir = os.path.dirname(output_file)
     if not os.path.isdir(output_dir):
@@ -42,11 +44,13 @@ def train_discriminator(train_file, sample_file, output_file, ):
             pass
 
     # read SMILES from training set
-    train = pd.read_csv(train_file)
-    train_smiles = train['smiles'].values
+    train_smiles = read_file(train_file, smile_only=True) # (this was originally train = pd.read_csv(train_file))
+
+    # TODO: there doesn't seem to be any training csv files
+    # train_smiles = train['smiles'].values
 
     # read generated SMILES
-    gen_smiles = read_smiles(sample_file)
+    gen_smiles = read_file(sample_file, smile_only=True)
     # get unique smiles
     gen_smiles = np.unique(gen_smiles)
     # remove known ones
@@ -59,8 +63,7 @@ def train_discriminator(train_file, sample_file, output_file, ):
 
     # sample a random number
     if len(gen_mols) > len(train_mols):
-        random.seed(0)
-        gen_mols = random.sample(gen_mols, len(train_mols))
+        gen_mols = np.random.choice(gen_mols, len(train_mols))
 
     # calculate fingerprints for the train and generated sets
     train_fps = [Chem.RDKFingerprint(mol) for mol in tqdm(train_mols)]
@@ -112,12 +115,15 @@ def train_discriminator(train_file, sample_file, output_file, ):
     # save output
     output_df.to_csv(output_file, index=False)
 
+    return output_df
+
 
 def main(args):
     train_discriminator(
         train_file=args.train_file,
-        sample_file=args.sample_file,
+        sample_file=args.sampled_file,
         output_file=args.output_file,
+        seed=args.seed,
     )
 
 
