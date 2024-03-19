@@ -123,6 +123,7 @@ def train_discriminator(train_file, sample_file, output_file, seed):
     # save output
     output_df.to_csv(output_file, index=False)
 
+    output_df = output_df.reset_index(drop=True)
     return output_df
 
 

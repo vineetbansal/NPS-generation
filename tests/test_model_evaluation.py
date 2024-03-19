@@ -83,8 +83,5 @@ def test_train_discriminator():
             seed=0,
         )
 
-        # Remove indexes of the result to match with the output file
-        outcomes = outcomes.reset_index(drop=True)
-
         true_outcomes = pd.read_csv(test_dir / "train_discriminator.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
