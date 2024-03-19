@@ -292,7 +292,6 @@ def external_diversity(fps1, fps2, sample_size=1e4, summarise=True):
     coefficient, between two sets of fingerprints. For large sets, calculating
     the entire matrix is prohibitive, so a random set of molecules are sampled.
     """
-    #
     tcs = []
     counter = 0
     while counter < sample_size:
