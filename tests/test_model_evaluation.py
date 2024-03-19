@@ -8,7 +8,7 @@ from clm.commands.calculate_outcomes import (
     process_outcomes,
     calculate_outcomes,
 )
-from clm.commands.write_nn_Tc import write_nn_TC
+from clm.commands.write_nn_Tc import write_nn_Tc
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
