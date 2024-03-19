@@ -1,7 +1,3 @@
-# Show that the frequency with which novel chemical structures appear in a large sample
-# from the molecule follows a power law
-# (most of the unique novel structures are sampled only a handful of times, whereas a long tail)
-# held out training set molecules are sampled more frequently than average
 import argparse
 
 import pandas as pd
@@ -23,7 +19,7 @@ def write_freq_distribution(sampled_file, test_file, output_file):
     sampled_data = pd.read_csv(sampled_file)
     test_smiles = set(read_file(test_file, stream=True, smile_only=True))
 
-    # Label smiles not found in test set as novel 
+    # Label smiles not found in test set as novel
     sampled_data = sampled_data.assign(
         is_novel=np.select(
             [
