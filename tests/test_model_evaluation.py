@@ -33,14 +33,16 @@ def test_train_discriminator():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_file = Path(temp_dir) / "train_discriminator.csv"
         outcomes = train_discriminator.train_discriminator(
-            train_file=test_dir / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi",
-            sample_file=test_dir / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
+            train_file=test_dir
+            / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi",
+            sample_file=test_dir
+            / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
             output_file=output_file,
             seed=0,
         )
 
         # Remove indexes of the result to match with the output file
         outcomes = outcomes.reset_index(drop=True)
-        
+
         true_outcomes = pd.read_csv(test_dir / "train_discriminator.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)

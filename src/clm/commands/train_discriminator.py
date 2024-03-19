@@ -9,13 +9,17 @@ import os
 import pandas as pd
 from rdkit import Chem, DataStructs
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, \
-    roc_auc_score, average_precision_score
+from sklearn.metrics import (
+    accuracy_score,
+    roc_auc_score,
+    average_precision_score,
+)
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 # import functions
 from clm.functions import read_file, clean_mols, set_seed, seed_type
+
 
 def add_args(parser):
     parser.add_argument(
@@ -44,7 +48,9 @@ def train_discriminator(train_file, sample_file, output_file, seed):
             pass
 
     # read SMILES from training set
-    train_smiles = read_file(train_file, smile_only=True) # (this was originally train = pd.read_csv(train_file))
+    train_smiles = read_file(
+        train_file, smile_only=True
+    )  # (this was originally train = pd.read_csv(train_file))
 
     # TODO: there doesn't seem to be any training csv files
     # train_smiles = train['smiles'].values
@@ -54,7 +60,7 @@ def train_discriminator(train_file, sample_file, output_file, seed):
     # get unique smiles
     gen_smiles = np.unique(gen_smiles)
     # remove known ones
-    gen_smiles = [sm for sm in gen_smiles if not sm in train_smiles]
+    gen_smiles = [sm for sm in gen_smiles if sm not in train_smiles]
 
     # convert to molecules
     train_mols = clean_mols(train_smiles)
@@ -76,15 +82,16 @@ def train_discriminator(train_file, sample_file, output_file, seed):
     # convert to list of numpy arrays
     np_fps = []
     for fp in tqdm(fps):
-      arr = np.zeros((1,))
-      DataStructs.ConvertToNumpyArray(fp, arr)
-      np_fps.append(arr)
+        arr = np.zeros((1,))
+        DataStructs.ConvertToNumpyArray(fp, arr)
+        np_fps.append(arr)
 
     # split into train/test folds
     X = np_fps
     y = labels
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
-                                                        random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=0
+    )
 
     # fit RF
     rf = RandomForestClassifier(random_state=0)
@@ -101,15 +108,16 @@ def train_discriminator(train_file, sample_file, output_file, seed):
 
     # calculate metrics
     acc = accuracy_score(y_test, y_pred)
-    b_acc = balanced_accuracy_score(y_test, y_pred)
-    auc = roc_auc_score(y_test, y_probs[:,1])
-    auprc = average_precision_score(y_test, y_probs[:,1])
+    # b_acc = balanced_accuracy_score(y_test, y_pred)
+    auc = roc_auc_score(y_test, y_probs[:, 1])
+    auprc = average_precision_score(y_test, y_probs[:, 1])
 
     # create output df
     y_prob_1 = [x[1] for x in y_probs]
-    output_df = pd.DataFrame({'y': y_test, 'y_pred': y_pred, 'y_prob_1': y_prob_1})
-    score_df = pd.DataFrame({'score': ['accuracy', 'auroc', 'auprc'],
-                             'value': [acc, auc, auprc]})
+    output_df = pd.DataFrame({"y": y_test, "y_pred": y_pred, "y_prob_1": y_prob_1})
+    score_df = pd.DataFrame(
+        {"score": ["accuracy", "auroc", "auprc"], "value": [acc, auc, auprc]}
+    )
     output_df = output_df._append(score_df)
 
     # save output
