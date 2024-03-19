@@ -8,6 +8,7 @@ from clm.commands.calculate_outcomes import (
     process_outcomes,
     calculate_outcomes,
 )
+from clm.commands.write_nn_Tc import write_nn_Tc
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
@@ -54,3 +55,16 @@ def test_calculate_outcomes():
         pd.testing.assert_frame_equal(
             outcomes.sort_index(axis=1), true_outcomes.sort_index(axis=1)
         )
+
+
+def test_write_nn_tc():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_file = Path(temp_dir) / "write_nn_tc.csv"
+        outcomes = write_nn_Tc(
+            query_file=test_dir / "prep_nn_tc_PubChem.csv",
+            reference_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
+            output_file=output_file,
+        )
+
+        true_outcomes = pd.read_csv(test_dir / "write_nn_tc.csv")
+        pd.testing.assert_frame_equal(outcomes, true_outcomes)
