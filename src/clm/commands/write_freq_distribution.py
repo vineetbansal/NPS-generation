@@ -20,17 +20,11 @@ def write_freq_distribution(sampled_file, test_file, output_file):
     test_smiles = set(read_file(test_file, stream=True, smile_only=True))
 
     # Label smiles not found in test set as novel
-    sampled_data = sampled_data.assign(
-        is_novel=np.select(
-            [
-                sampled_data["smiles"].isin(test_smiles).values,
-                ~sampled_data["smiles"].isin(test_smiles).values,
-            ],
-            [False, True],
-        )
-    )
-    sampled_data["is_novel"] = sampled_data["is_novel"].astype(bool)
+    sampled_data['is_novel'] = True
+    sampled_data.loc[sampled_data['smiles'].isin(test_smiles), 'is_novel'] = False
 
+    # Store values of is_novel column as true or false instead of 0 or 1
+    sampled_data["is_novel"] = sampled_data["is_novel"].astype(bool)
     sampled_data.to_csv(output_file, index=False)
 
     smile_distribution = sampled_data.reset_index(drop=True)
