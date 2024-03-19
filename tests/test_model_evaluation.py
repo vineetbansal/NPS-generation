@@ -9,6 +9,7 @@ from clm.commands.calculate_outcomes import (
     calculate_outcomes,
 )
 from clm.commands.write_nn_Tc import write_nn_Tc
+from clm.commands.write_freq_distribution import write_freq_distribution
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
@@ -67,4 +68,17 @@ def test_write_nn_tc():
         )
 
         true_outcomes = pd.read_csv(test_dir / "write_nn_tc.csv")
+        pd.testing.assert_frame_equal(outcomes, true_outcomes)
+
+
+def test_write_freq_distribution():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_file = Path(temp_dir) / "write_freq_distribution.csv"
+        outcomes = write_freq_distribution(
+            sampled_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
+            test_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
+            output_file=output_file,
+        )
+
+        true_outcomes = pd.read_csv(test_dir / "write_freq_distribution.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
