@@ -1,48 +1,39 @@
-"""
-Calculate outcomes for a generative model, with respect to the entire set of
-training molecules.
-"""
-
 import argparse
 import os
 import numpy as np
 import pandas as pd
 import scipy.stats
-import sys
 from fcd_torch import FCD
-from itertools import chain
 from rdkit import Chem
-from rdkit.Chem import RDConfig
-from rdkit.Chem import Descriptors, Lipinski
+from rdkit.Chem import Descriptors, Lipinski, RDKFingerprint
 from rdkit.Chem.GraphDescriptors import BertzCT
+from rdkit.Chem.MolSurf import TPSA
+from rdkit.Chem.QED import qed
 from rdkit.Chem.Scaffolds.MurckoScaffold import MurckoScaffoldSmiles
 from scipy.stats import wasserstein_distance
 from scipy.spatial.distance import jensenshannon
-from tqdm import tqdm
 from rdkit import rdBase
+from rdkit.Contrib.SA_Score import sascorer
+from rdkit.Contrib.NP_Score import npscorer
+from collections import defaultdict
 from clm.functions import (
-    clean_mols,
     read_file,
+    seed_type,
+    set_seed,
+    clean_mol,
+    # Functions for calculating metrics
     continuous_JSD,
     discrete_JSD,
     internal_diversity,
     external_diversity,
     internal_nn,
     external_nn,
-    get_rdkit_fingerprints,
     pct_rotatable_bonds,
     pct_stereocenters,
-    seed_type,
-    set_seed,
 )
 
 rdBase.DisableLog("rdApp.error")
-
-sys.path.append(os.path.join(RDConfig.RDContribDir, "SA_Score"))
-import sascorer  # noqa: E402
-
-sys.path.append(os.path.join(RDConfig.RDContribDir, "NP_Score"))
-import npscorer  # noqa: E402
+fscore = npscorer.readNPModel()
 
 
 def add_args(parser):
@@ -62,497 +53,175 @@ def add_args(parser):
     return parser
 
 
-def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
-    set_seed(seed)
+def safe_qed(mol):
+    try:
+        return qed(mol)
+    except OverflowError:
+        return None
 
-    org_smiles = read_file(train_file, smile_only=True)
 
-    # optionally, subsample to a more tractable number of molecules
-    if len(org_smiles) > max_orig_mols:
-        org_smiles = np.random.choice(org_smiles, max_orig_mols)
+def safe_sascorer(mol):
+    try:
+        return sascorer.calculateScore(mol)
+    except (OverflowError, ZeroDivisionError):
+        return None
 
-    # convert to moleculess
-    org_mols = [mol for mol in clean_mols(org_smiles) if mol]
-    org_canonical = [Chem.MolToSmiles(mol) for mol in org_mols]
 
-    # calculate training set descriptors
-    # heteroatom distribution
-    org_elements = [[atom.GetSymbol() for atom in mol.GetAtoms()] for mol in org_mols]
-    org_counts = np.unique(list(chain(*org_elements)), return_counts=True)
-    # molecular weights
-    org_mws = [Descriptors.MolWt(mol) for mol in org_mols]
-    # logP
-    org_logp = [Descriptors.MolLogP(mol) for mol in tqdm(org_mols)]
-    # Bertz TC
-    org_tcs = [BertzCT(mol) for mol in tqdm(org_mols)]
-    # TPSA
-    org_tpsa = [Descriptors.TPSA(mol) for mol in org_mols]
-    # QED
-    org_qed = []
-    for mol in org_mols:
-        try:
-            org_qed.append(Descriptors.qed(mol))
-        except OverflowError:
-            pass
+molecular_properties = {
+    "elements": lambda mol: [atom.GetSymbol() for atom in mol.GetAtoms()],
+    "mws": lambda mol: Descriptors.MolWt(mol),
+    "logp": lambda mol: Descriptors.MolLogP(mol),
+    "tcs": lambda mol: BertzCT(mol),
+    "tpsa": lambda mol: TPSA(mol),
+    "qed": lambda mol: safe_qed(mol),
+    "rings1": lambda mol: Lipinski.RingCount(mol),
+    "rings2": lambda mol: Lipinski.NumAliphaticRings(mol),
+    "rings3": lambda mol: Lipinski.NumAromaticRings(mol),
+    "SA": lambda mol: safe_sascorer(mol),
+    "NP": lambda mol: npscorer.scoreMol(mol, fscore),
+    "sp3": lambda mol: Lipinski.FractionCSP3(mol),
+    "rot": lambda mol: pct_rotatable_bonds(mol),
+    "stereo": lambda mol: pct_stereocenters(mol),
+    "murcko": lambda mol: MurckoScaffoldSmiles(mol=mol),
+    "donors": lambda mol: Lipinski.NumHDonors(mol),
+    "acceptors": lambda mol: Lipinski.NumHAcceptors(mol),
+    "fps": lambda mol: RDKFingerprint(mol),
+}
 
-    # number of rings
-    org_rings1 = [Lipinski.RingCount(mol) for mol in tqdm(org_mols)]
-    org_rings2 = [Lipinski.NumAliphaticRings(mol) for mol in tqdm(org_mols)]
-    org_rings3 = [Lipinski.NumAromaticRings(mol) for mol in tqdm(org_mols)]
-    # SA score
-    org_SA = []
-    for mol in tqdm(org_mols):
-        try:
-            org_SA.append(sascorer.calculateScore(mol))
-        except (OverflowError, ZeroDivisionError):
-            pass
 
-    # NP-likeness
-    fscore = npscorer.readNPModel()
-    org_NP = [npscorer.scoreMol(mol, fscore) for mol in tqdm(org_mols)]
-    # % sp3 carbons
-    org_sp3 = [Lipinski.FractionCSP3(mol) for mol in org_mols]
-    # % rotatable bonds
-    org_rot = [pct_rotatable_bonds(mol) for mol in org_mols]
-    # % of stereocentres
-    org_stereo = [pct_stereocenters(mol) for mol in org_mols]
-    # Murcko scaffolds
-    org_murcko = [MurckoScaffoldSmiles(mol=mol) for mol in org_mols]
-    org_murcko_counts = np.unique(org_murcko, return_counts=True)
-    # hydrogen donors/acceptors
-    org_donors = [Lipinski.NumHDonors(mol) for mol in org_mols]
-    org_acceptors = [Lipinski.NumHAcceptors(mol) for mol in org_mols]
+def process_smiles(smiles, train_smiles=None, is_train=False):
+    dict = defaultdict(list)
+    dict["n_valid_mols"], dict["n_novel_mols"] = 0, 0
 
-    # fingerprints
-    org_fps = get_rdkit_fingerprints(org_mols)
+    for i, smile in enumerate(smiles, start=1):
+        if (mol := clean_mol(smile)) is not None:
+            dict["canonical"].append(Chem.MolToSmiles(mol))
+            dict["n_valid_mols"] += 1
 
-    # now, read sampled SMILES
-    with open(sampled_file) as f:
-        first_line = f.readline()
+            # Only store novel smiles from the sampled file
+            if is_train or (train_smiles is not None and smile not in train_smiles):
+                for key, fun in molecular_properties.items():
+                    dict[key].append(fun(mol))
+                dict["n_novel_mols"] += 1
 
-    if "," in first_line:
-        sample = pd.read_csv(sampled_file)
-        gen_smiles = sample["smiles"].tolist()
-    else:
-        gen_smiles = read_file(sampled_file)
+    dict["n_smiles"] = i
+    dict["n_unique"] = len(set(dict["canonical"]))
 
-    # convert to molecules
-    gen_mols = [mol for mol in clean_mols(gen_smiles) if mol]
-    gen_canonical = [Chem.MolToSmiles(mol) for mol in tqdm(gen_mols)]
+    return dict
 
-    # create output data frame
-    res = pd.DataFrame()
 
-    # calculate descriptors
-    # outcome 1: % valid
-    pct_valid = len(gen_mols) / len(gen_smiles)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {"input_file": sampled_file, "outcome": "% valid", "value": [pct_valid]}
-            ),
-        ]
-    )
-
-    # outcome 2: % novel
-    # convert back to canonical SMILES for text-based comparison
-    pct_novel = len([sm for sm in gen_canonical if sm not in org_smiles]) / len(
-        gen_canonical
-    )
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {"input_file": sampled_file, "outcome": "% novel", "value": [pct_novel]}
-            ),
-        ]
-    )
-
-    # outcome 3: % unique
-    pct_unique = len(set(gen_canonical)) / len(gen_canonical)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": "% unique",
-                    "value": [pct_unique],
-                }
-            ),
-        ]
-    )
-
-    # remove known molecules before calculating divergence metrics
-    train_smiles = set(org_smiles)
-    gen_mols = [
-        gen_mols[idx] for idx, sm in enumerate(gen_canonical) if sm not in train_smiles
-    ]
-
-    # outcome 4: K-L divergence of heteroatom distributions
-    gen_elements = [[atom.GetSymbol() for atom in mol.GetAtoms()] for mol in gen_mols]
-    gen_counts = np.unique(list(chain(*gen_elements)), return_counts=True)
-    # get all unique keys
-    keys = np.union1d(org_counts[0], gen_counts[0])
-    n1, n2 = sum(org_counts[1]), sum(gen_counts[1])
-    d1 = dict(zip(org_counts[0], org_counts[1]))
+def calculate_probabilities(train_counts, gen_counts):
+    keys = np.union1d(train_counts[0], gen_counts[0])
+    n1, n2 = sum(train_counts[1]), sum(gen_counts[1])
+    d1 = dict(zip(train_counts[0], train_counts[1]))
     d2 = dict(zip(gen_counts[0], gen_counts[1]))
-    p1 = [d1[key] / n1 if key in d1.keys() else 0 for key in keys]
-    p2 = [d2[key] / n2 if key in d2.keys() else 0 for key in keys]
-    kl_atoms = scipy.stats.entropy(p2, p1)
-    jsd_atoms = jensenshannon(p2, p1)
-    emd_atoms = wasserstein_distance(p2, p1)
 
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": [
-                        "KL divergence, atoms",
-                        "Jensen-Shannon distance, atoms",
-                        "Wasserstein distance, atoms",
-                    ],
-                    "value": [kl_atoms, jsd_atoms, emd_atoms],
-                }
-            ),
-        ]
-    )
+    p1 = [(d1[key] / n1) if key in d1 else 0 for key in keys]
+    p2 = [(d2[key] / n2) if key in d2 else 0 for key in keys]
 
-    # outcome 5: K-L divergence of molecular weight
-    gen_mws = [Descriptors.MolWt(mol) for mol in gen_mols]
-    jsd_mws = continuous_JSD(gen_mws, org_mws)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, MWs"],
-                    "value": [jsd_mws],
-                },
-                index=[0],
-            ),
-        ]
-    )
+    return p1, p2
 
-    # outcome 6: K-L divergence of LogP
-    gen_logp = [Descriptors.MolLogP(mol) for mol in gen_mols]
-    jsd_logp = continuous_JSD(gen_logp, org_logp)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, logP"],
-                    "value": [jsd_logp],
-                },
-                index=[0],
-            ),
-        ]
-    )
 
-    # outcome 7: K-L divergence of Bertz topological complexity
-    gen_tcs = [BertzCT(mol) for mol in gen_mols]
-    jsd_tc = continuous_JSD(gen_tcs, org_tcs)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, Bertz TC"],
-                    "value": [jsd_tc],
-                },
-                index=[0],
-            ),
-        ]
-    )
+def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
+    org_counts = np.unique(np.concatenate(train_dict["elements"]), return_counts=True)
+    org_murcko_counts = np.unique(train_dict["murcko"], return_counts=True)
+    gen_counts = np.unique(np.concatenate(gen_dict["elements"]), return_counts=True)
+    gen_murcko_counts = np.unique(gen_dict["murcko"], return_counts=True)
 
-    # outcome 8: K-L divergence of QED
-    gen_qed = []
-    for mol in gen_mols:
-        try:
-            gen_qed.append(Descriptors.qed(mol))
-        except OverflowError:
-            pass
-
-    jsd_qed = continuous_JSD(gen_qed, org_qed)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, QED"],
-                    "value": [jsd_qed],
-                },
-                index=[0],
-            ),
-        ]
-    )
-
-    # outcome 9: K-L divergence of TPSA
-    gen_tpsa = [Descriptors.TPSA(mol) for mol in gen_mols]
-    jsd_tpsa = continuous_JSD(gen_tpsa, org_tpsa)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, TPSA"],
-                    "value": [jsd_tpsa],
-                },
-                index=[0],
-            ),
-        ]
-    )
-
-    # outcome 10: internal diversity
-    gen_fps = get_rdkit_fingerprints(gen_mols)
-    internal_div = internal_diversity(gen_fps)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": "Internal diversity",
-                    "value": [internal_div],
-                }
-            ),
-        ]
-    )
-
-    # outcome 11: median Tc to original set
-    external_div = external_diversity(gen_fps, org_fps)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": "External diversity",
-                    "value": [external_div],
-                }
-            ),
-        ]
-    )
-
-    # also, summarize using nearest-neighbor instead of mean
-    nn1 = internal_nn(gen_fps)
-    nn2 = external_nn(gen_fps, org_fps)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": [
-                        "Internal nearest-neighbor Tc",
-                        "External nearest-neighbor Tc",
-                    ],
-                    "value": [nn1, nn2],
-                }
-            ),
-        ]
-    )
-
-    # outcome 12: K-L divergence of number of rings
-    gen_rings1 = [Lipinski.RingCount(mol) for mol in gen_mols]
-    gen_rings2 = [Lipinski.NumAliphaticRings(mol) for mol in gen_mols]
-    gen_rings3 = [Lipinski.NumAromaticRings(mol) for mol in gen_mols]
-    jsd_rings1 = discrete_JSD(gen_rings1, org_rings1)
-    jsd_rings2 = discrete_JSD(gen_rings2, org_rings2)
-    jsd_rings3 = discrete_JSD(gen_rings3, org_rings3)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": [
-                        "Jensen-Shannon distance, # of rings",
-                        "Jensen-Shannon distance, # of aliphatic rings",
-                        "Jensen-Shannon distance, # of aromatic rings",
-                    ],
-                    "value": [jsd_rings1, jsd_rings2, jsd_rings3],
-                }
-            ),
-        ]
-    )
-
-    # outcome 13: K-L divergence of SA score
-    gen_SA = []
-    for mol in gen_mols:
-        try:
-            gen_SA.append(sascorer.calculateScore(mol))
-        except (OverflowError, ZeroDivisionError):
-            pass
-
-    jsd_SA = continuous_JSD(gen_SA, org_SA)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, SA score"],
-                    "value": [jsd_SA],
-                },
-                index=[0],
-            ),
-        ]
-    )
-
-    # outcome 14: K-L divergence of NP-likeness
-    gen_NP = []
-    for mol in gen_mols:
-        try:
-            gen_NP.append(npscorer.scoreMol(mol, fscore))
-        except (OverflowError, ZeroDivisionError):
-            pass
-
-    jsd_NP = continuous_JSD(gen_NP, org_NP)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, NP score"],
-                    "value": [jsd_NP],
-                },
-                index=[0],
-            ),
-        ]
-    )
-
-    # outcome 15: K-L divergence of % sp3 carbons
-    gen_sp3 = [Lipinski.FractionCSP3(mol) for mol in gen_mols]
-    jsd_sp3 = continuous_JSD(gen_sp3, org_sp3)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, % sp3 carbons"],
-                    "value": [jsd_sp3],
-                },
-                index=[0],
-            ),
-        ]
-    )
-
-    # outcome 16: K-L divergence of % rotatable bonds
-    gen_rot = [pct_rotatable_bonds(mol) for mol in gen_mols]
-    jsd_rot = continuous_JSD(gen_rot, org_rot)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, % rotatable bonds"],
-                    "value": [jsd_rot],
-                },
-                index=[0],
-            ),
-        ]
-    )
-
-    # outcome 17: K-L divergence of % stereocenters
-    gen_stereo = [pct_stereocenters(mol) for mol in gen_mols]
-    jsd_stereo = continuous_JSD(gen_stereo, org_stereo)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, % stereocenters"],
-                    "value": [jsd_stereo],
-                },
-                index=[0],
-            ),
-        ]
-    )
-
-    # outcome 18: K-L divergence of Murcko scaffolds
-    gen_murcko = [MurckoScaffoldSmiles(mol=mol) for mol in gen_mols]
-    gen_murcko_counts = np.unique(gen_murcko, return_counts=True)
-    # get all unique keys
-    keys = np.union1d(org_murcko_counts[0], gen_murcko_counts[0])
-    n1, n2 = sum(org_murcko_counts[1]), sum(gen_murcko_counts[1])
-    d1 = dict(zip(org_murcko_counts[0], org_murcko_counts[1]))
-    d2 = dict(zip(gen_murcko_counts[0], gen_murcko_counts[1]))
-    p1 = [d1[key] / n1 if key in d1.keys() else 0 for key in keys]
-    p2 = [d2[key] / n2 if key in d2.keys() else 0 for key in keys]
-    jsd_murcko = jensenshannon(p2, p1)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": ["Jensen-Shannon distance, Murcko scaffolds"],
-                    "value": jsd_murcko,
-                },
-                index=[0],
-            ),
-        ]
-    )
-
-    # outcome 19: K-L divergence of # of hydrogen donors/acceptors
-    gen_donors = [Lipinski.NumHDonors(mol) for mol in gen_mols]
-    gen_acceptors = [Lipinski.NumHAcceptors(mol) for mol in gen_mols]
-    jsd_donors = discrete_JSD(gen_donors, org_donors)
-    jsd_acceptors = discrete_JSD(gen_acceptors, org_acceptors)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": [
-                        "Jensen-Shannon distance, hydrogen donors",
-                        "Jensen-Shannon distance, hydrogen acceptors",
-                    ],
-                    "value": [jsd_donors, jsd_acceptors],
-                }
-            ),
-        ]
-    )
-
-    # outcome 20: Frechet ChemNet distance
+    p1, p2 = calculate_probabilities(org_counts, gen_counts)
+    p_m1, p_m2 = calculate_probabilities(org_murcko_counts, gen_murcko_counts)
     fcd = FCD(canonize=False)
-    fcd_calc = fcd(gen_canonical, org_canonical)
-    res = pd.concat(
-        [
-            res,
-            pd.DataFrame(
-                {
-                    "input_file": sampled_file,
-                    "outcome": "Frechet ChemNet distance",
-                    "value": [fcd_calc],
-                }
-            ),
-        ]
-    )
 
+    res = {
+        "% valid": gen_dict["n_valid_mols"] / gen_dict["n_smiles"],
+        "% novel": gen_dict["n_novel_mols"] / gen_dict["n_valid_mols"],
+        "% unique": gen_dict["n_unique"] / gen_dict["n_valid_mols"],
+        "KL divergence, atoms": scipy.stats.entropy(p2, p1),
+        "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
+        "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
+        "Jensen-Shannon distance, MWs": continuous_JSD(
+            gen_dict["mws"], train_dict["mws"]
+        ),
+        "Jensen-Shannon distance, logP": continuous_JSD(
+            gen_dict["logp"], train_dict["logp"]
+        ),
+        "Jensen-Shannon distance, Bertz TC": continuous_JSD(
+            gen_dict["tcs"], train_dict["tcs"]
+        ),
+        "Jensen-Shannon distance, QED": continuous_JSD(
+            gen_dict["qed"], train_dict["qed"]
+        ),
+        "Jensen-Shannon distance, TPSA": continuous_JSD(
+            gen_dict["tpsa"], train_dict["tpsa"]
+        ),
+        "Internal diversity": internal_diversity(gen_dict["fps"]),
+        "External diversity": external_diversity(gen_dict["fps"], train_dict["fps"]),
+        "Internal nearest-neighbor Tc": internal_nn(gen_dict["fps"]),
+        "External nearest-neighbor Tc": external_nn(gen_dict["fps"], train_dict["fps"]),
+        "Jensen-Shannon distance, # of rings": discrete_JSD(
+            gen_dict["rings1"], train_dict["rings1"]
+        ),
+        "Jensen-Shannon distance, # of aliphatic rings": discrete_JSD(
+            gen_dict["rings2"], train_dict["rings2"]
+        ),
+        "Jensen-Shannon distance, # of aromatic rings": discrete_JSD(
+            gen_dict["rings3"], train_dict["rings3"]
+        ),
+        "Jensen-Shannon distance, SA score": continuous_JSD(
+            gen_dict["SA"], train_dict["SA"]
+        ),
+        "Jensen-Shannon distance, NP score": continuous_JSD(
+            gen_dict["NP"], train_dict["NP"]
+        ),
+        "Jensen-Shannon distance, % sp3 carbons": continuous_JSD(
+            gen_dict["sp3"], train_dict["sp3"]
+        ),
+        "Jensen-Shannon distance, % rotatable bonds": continuous_JSD(
+            gen_dict["rot"], train_dict["rot"]
+        ),
+        "Jensen-Shannon distance, % stereocenters": continuous_JSD(
+            gen_dict["stereo"], train_dict["stereo"]
+        ),
+        "Jensen-Shannon distance, Murcko scaffolds": jensenshannon(p_m2, p_m1),
+        "Jensen-Shannon distance, hydrogen donors": discrete_JSD(
+            gen_dict["donors"], train_dict["donors"]
+        ),
+        "Jensen-Shannon distance, hydrogen acceptors": discrete_JSD(
+            gen_dict["acceptors"], train_dict["acceptors"]
+        ),
+        "Frechet ChemNet distance": fcd(gen_dict["canonical"], train_dict["canonical"]),
+    }
+
+    res = pd.DataFrame(list(res.items()), columns=["outcome", "value"])
+    res["input_file"] = os.path.basename(sampled_file)
     res.to_csv(
         output_file,
+        mode="a+",
         index=False,
         compression="gzip" if str(output_file).endswith(".gz") else None,
     )
 
     res.reset_index(inplace=True, drop=True)
     return res
+
+
+def get_dicts(train_file, sampled_file, max_orig_mols, seed):
+    set_seed(seed)
+
+    gen_smiles = read_file(
+        sampled_file, max_lines=max_orig_mols, stream=True, smile_only=True
+    )
+    train_smiles = read_file(train_file, smile_only=True)
+
+    train_dict = process_smiles(train_smiles, is_train=True)
+    gen_dict = process_smiles(gen_smiles, train_smiles=set(train_smiles))
+
+    return train_dict, gen_dict
+
+
+def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
+    train_dict, gen_dict = get_dicts(train_file, sampled_file, max_orig_mols, seed)
+    return process_outcomes(train_dict, gen_dict, output_file, sampled_file)
 
 
 def main(args):
