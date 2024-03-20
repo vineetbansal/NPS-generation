@@ -3,16 +3,16 @@ import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.DataStructs import FingerprintSimilarity
-from clm.functions import clean_mol
+from clm.functions import clean_mol, read_file
 from tqdm import tqdm
 
 tqdm.pandas()
 
 
 def add_args(parser):
-    parser.add_argument("--query_file", type=str)
-    parser.add_argument("--reference_file", type=str)
-    parser.add_argument("--output_file", type=str)
+    parser.add_argument("--query_file", type=str, help="Path to the prep file ")
+    parser.add_argument("--reference_file", type=str, help="Path to the PubChem file")
+    parser.add_argument("--output_file", type=str, help="Path to save the output file")
 
     return parser
 
@@ -29,36 +29,32 @@ def find_max_similarity_fingerprint(target_smile, ref_smiles, ref_fps):
     if target_fps is None:
         return None
 
-    tcs = [
-        FingerprintSimilarity(target_fps, ref_fp)
-        for ref_fp in ref_fps
-        if ref_fp is not None
-    ]
+    tcs = [FingerprintSimilarity(target_fps, ref_fp) for ref_fp in ref_fps]
+
     return np.max(tcs), ref_smiles[np.argmax(tcs)]
 
 
 def write_nn_Tc(query_file, reference_file, output_file):
-    query = pd.read_csv(query_file)
-    ref = pd.read_csv(reference_file)
+    ref_fps, ref_smiles = [], []
+    for smile in read_file(reference_file, stream=True, smile_only=True):
+        if (fps := calculate_fingerprint(smile)) is not None:
+            ref_fps.append(fps)
+            ref_smiles.append(smile)
 
-    ref["fps"] = ref["smiles"].apply(calculate_fingerprint)
-    ref_smiles = [
-        ref["smiles"].values[i] for i, fp in enumerate(ref["fps"]) if fp is not None
-    ]
+    for query in pd.read_csv(query_file, chunksize=1000):
+        results = query["smiles"].progress_apply(
+            lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref_fps)
+        )
+        query["nn_tc"] = [i[0] for i in results]
+        query["nn"] = [i[1] for i in results]
 
-    results = query["smiles"].apply(
-        lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref["fps"])
-    )
-
-    query["nn_tc"] = [i[0] for i in results]
-    query["nn"] = [i[1] for i in results]
-
-    query.to_csv(
-        output_file,
-        index=False,
-        compression="gzip" if str(output_file).endswith(".gz") else None,
-    )
-    return query
+        query.to_csv(
+            output_file,
+            mode="a+",
+            index=False,
+            header=not output_file.exists(),
+            compression="gzip" if str(output_file).endswith(".gz") else None,
+        )
 
 
 def main(args):

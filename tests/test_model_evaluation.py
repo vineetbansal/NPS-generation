@@ -9,6 +9,7 @@ from clm.commands.calculate_outcomes import (
     calculate_outcomes,
 )
 from clm.commands.write_nn_Tc import write_nn_Tc
+from tests.test_snakemake_steps import assert_checksum_equals
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
@@ -60,11 +61,10 @@ def test_calculate_outcomes():
 def test_write_nn_tc():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_file = Path(temp_dir) / "write_nn_tc.csv"
-        outcomes = write_nn_Tc(
+        write_nn_Tc(
             query_file=test_dir / "prep_nn_tc_PubChem.csv",
             reference_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
             output_file=output_file,
         )
 
-        true_outcomes = pd.read_csv(test_dir / "write_nn_tc.csv")
-        pd.testing.assert_frame_equal(outcomes, true_outcomes)
+        assert_checksum_equals(output_file, test_dir / "write_nn_tc.csv")
