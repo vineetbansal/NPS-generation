@@ -23,6 +23,7 @@ dependencies = [
     "pandas",
     "pulp<2.8.0",
     "rdkit",
+    "scikit-learn",
     "scipy<1.12",
     "selfies",
     "snakemake",

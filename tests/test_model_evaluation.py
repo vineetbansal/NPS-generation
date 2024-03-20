@@ -9,6 +9,7 @@ from clm.commands.calculate_outcomes import (
     calculate_outcomes,
 )
 from clm.commands.write_nn_Tc import write_nn_Tc
+from clm.commands.train_discriminator import train_discriminator
 from tests.test_snakemake_steps import assert_checksum_equals
 
 base_dir = Path(__file__).parent.parent
@@ -68,3 +69,19 @@ def test_write_nn_tc():
         )
 
         assert_checksum_equals(output_file, test_dir / "write_nn_tc.csv")
+
+
+def test_train_discriminator():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_file = Path(temp_dir) / "train_discriminator.csv"
+        outcomes = train_discriminator(
+            train_file=test_dir
+                       / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi",
+            sample_file=test_dir
+                        / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
+            output_file=output_file,
+            seed=0,
+        )
+
+        true_outcomes = pd.read_csv(test_dir / "train_discriminator.csv")
+        pd.testing.assert_frame_equal(outcomes, true_outcomes)
