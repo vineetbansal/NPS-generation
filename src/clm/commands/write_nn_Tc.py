@@ -1,73 +1,60 @@
-"""
-Evaluate the performance of our generative model by writing molecules that
-match the masses of held-out metabolites from HMDB5, along with their
-ClassyFire classifications and their Tanimoto coefficients to the ground truth.
-"""
-
 import argparse
 import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.DataStructs import FingerprintSimilarity
+from clm.functions import clean_mol, read_file
 from tqdm import tqdm
 
-from clm.functions import clean_mol, clean_mols, get_rdkit_fingerprints
+tqdm.pandas()
 
 
 def add_args(parser):
-    parser.add_argument("--query_file", type=str)
-    parser.add_argument("--reference_file", type=str)
-    parser.add_argument("--output_file", type=str)
+    parser.add_argument("--query_file", type=str, help="Path to the prep file ")
+    parser.add_argument("--reference_file", type=str, help="Path to the PubChem file")
+    parser.add_argument("--output_file", type=str, help="Path to save the output file")
 
     return parser
 
 
+def calculate_fingerprint(smile):
+    if (mol := clean_mol(smile, raise_error=False)) is not None:
+        return Chem.RDKFingerprint(mol)
+    return None
+
+
+def find_max_similarity_fingerprint(target_smile, ref_smiles, ref_fps):
+    target_fps = calculate_fingerprint(target_smile)
+
+    if target_fps is None:
+        return None
+
+    tcs = [FingerprintSimilarity(target_fps, ref_fp) for ref_fp in ref_fps]
+
+    return np.max(tcs), ref_smiles[np.argmax(tcs)]
+
+
 def write_nn_Tc(query_file, reference_file, output_file):
-    # read the query set
-    query = pd.read_csv(query_file)
+    ref_fps, ref_smiles = [], []
+    for smile in read_file(reference_file, stream=True, smile_only=True):
+        if (fps := calculate_fingerprint(smile)) is not None:
+            ref_fps.append(fps)
+            ref_smiles.append(smile)
 
-    # read the reference set
-    ref = pd.read_csv(reference_file)
+    for query in pd.read_csv(query_file, chunksize=1000):
+        results = query["smiles"].progress_apply(
+            lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref_fps)
+        )
+        query["nn_tc"] = [i[0] for i in results]
+        query["nn"] = [i[1] for i in results]
 
-    # calculate the masses and molecular formulas of the query set
-    ref_smiles = ref["smiles"].values
-    ref_mols = clean_mols(ref_smiles)
-    # remove invalid molecules
-    ref_smiles = [
-        ref_smiles[idx] for idx, mol in enumerate(ref_mols) if mol is not None
-    ]
-    ref_mols = [ref_mols[idx] for idx, mol in enumerate(ref_mols) if mol is not None]
-    # compute fingerprints
-    ref_fps = get_rdkit_fingerprints(ref_mols)
-
-    # compute nearest-neighbor Tc between training and test sets
-    ncol = len(list(query))
-    query[["nn_tc"]] = np.nan
-    query[["nn"]] = ""
-    counter = 0
-    for row in tqdm(query.itertuples(), total=query.shape[0]):
-        try:
-            query_mol = clean_mol(row.smiles)
-            query_fp = Chem.RDKFingerprint(query_mol)
-            tcs = [FingerprintSimilarity(query_fp, ref_fp) for ref_fp in ref_fps]
-            max = np.max(tcs)
-            # also get the nearest neighbor
-            nn = ref_smiles[np.argmax(tcs)]
-            # assign to the test data frame
-            query.iat[counter, ncol] = max
-            query.iat[counter, ncol + 1] = nn
-        except ValueError as e:
-            print(e)
-        # increment counter
-        counter = counter + 1
-
-    # write to output file
-    query.to_csv(
-        output_file,
-        index=False,
-        compression="gzip" if str(output_file).endswith(".gz") else None,
-    )
-    return query
+        query.to_csv(
+            output_file,
+            mode="a+",
+            index=False,
+            header=not output_file.exists(),
+            compression="gzip" if str(output_file).endswith(".gz") else None,
+        )
 
 
 def main(args):
