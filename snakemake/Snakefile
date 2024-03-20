@@ -76,6 +76,7 @@ rule create_training_sets:
         train_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
         vocab_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary",
         test_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_{{fold}}.smi",
+        train0_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
         test0_file= f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi"
     resources:
         mem_mb=20000,
@@ -83,6 +84,7 @@ rule create_training_sets:
     shell:
         'clm create_training_sets '
         '--input-file {input} '
+        '--train0-file {output.train0_file} '
         '--train-file {output.train_file} '
         '--vocab-file {output.vocab_file} '
         '--test0-file {output.test0_file} '
@@ -242,7 +244,7 @@ rule process_tabulated_molecules:
     """
     input:
         input_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{DATASET}_{{repr}}_{{fold}}_unique_masses.csv", fold=range(FOLDS), allow_missing=True),
-        cv_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True)
+        cv_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True)
     output:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv",
     resources:

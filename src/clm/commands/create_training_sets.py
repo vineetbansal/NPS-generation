@@ -20,6 +20,12 @@ def add_args(parser):
         "--input-file", type=str, required=True, help="File path of smiles file"
     )
     parser.add_argument(
+        "--train0-file",
+        type=str,
+        required=True,
+        help="Output training smiles file path with no augmentation ({fold} in path is populated automatically)",
+    )
+    parser.add_argument(
         "--train-file",
         type=str,
         required=True,
@@ -153,6 +159,7 @@ def get_similar_smiles(
 
 def create_training_sets(
     input_file=None,
+    train0_file=None,
     train_file=None,
     test0_file=None,
     test_file=None,
@@ -214,15 +221,28 @@ def create_training_sets(
     if generate_test_data:
         test0 = folds[which_fold]
         test = enum_folds[which_fold]
+        train0 = folds[:which_fold] + folds[which_fold + 1 :]
+        train0 = list(itertools.chain.from_iterable(train0))
         train = enum_folds[:which_fold] + enum_folds[which_fold + 1 :]
         train = list(itertools.chain.from_iterable(train))
     else:
+        train0 = folds[0]
         train = enum_folds[0]
         test0 = None
         test = None
 
     if representation == "SELFIES":
         logger.info("converting SMILES strings to SELFIES ...")
+
+        train0_out = []
+        for sm in train0:
+            try:
+                sf = selfies_encoder(sm)
+                train0_out.append(sf)
+            except EncoderError:
+                pass
+        train0 = train0_out
+
         train_out = []
         for sm in train:
             try:
@@ -252,6 +272,7 @@ def create_training_sets(
                     pass
             test = test_out
 
+    write_smiles(train0, str(train0_file).format(fold=which_fold))
     write_smiles(train, str(train_file).format(fold=which_fold))
     vocabulary = vocabulary_from_representation(representation, train)
     logger.info("vocabulary of {} characters".format(len(vocabulary)))
@@ -265,6 +286,7 @@ def create_training_sets(
 def main(args):
     create_training_sets(
         input_file=args.input_file,
+        train0_file=args.train0_file,
         train_file=args.train_file,
         test0_file=args.test0_file,
         test_file=args.test_file,
