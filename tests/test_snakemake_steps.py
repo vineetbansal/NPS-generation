@@ -50,6 +50,7 @@ def test_01_create_training_sets():
         temp_dir = Path(temp_dir)
         create_training_sets.create_training_sets(
             input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
+            train0_file=temp_dir / "train0_file_{fold}",
             train_file=temp_dir / "train_file_{fold}",
             vocab_file=temp_dir / "vocabulary_file_{fold}",
             test0_file=temp_dir / "test0_file_{fold}",
@@ -61,6 +62,10 @@ def test_01_create_training_sets():
             seed=5831,
             max_input_smiles=1000,
         )
+        # `train0_file_0` denotes the train smiles without augmentation for fold
+        # 0; Since we're running with enum_factor=0, this should be identical
+        # to `train_file_0` (train smiles with augmentation for fold 0)
+        assert_checksum_equals(temp_dir / "train0_file_0", temp_dir / "train_file_0")
         assert_checksum_equals(
             temp_dir / "train_file_0",
             test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
