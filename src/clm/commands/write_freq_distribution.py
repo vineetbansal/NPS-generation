@@ -1,7 +1,6 @@
 import argparse
 
 import pandas as pd
-import numpy as np
 from clm.functions import read_file
 
 
@@ -20,8 +19,8 @@ def write_freq_distribution(sampled_file, test_file, output_file):
     test_smiles = set(read_file(test_file, stream=True, smile_only=True))
 
     # Label smiles not found in test set as novel
-    sampled_data['is_novel'] = True
-    sampled_data.loc[sampled_data['smiles'].isin(test_smiles), 'is_novel'] = False
+    sampled_data["is_novel"] = True
+    sampled_data.loc[sampled_data["smiles"].isin(test_smiles), "is_novel"] = False
 
     # Store values of is_novel column as true or false instead of 0 or 1
     sampled_data["is_novel"] = sampled_data["is_novel"].astype(bool)
