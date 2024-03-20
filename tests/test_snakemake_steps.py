@@ -1,6 +1,5 @@
 from pathlib import Path
 import tempfile
-import hashlib
 
 from clm.commands import (
     preprocess,
@@ -13,23 +12,13 @@ from clm.commands import (
     inner_write_structural_prior_CV,
     inner_write_formula_prior_CV,
 )
+from clm.functions import assert_checksum_equals
 
 base_dir = Path(__file__).parent.parent
 
 test_dir = base_dir / "tests/test_data/snakemake_output"
 dataset = base_dir / "tests/test_data/LOTUS_truncated.txt"
 pubchem_tsv_file = base_dir / "tests/test_data/PubChem_truncated.tsv"
-
-
-def assert_checksum_equals(generated_file, oracle):
-    assert (
-        hashlib.md5(
-            "".join(open(generated_file, "r").readlines()).encode("utf8")
-        ).hexdigest()
-        == hashlib.md5(
-            "".join(open(oracle, "r").readlines()).encode("utf8")
-        ).hexdigest()
-    )
 
 
 def test_00_preprocess():
