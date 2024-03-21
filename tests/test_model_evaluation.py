@@ -38,6 +38,9 @@ def test_generate_outcome_dicts():
     )
 
 
+# TODO: the train file in this context should be bound to the sampled_file variable, and the actual train file
+# TODO contd.: should be the train file generated at the beginning of the workflow, the confusion was initially
+#  TODO contd.: caused by the use of csv file in place of train_file
 def test_calculate_outcomes():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_file = Path(temp_dir) / "calculate_outcome.csv"

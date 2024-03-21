@@ -1,6 +1,7 @@
 import argparse
 import os
 import numpy as np
+import pandas
 import pandas as pd
 import scipy.stats
 from fcd_torch import FCD
@@ -17,6 +18,7 @@ from rdkit.Contrib.SA_Score import sascorer
 from rdkit.Contrib.NP_Score import npscorer
 from collections import defaultdict
 from clm.functions import (
+    get_column_idx,
     read_file,
     seed_type,
     set_seed,
@@ -89,20 +91,28 @@ molecular_properties = {
 }
 
 
-def process_smiles(smiles, train_smiles=None, is_train=False):
+def process_smiles(
+    smiles, train_smiles=None, is_gen=False, smiles_idx=None, bin_idx=None
+):
     dict = defaultdict(list)
     dict["n_valid_mols"], dict["n_novel_mols"] = 0, 0
 
-    for i, smile in enumerate(smiles, start=1):
+    for i, line in enumerate(smiles, start=1):
+
+        smile = line.split(",")[smiles_idx] if is_gen else line
+
         if (mol := clean_mol(smile)) is not None:
             dict["canonical"].append(Chem.MolToSmiles(mol))
             dict["n_valid_mols"] += 1
 
             # Only store novel smiles from the sampled file
-            if is_train or (train_smiles is not None and smile not in train_smiles):
+            if not is_gen or (train_smiles is not None and smile not in train_smiles):
                 for key, fun in molecular_properties.items():
                     dict[key].append(fun(mol))
-                dict["n_novel_mols"] += 1
+
+                if is_gen:
+                    dict["n_novel_mols"] += 1
+                    dict["bin"].append(line.split(",")[bin_idx])
 
     dict["n_smiles"] = i
     dict["n_unique"] = len(set(dict["canonical"]))
@@ -194,10 +204,12 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
 
     res = pd.DataFrame(list(res.items()), columns=["outcome", "value"])
     res["input_file"] = os.path.basename(sampled_file)
+    res["bin"] = gen_dict["bin"]
     res.to_csv(
         output_file,
         mode="a+",
         index=False,
+        header=not os.path.exists(output_file),
         compression="gzip" if str(output_file).endswith(".gz") else None,
     )
 
@@ -208,20 +220,68 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file):
 def get_dicts(train_file, sampled_file, max_orig_mols, seed):
     set_seed(seed)
 
+    # We need to have access to the bins column in generated smile
     gen_smiles = read_file(
-        sampled_file, max_lines=max_orig_mols, stream=True, smile_only=True
+        sampled_file, max_lines=max_orig_mols, stream=True, smile_only=False
     )
     train_smiles = read_file(train_file, smile_only=True)
 
-    train_dict = process_smiles(train_smiles, is_train=True)
-    gen_dict = process_smiles(gen_smiles, train_smiles=set(train_smiles))
+    train_dict = process_smiles(train_smiles)
+
+    # We need to keep track of frequency in sampled file
+    smiles_idx = get_column_idx(sampled_file, "smiles")
+    bin_idx = get_column_idx(sampled_file, "bin")
+    gen_dict = process_smiles(
+        gen_smiles,
+        train_smiles=set(train_smiles),
+        is_gen=True,
+        smiles_idx=smiles_idx,
+        bin_idx=bin_idx,
+    )
 
     return train_dict, gen_dict
 
 
+def split_by_frequency(gen_dict):
+    black_listed_set = {
+        "canonical",
+        "n_valid_mols",
+        "n_novel_mols",
+        "n_smiles",
+        "n_unique",
+    }
+    # TODO: Need to come up with better variable names
+    bins_list = set(gen_dict["bin"])
+    # Storing only values with the same length
+    result_dict = {
+        key: value for key, value in gen_dict.items() if key not in black_listed_set
+    }
+    result = pd.DataFrame(result_dict)
+
+    freq_dict = {}
+    for item in bins_list:
+        freq_dict[item] = pandas.DataFrame.to_dict(
+            result[result["bin"] == item], orient="list"
+        )
+        freq_dict[item]["bin"] = item
+        for i in black_listed_set:
+            freq_dict[item][i] = gen_dict[i]
+
+    return freq_dict
+
+
 def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
     train_dict, gen_dict = get_dicts(train_file, sampled_file, max_orig_mols, seed)
-    return process_outcomes(train_dict, gen_dict, output_file, sampled_file)
+
+    freq_dict = split_by_frequency(gen_dict)
+    final_outcome = []
+    for key, value in freq_dict.items():
+        final_outcome.append(
+            process_outcomes(train_dict, value, output_file, sampled_file)
+        )
+
+    final_outcome = pd.concat(final_outcome)
+    return final_outcome
 
 
 def main(args):
