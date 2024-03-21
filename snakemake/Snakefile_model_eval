@@ -33,8 +33,8 @@ rule all:
 
 rule prep_outcome_freq:
     input:
-        sample_file="{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
-    output:	
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
+    output:
         f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
     resources:
         mem_mb=12000,
@@ -48,10 +48,10 @@ rule prep_outcome_freq:
 
 rule calculate_outcomes:
     input:
-        train_file="{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
-        sampled_file="{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
+        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
+        sampled_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
     output:
-        f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv"
+        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv"
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -60,7 +60,5 @@ rule calculate_outcomes:
         '--train_file {input.train_file} '
         '--sampled_file {input.sampled_file} '
         '--max_orig_mols 50000 '
-        '--output_file {output} '
-	'--seed 12'
-
-
+        '--output_file {output.output_file} '
+	    '--seed 12 '

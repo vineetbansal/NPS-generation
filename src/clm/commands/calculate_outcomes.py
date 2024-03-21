@@ -102,7 +102,7 @@ def process_smiles(smiles, train_smiles=None, is_train=False):
             if is_train or (train_smiles is not None and smile not in train_smiles):
                 for key, fun in molecular_properties.items():
                     # Metrices involving these values aren't compatible with None values
-                    if (key == 'SA' or key == 'qed') and fun(mol) is None:
+                    if (key == "SA" or key == "qed") and fun(mol) is None:
                         continue
                     dict[key].append(fun(mol))
                 dict["n_novel_mols"] += 1
