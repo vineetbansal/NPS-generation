@@ -5,6 +5,7 @@ from rdkit import Chem
 from rdkit.DataStructs import FingerprintSimilarity
 from clm.functions import clean_mol, read_file
 from tqdm import tqdm
+import os
 
 tqdm.pandas()
 
@@ -52,7 +53,7 @@ def write_nn_Tc(query_file, reference_file, output_file):
             output_file,
             mode="a+",
             index=False,
-            header=not output_file.exists(),
+            header=not os.path.exists(output_file),
             compression="gzip" if str(output_file).endswith(".gz") else None,
         )
 
