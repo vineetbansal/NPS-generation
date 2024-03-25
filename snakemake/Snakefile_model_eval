@@ -88,7 +88,7 @@ rule write_nn_tc:
         reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
         pubchem_file=config['pubchem_tsv_file'],
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_prep_nn_tc.csv",
+        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv",
     resources:
         mem_mb=64000,
         runtime=1000,
