@@ -29,8 +29,10 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        output_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
+        calculate_outcomes_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
         fold=range(FOLDS), repr=REPRESENTATIONS, dataset=DATASET, enum_factor=ENUM_FACTORS),
+	nn_tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv", 
+	repr=REPRESENTATIONS, dataset=DATASET, enum_factor=ENUM_FACTORS, metric=METRICS),
 
 rule prep_outcome_freq:
     input:
@@ -38,7 +40,7 @@ rule prep_outcome_freq:
     output:
         f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
     resources:
-        mem_mb=12000,
+        mem_mb=120000,
         runtime=1000,
     shell:
         'clm inner_prep_outcomes_freq '
@@ -54,7 +56,7 @@ rule calculate_outcomes:
     output:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
     resources:
-        mem_mb=64000,
+        mem_mb=256000,
         runtime=1000,
     shell:
         'clm calculate_outcomes '
@@ -86,15 +88,13 @@ rule write_nn_tc:
     input:
         query_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_prep_nn_tc.csv",
         reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
-        pubchem_file=config['pubchem_tsv_file'],
     output:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv",
     resources:
         mem_mb=64000,
         runtime=1000,
     shell:
-        'clm inner_prep_nn_tc_PubChem '
-        '--sampled_file {input.sampled_file} '
-        '--pubchem_file {input.pubchem_file} '
-        '--sample_no 50000 '
+        'clm write_nn_Tc '
+        '--query_file {input.query_file} '
+        '--reference_file {input.reference_file} '
         '--output_file {output.output_file} '

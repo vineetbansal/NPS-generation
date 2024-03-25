@@ -46,8 +46,8 @@ def write_nn_Tc(query_file, reference_file, output_file):
         results = query["smiles"].progress_apply(
             lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref_fps)
         )
-        query["nn_tc"] = [i[0] for i in results]
-        query["nn"] = [i[1] for i in results]
+        query.assign(nn_tc=[i[0] for i in results])
+        query.assign(nn=[i[1] for i in results])
 
         query.to_csv(
             output_file,
