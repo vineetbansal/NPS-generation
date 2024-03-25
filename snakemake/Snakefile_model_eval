@@ -84,7 +84,7 @@ rule prep_nn_tc:
 
 rule write_nn_tc:
     input:
-        query_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_prep_nn_tc.csv,
+        query_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_prep_nn_tc.csv",
         reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
         pubchem_file=config['pubchem_tsv_file'],
     output:
