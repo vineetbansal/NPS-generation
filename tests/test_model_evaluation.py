@@ -56,10 +56,13 @@ def test_calculate_outcomes():
             lambda path: os.path.basename(path)
         )
 
-        true_outcomes = pd.read_csv(test_dir / "calculate_outcome.csv")
+        true_outcomes = pd.read_csv(
+            test_dir / "calculate_outcome.csv", keep_default_na=False
+        )
         # https://stackoverflow.com/questions/14224172
         pd.testing.assert_frame_equal(
-            outcomes.sort_index(axis=1), true_outcomes.sort_index(axis=1)
+            outcomes.sort_index(axis=1).reset_index(drop=True),
+            true_outcomes.sort_index(axis=1).reset_index(drop=True),
         )
 
 
