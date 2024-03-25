@@ -31,7 +31,7 @@ rule all:
     input:
         calculate_outcomes_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
         fold=range(FOLDS), repr=REPRESENTATIONS, dataset=DATASET, enum_factor=ENUM_FACTORS),
-	nn_tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv", 
+	nn_tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv",
 	repr=REPRESENTATIONS, dataset=DATASET, enum_factor=ENUM_FACTORS, metric=METRICS),
 
 rule prep_outcome_freq:
