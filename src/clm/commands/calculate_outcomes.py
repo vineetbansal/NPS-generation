@@ -112,7 +112,10 @@ def process_smiles(
 
                 if is_gen:
                     dict["n_novel_mols"] += 1
-                    dict["bin"].append(line.split(",")[bin_idx])
+                    if bin_idx is not None:
+                        dict["bin"].append(line.split(",")[bin_idx])
+                    else:
+                        dict["bin"].append("NA")
 
     dict["n_smiles"] = i
     dict["n_unique"] = len(set(dict["canonical"]))
@@ -243,7 +246,12 @@ def get_dicts(train_file, sampled_file, max_orig_mols, seed):
 
     # We need to keep track of frequency in sampled file
     smiles_idx = get_column_idx(sampled_file, "smiles")
-    bin_idx = get_column_idx(sampled_file, "bin")
+
+    try:
+        bin_idx = get_column_idx(sampled_file, "bin")
+    except ValueError:
+        bin_idx = None
+
     gen_dict = process_smiles(
         gen_smiles,
         train_smiles=set(train_smiles),
