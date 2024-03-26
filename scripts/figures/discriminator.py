@@ -1,61 +1,67 @@
 import argparse
 import pandas as pd
-from matplotlib import pyplot as plt
 import seaborn as sns
 import numpy as np
+from matplotlib import pyplot as plt
+from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import confusion_matrix
+
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_file", type=str, help="Path to outcome_file"
+        "--outcome_file", type=str, help="Path to input file"
     )
     parser.add_argument(
-        "--outcome_type", type=str, help="The metrics that you want to plot"
+        "--plot_type", type=str, help="The type of plot you wanna visualize"
     )
     return parser
 
 
-def plot():
-    # outcome = pd.read_csv(outcome_file)
-    # split_outcomes = {df['outcome'].iloc[0]: df for _, df in outcome.groupby('outcome')}
-    #
-    # data = []
-    # chosen_outcome = split_outcomes[outcome_type]
+def plot(outcome_file, plot_type):
+    outcome = pd.read_csv(outcome_file)
+    if plot_type == 'A':
+        y_test, y_scores = list(outcome['y'].dropna()), list(outcome['y_prob_1'].dropna())
 
-    x = np.array([1, 2, 3, 4, 5])
-    y = np.array([2, 3, 5, 7, 11])
+        fpr, tpr, _ = roc_curve(y_test, y_scores)
+        roc_auc = auc(fpr, tpr)
 
+        # Plot ROC curve
+        plt.figure()
+        plt.plot(fpr, tpr, color='darkorange',
+                 lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+        plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('ROC curve, classifying training vs. generated molecules')
+        plt.legend(loc="lower right")
+        plt.show()
 
-    m, b = np.polyfit(x, y, 1) # 1 means linear
+    else:
+        y_test, y_pred = list(outcome['y'].dropna()), list(outcome['y_pred'].dropna())
 
-    # Generate x values for the best fit line
-    x_fit = np.linspace(x.min(), x.max(), 100)
+        cm = confusion_matrix(y_test, y_pred)
+        # Normalize the confusion matrix to show percentages
+        cm_percentage = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100
 
-    # Calculate y values for the best fit line
-    y_fit = m * x_fit + b
+        classes = ['Known', 'Generated']
+        # Plot confusion matrix
+        sns.heatmap(cm_percentage, annot=True, fmt=".2f", cmap="Blues", xticklabels=classes, yticklabels=classes)
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+        plt.title('Confusion Matrix, classifying training vs. generated molecules')
+        plt.show()
 
-
-    # Plot the best fit line (make it dotted by specifying 'linestyle')
-    plt.plot(x_fit, y_fit, linestyle=':', color='red', label='Best Fit Line')
-
-
-    plt.plot(x, y)
-
-    plt.title('Sample Line Graph')
-
-    plt.xlabel('X axis')
-    plt.ylabel('Y axis')
-
-    plt.show()
 
 def main(args):
-    plot()
-    # plot(
-    #     outcome_file=args.outcome_file,
-    #     outcome_type=args.outcome_type
-    # )
+    plot(
+        outcome_file=args.outcome_file,
+        plot_type=args.plot_type
+    )
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser(description=__doc__)
-    # args = add_args(parser).parse_args()
-    main("args")
+    parser = argparse.ArgumentParser(description=__doc__)
+    args = add_args(parser).parse_args()
+    main(args)

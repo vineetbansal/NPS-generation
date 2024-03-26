@@ -1,12 +1,13 @@
 import argparse
+import glob
+
 import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
-import numpy as np
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_file", type=str, help="Path to outcome_file"
+        "--outcome_dir", type=str, help="Path to outcome directory"
     )
     parser.add_argument(
         "--outcome_type", type=str, help="The metrics that you want to plot"
@@ -14,30 +15,38 @@ def add_args(parser):
     return parser
 
 
-def plot(outcome_file, outcome_type):
-    outcome = pd.read_csv(outcome_file)
+def plot(outcome_dir, outcome_type):
+    # outcomes_map = {'Novel':' % novel',
+    #                 'Unique': '% unique',
+    #                 'Valid':' % valid',
+    #                 'External Diversity': 'External diversity',
+    #                 'External nn tc': 'External nearest-neighbor Tc',
+    #                 'Frechet ChemNet distance', 'Internal diversity', 'Internal nearest-neighbor Tc', 'Jensen-Shannon distance, # of aliphatic rings', 'Jensen-Shannon distance, # of aromatic rings', 'Jensen-Shannon distance, # of rings', 'Jensen-Shannon distance, % rotatable bonds', 'Jensen-Shannon distance, % sp3 carbons', 'Jensen-Shannon distance, % stereocenters', 'Jensen-Shannon distance, Bertz TC', 'Jensen-Shannon distance, MWs', 'Jensen-Shannon distance, Murcko scaffolds', 'Jensen-Shannon distance, NP score', 'Jensen-Shannon distance, QED', 'Jensen-Shannon distance, SA score', 'Jensen-Shannon distance, TPSA', 'Jensen-Shannon distance, atoms', 'Jensen-Shannon distance, hydrogen acceptors', 'Jensen-Shannon distance, hydrogen donors', 'Jensen-Shannon distance, logP', 'KL divergence, atoms', 'Wasserstein distance, atoms'}
+    freq_map = {'1-1': '1', '2-2': '2', '3-10':'3-10', '11-30':'11-30', '31-100':'31-100', '101-': '>100'}
+
+    outcome_files = glob.glob(f"{outcome_dir}/*calculate_outcomes.csv")
+    outcome = pd.concat(
+        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files])
+
     split_outcomes = {df['outcome'].iloc[0]: df for _, df in outcome.groupby('outcome')}
 
-    data = []
     chosen_outcome = split_outcomes[outcome_type]
+    split_freq = {freq_map[df['bin'].iloc[0]]: list(df['value']) for df in [chosen_outcome[chosen_outcome['bin'] == i] for i in freq_map.keys()]}
 
-    np.random.seed(10)
-    data1 = np.random.normal(loc=0, scale=1, size=100)
-    data2 = np.random.normal(loc=0.5, scale=1.5, size=100)
-    data = [data1, data2]
+    data = list(split_freq.values())
+    labels = list(split_freq.keys())
 
-    sns.violinplot(data=data, inner=None, fill=False, color="0.8")
-    sns.boxplot(data=data, width=0.2)
+    sns.violinplot(data=data, palette=sns.color_palette("pastel"), linecolor='auto',  width=0.4, inner='box', inner_kws={'box_width': 3}, native_scale=True)
 
-    plt.title('Box Plot over Violin Plot')
+    plt.title(outcome_type)
     plt.ylabel('Values')
-    plt.xticks([0, 1], ['Data 1', 'Data 2'])
+    plt.xticks(list(range(len(labels))), labels)
     plt.show()
 
 
 def main(args):
     plot(
-        outcome_file=args.outcome_file,
+        outcome_dir=args.outcome_dir,
         outcome_type=args.outcome_type
     )
 
