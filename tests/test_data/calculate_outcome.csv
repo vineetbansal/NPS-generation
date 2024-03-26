@@ -1,4 +1,7 @@
 input_file,outcome,value,bin
+LOTUS_SMILES_processed_freq-avg_trunc.csv,% valid,1.0,NA
+LOTUS_SMILES_processed_freq-avg_trunc.csv,% novel,0.9606535511837279,NA
+LOTUS_SMILES_processed_freq-avg_trunc.csv,% unique,1.0,NA
 LOTUS_SMILES_processed_freq-avg_trunc.csv,"KL divergence, atoms",inf,NA
 LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, atoms",0.02385683908419892,NA
 LOTUS_SMILES_processed_freq-avg_trunc.csv,"Wasserstein distance, atoms",0.0021601785280468814,NA
@@ -22,7 +25,4 @@ LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, % stereocent
 LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, Murcko scaffolds",0.56856262599366,NA
 LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, hydrogen donors",0.09486492853785787,NA
 LOTUS_SMILES_processed_freq-avg_trunc.csv,"Jensen-Shannon distance, hydrogen acceptors",0.11623788953312186,NA
-LOTUS_SMILES_processed_freq-avg_trunc.csv,% valid,1.0,common_descriptors
-LOTUS_SMILES_processed_freq-avg_trunc.csv,% novel,0.9606535511837279,common_descriptors
-LOTUS_SMILES_processed_freq-avg_trunc.csv,% unique,1.0,common_descriptors
-LOTUS_SMILES_processed_freq-avg_trunc.csv,Frechet ChemNet distance,2.002278228050905,common_descriptors
+LOTUS_SMILES_processed_freq-avg_trunc.csv,Frechet ChemNet distance,2.002278228050905,NA
