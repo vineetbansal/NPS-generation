@@ -102,7 +102,6 @@ def process_smiles(
         smile = line.split(",")[smiles_idx] if is_gen else line
 
         if (mol := clean_mol(smile)) is not None:
-            dict["canonical"].append(Chem.MolToSmiles(mol))
             dict["n_valid_mols"] += 1
 
             # Only store novel smiles from the sampled file
@@ -114,6 +113,7 @@ def process_smiles(
                     dict[key].append(fun(mol))
 
                 if is_gen:
+                    dict["canonical"].append(Chem.MolToSmiles(mol))
                     dict["n_novel_mols"] += 1
                     if bin_idx is not None:
                         dict["bin"].append(line.split(",")[bin_idx])
@@ -219,6 +219,7 @@ def process_outcomes(train_dict, gen_dict, output_file, sampled_file, bin):
     descriptors = pd.DataFrame(list(descriptors.items()), columns=["outcome", "value"])
     descriptors["input_file"] = os.path.basename(sampled_file)
     descriptors["bin"] = bin
+    descriptors = descriptors.dropna()
     descriptors.to_csv(
         output_file,
         mode="a+",
@@ -263,7 +264,6 @@ def get_dicts(train_file, sampled_file, max_orig_mols, seed):
 
 def split_by_frequency(gen_dict):
     common_descriptors = {
-        "canonical",
         "n_valid_mols",
         "n_novel_mols",
         "n_smiles",
