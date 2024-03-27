@@ -98,7 +98,6 @@ def process_smiles(
     dict["n_valid_mols"], dict["n_novel_mols"] = 0, 0
 
     for i, line in enumerate(smiles, start=1):
-
         smile = line.split(",")[smiles_idx] if is_gen else line
 
         if (mol := clean_mol(smile)) is not None:
@@ -106,6 +105,8 @@ def process_smiles(
 
             # Only store novel smiles from the sampled file
             if not is_gen or (train_smiles is not None and smile not in train_smiles):
+                dict["canonical"].append(Chem.MolToSmiles(mol))
+
                 for key, fun in molecular_properties.items():
                     # Metrices involving these values aren't compatible with None values
                     if (key == "SA" or key == "qed") and fun(mol) is None:
@@ -113,7 +114,6 @@ def process_smiles(
                     dict[key].append(fun(mol))
 
                 if is_gen:
-                    dict["canonical"].append(Chem.MolToSmiles(mol))
                     dict["n_novel_mols"] += 1
                     if bin_idx is not None:
                         dict["bin"].append(line.split(",")[bin_idx])
