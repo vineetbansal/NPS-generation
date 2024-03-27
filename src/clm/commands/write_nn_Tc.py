@@ -28,7 +28,7 @@ def find_max_similarity_fingerprint(target_smile, ref_smiles, ref_fps):
     target_fps = calculate_fingerprint(target_smile)
 
     if target_fps is None:
-        return None
+        return None, None
 
     tcs = [FingerprintSimilarity(target_fps, ref_fp) for ref_fp in ref_fps]
 
@@ -46,8 +46,8 @@ def write_nn_Tc(query_file, reference_file, output_file):
         results = query["smiles"].progress_apply(
             lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref_fps)
         )
-        query.assign(nn_tc=[i[0] for i in results])
-        query.assign(nn=[i[1] for i in results])
+        query = query.assign(nn_tc=[i[0] for i in results])
+        query = query.assign(nn=[i[1] for i in results])
 
         query.to_csv(
             output_file,
