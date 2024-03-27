@@ -29,9 +29,9 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        calculate_outcomes_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
+        calculate_outcomes_file=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
         fold=range(FOLDS), repr=REPRESENTATIONS, dataset=DATASET, enum_factor=ENUM_FACTORS),
-	nn_tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv",
+	nn_tc_file=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv",
 	repr=REPRESENTATIONS, dataset=DATASET, enum_factor=ENUM_FACTORS, metric=METRICS),
 
 rule prep_outcome_freq:
@@ -54,7 +54,7 @@ rule calculate_outcomes:
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
         sampled_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -72,7 +72,7 @@ rule prep_nn_tc:
         sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
         pubchem_file=config['pubchem_tsv_file'],
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_prep_nn_tc.csv",
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_all_{{metric}}_prep_nn_tc.csv",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -86,10 +86,10 @@ rule prep_nn_tc:
 
 rule write_nn_tc:
     input:
-        query_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_prep_nn_tc.csv",
+        query_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_all_{{metric}}_prep_nn_tc.csv",
         reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/model_evaluation/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv",
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_all_{{metric}}_write_nn_tc.csv",
     resources:
         mem_mb=64000,
         runtime=1000,
