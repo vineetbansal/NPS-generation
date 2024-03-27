@@ -28,7 +28,7 @@ def find_max_similarity_fingerprint(target_smile, ref_smiles, ref_fps):
     target_fps = calculate_fingerprint(target_smile)
 
     if target_fps is None:
-        return None
+        return None, None
 
     tcs = [FingerprintSimilarity(target_fps, ref_fp) for ref_fp in ref_fps]
 
