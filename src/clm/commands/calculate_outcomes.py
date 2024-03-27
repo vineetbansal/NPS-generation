@@ -1,7 +1,6 @@
 import argparse
 import os
 import numpy as np
-import pandas
 import pandas as pd
 import scipy.stats
 from fcd_torch import FCD
@@ -16,9 +15,7 @@ from scipy.spatial.distance import jensenshannon
 from rdkit import rdBase
 from rdkit.Contrib.SA_Score import sascorer
 from rdkit.Contrib.NP_Score import npscorer
-from collections import defaultdict
 from clm.functions import (
-    get_column_idx,
     read_file,
     seed_type,
     set_seed,
@@ -92,224 +89,195 @@ molecular_properties = {
 }
 
 
-def process_smiles(
-    smiles, train_smiles=None, is_gen=False, smiles_idx=None, bin_idx=None
+def smile_properties_dataframe(input_file, max_smiles=None):
+
+    data = []
+    for smile in read_file(
+        input_file, smile_only=True, stream=True, max_lines=max_smiles
+    ):
+        if (mol := clean_mol(smile, raise_error=False)) is not None:
+            row = tuple(fun(mol) for fun in molecular_properties.values())
+        else:
+            row = tuple([None] * len(molecular_properties))
+
+        data.append((smile,) + row)
+
+    df = pd.DataFrame(data, columns=["smile"] + list(molecular_properties.keys()))
+    return df
+
+
+def calculate_probabilities(*dicts):
+    merged_keys = set()
+    for dictionary in dicts:
+        merged_keys.update(dictionary.keys())
+
+    return_values = []
+    for dictionary in dicts:
+        total = sum(dictionary.values())
+        return_values.append([dictionary.get(k, 0) / total for k in merged_keys])
+
+    return return_values
+
+
+def get_dataframes(train_file, sampled_file, max_orig_mols=None):
+    train_df = smile_properties_dataframe(train_file)
+    sample_smiles_df = smile_properties_dataframe(
+        sampled_file, max_smiles=max_orig_mols
+    )
+
+    sample_smiles_df["is_valid"] = sample_smiles_df.apply(
+        lambda row: clean_mol(row["smile"], raise_error=False) is not None, axis=1
+    )
+
+    sample_smiles_df["is_novel"] = sample_smiles_df.apply(
+        lambda row: row["smile"] not in train_df["smile"], axis=1
+    )
+
+    # Re-read the sample_file to obtain bin/other information, and merge
+    sample_bin_df = pd.read_csv(sampled_file)
+    sample_df = sample_smiles_df.merge(
+        sample_bin_df, left_on="smile", right_on="smiles"
+    )
+
+    return train_df, sample_df
+
+
+def calculate_outcomes_dataframe(sample_df, train_df):
+    train_element_distribution = dict(
+        zip(*np.unique(np.concatenate(train_df["elements"]), return_counts=True))
+    )
+    train_murcko_distribution = dict(
+        zip(*np.unique(train_df["murcko"], return_counts=True))
+    )
+
+    out = []
+    for bin, bin_df in sample_df.groupby("bin"):
+
+        element_distribution = dict(
+            zip(
+                *np.unique(
+                    np.concatenate(bin_df["elements"].to_numpy()), return_counts=True
+                )
+            )
+        )
+
+        murcko_distribution = dict(
+            zip(*np.unique(bin_df["murcko"].to_numpy(), return_counts=True))
+        )
+
+        p1, p2 = calculate_probabilities(
+            train_element_distribution, element_distribution
+        )
+        p_m1, p_m2 = calculate_probabilities(
+            train_murcko_distribution, murcko_distribution
+        )
+
+        out.append(
+            {
+                "bin": bin,
+                "KL divergence, atoms": scipy.stats.entropy(p2, p1),
+                "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
+                "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
+                "Jensen-Shannon distance, MWs": continuous_JSD(
+                    bin_df["mws"], train_df["mws"]
+                ),
+                "Jensen-Shannon distance, logP": continuous_JSD(
+                    bin_df["logp"], train_df["logp"]
+                ),
+                "Jensen-Shannon distance, Bertz TC": continuous_JSD(
+                    bin_df["tcs"], train_df["tcs"]
+                ),
+                "Jensen-Shannon distance, QED": continuous_JSD(
+                    bin_df["qed"], train_df["qed"]
+                ),
+                "Jensen-Shannon distance, TPSA": continuous_JSD(
+                    bin_df["tpsa"], train_df["tpsa"]
+                ),
+                "Internal diversity": internal_diversity(bin_df["fps"].to_numpy()),
+                "External diversity": external_diversity(
+                    bin_df["fps"].to_numpy(), train_df["fps"].to_numpy()
+                ),
+                "Internal nearest-neighbor Tc": internal_nn(bin_df["fps"].to_numpy()),
+                "External nearest-neighbor Tc": external_nn(
+                    bin_df["fps"].to_numpy(), train_df["fps"].to_numpy()
+                ),
+                "Jensen-Shannon distance, # of rings": discrete_JSD(
+                    bin_df["rings1"], train_df["rings1"]
+                ),
+                "Jensen-Shannon distance, # of aliphatic rings": discrete_JSD(
+                    bin_df["rings2"], train_df["rings2"]
+                ),
+                "Jensen-Shannon distance, # of aromatic rings": discrete_JSD(
+                    bin_df["rings3"], train_df["rings3"]
+                ),
+                "Jensen-Shannon distance, SA score": continuous_JSD(
+                    bin_df["SA"], train_df["SA"]
+                ),
+                "Jensen-Shannon distance, NP score": continuous_JSD(
+                    bin_df["NP"], train_df["NP"]
+                ),
+                "Jensen-Shannon distance, % sp3 carbons": continuous_JSD(
+                    bin_df["sp3"], train_df["sp3"]
+                ),
+                "Jensen-Shannon distance, % rotatable bonds": continuous_JSD(
+                    bin_df["rot"], train_df["rot"]
+                ),
+                "Jensen-Shannon distance, % stereocenters": continuous_JSD(
+                    bin_df["stereo"], train_df["stereo"]
+                ),
+                "Jensen-Shannon distance, Murcko scaffolds": jensenshannon(p_m2, p_m1),
+                "Jensen-Shannon distance, hydrogen donors": discrete_JSD(
+                    bin_df["donors"], train_df["donors"]
+                ),
+                "Jensen-Shannon distance, hydrogen acceptors": discrete_JSD(
+                    bin_df["acceptors"], train_df["acceptors"]
+                ),
+            }
+        )
+    out = pd.DataFrame(out)
+
+    # Have 'bin' as a column and each of our other columns as rows in an
+    # 'outcome' column, with values in a 'value' column
+    out = out.melt(id_vars=["bin"], var_name="outcome", value_name="value")
+
+    # Outcomes that are not bin-specific
+    fcd = FCD(canonize=False)
+    common_outcomes = {
+        "% valid": len(sample_df[sample_df["is_valid"]]) / len(sample_df),
+        "% novel": len(sample_df[sample_df["is_novel"]]) / len(sample_df),
+        "% unique": len(sample_df["smile"].unique()) / len(sample_df),
+        # TODO: Move this as a bin-specific outcome
+        "Frechet ChemNet distance": fcd(
+            sample_df["canonical_smile"], train_df["canonical_smile"]
+        ),
+    }
+
+    # Yes, this is slow, but possibly the most intuitive way to add this data.
+    # TODO: Just use a <blank> value or something intuitive for `bin` column
+    for k, v in common_outcomes.items():
+        out = pd.concat(
+            [
+                out,
+                pd.DataFrame([{"bin": "common_descriptors", "outcome": k, "value": v}]),
+            ]
+        )
+
+    return out
+
+
+def calculate_outcomes(
+    sampled_file, train_file, output_file, max_orig_mols=None, seed=None
 ):
-    dict = defaultdict(list)
-    dict["n_valid_mols"], dict["n_novel_mols"] = 0, 0
-
-    for i, line in enumerate(smiles, start=1):
-
-        smile = line.split(",")[smiles_idx] if is_gen else line
-
-        if (mol := clean_mol(smile)) is not None:
-            dict["canonical"].append(Chem.MolToSmiles(mol))
-            dict["n_valid_mols"] += 1
-
-            # Only store novel smiles from the sampled file
-            if not is_gen or (train_smiles is not None and smile not in train_smiles):
-                for key, fun in molecular_properties.items():
-                    dict[key].append(fun(mol))
-
-                if is_gen:
-                    dict["n_novel_mols"] += 1
-                    if bin_idx is not None:
-                        dict["bin"].append(line.split(",")[bin_idx])
-                    else:
-                        dict["bin"].append("NA")
-
-    dict["n_smiles"] = i
-    dict["n_unique"] = len(set(dict["canonical"]))
-
-    return dict
-
-
-def calculate_probabilities(train_counts, gen_counts):
-    keys = np.union1d(train_counts[0], gen_counts[0])
-    n1, n2 = sum(train_counts[1]), sum(gen_counts[1])
-    d1 = dict(zip(train_counts[0], train_counts[1]))
-    d2 = dict(zip(gen_counts[0], gen_counts[1]))
-
-    p1 = [(d1[key] / n1) if key in d1 else 0 for key in keys]
-    p2 = [(d2[key] / n2) if key in d2 else 0 for key in keys]
-
-    return p1, p2
-
-
-def process_outcomes(train_dict, gen_dict, output_file, sampled_file, bin):
-
-    if bin == "common_descriptors":
-        fcd = FCD(canonize=False)
-        descriptors = {
-            "% valid": gen_dict["n_valid_mols"] / gen_dict["n_smiles"],
-            "% novel": gen_dict["n_novel_mols"] / gen_dict["n_valid_mols"],
-            "% unique": gen_dict["n_unique"] / gen_dict["n_valid_mols"],
-            "Frechet ChemNet distance": fcd(
-                gen_dict["canonical"], train_dict["canonical"]
-            ),
-        }
-    else:
-        org_counts = np.unique(
-            np.concatenate(train_dict["elements"]), return_counts=True
-        )
-        org_murcko_counts = np.unique(train_dict["murcko"], return_counts=True)
-        gen_counts = np.unique(np.concatenate(gen_dict["elements"]), return_counts=True)
-        gen_murcko_counts = np.unique(gen_dict["murcko"], return_counts=True)
-
-        p1, p2 = calculate_probabilities(org_counts, gen_counts)
-        p_m1, p_m2 = calculate_probabilities(org_murcko_counts, gen_murcko_counts)
-
-        descriptors = {
-            "KL divergence, atoms": scipy.stats.entropy(p2, p1),
-            "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
-            "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
-            "Jensen-Shannon distance, MWs": continuous_JSD(
-                gen_dict["mws"], train_dict["mws"]
-            ),
-            "Jensen-Shannon distance, logP": continuous_JSD(
-                gen_dict["logp"], train_dict["logp"]
-            ),
-            "Jensen-Shannon distance, Bertz TC": continuous_JSD(
-                gen_dict["tcs"], train_dict["tcs"]
-            ),
-            "Jensen-Shannon distance, QED": continuous_JSD(
-                gen_dict["qed"], train_dict["qed"]
-            ),
-            "Jensen-Shannon distance, TPSA": continuous_JSD(
-                gen_dict["tpsa"], train_dict["tpsa"]
-            ),
-            "Internal diversity": internal_diversity(gen_dict["fps"]),
-            "External diversity": external_diversity(
-                gen_dict["fps"], train_dict["fps"]
-            ),
-            "Internal nearest-neighbor Tc": internal_nn(gen_dict["fps"]),
-            "External nearest-neighbor Tc": external_nn(
-                gen_dict["fps"], train_dict["fps"]
-            ),
-            "Jensen-Shannon distance, # of rings": discrete_JSD(
-                gen_dict["rings1"], train_dict["rings1"]
-            ),
-            "Jensen-Shannon distance, # of aliphatic rings": discrete_JSD(
-                gen_dict["rings2"], train_dict["rings2"]
-            ),
-            "Jensen-Shannon distance, # of aromatic rings": discrete_JSD(
-                gen_dict["rings3"], train_dict["rings3"]
-            ),
-            "Jensen-Shannon distance, SA score": continuous_JSD(
-                gen_dict["SA"], train_dict["SA"]
-            ),
-            "Jensen-Shannon distance, NP score": continuous_JSD(
-                gen_dict["NP"], train_dict["NP"]
-            ),
-            "Jensen-Shannon distance, % sp3 carbons": continuous_JSD(
-                gen_dict["sp3"], train_dict["sp3"]
-            ),
-            "Jensen-Shannon distance, % rotatable bonds": continuous_JSD(
-                gen_dict["rot"], train_dict["rot"]
-            ),
-            "Jensen-Shannon distance, % stereocenters": continuous_JSD(
-                gen_dict["stereo"], train_dict["stereo"]
-            ),
-            "Jensen-Shannon distance, Murcko scaffolds": jensenshannon(p_m2, p_m1),
-            "Jensen-Shannon distance, hydrogen donors": discrete_JSD(
-                gen_dict["donors"], train_dict["donors"]
-            ),
-            "Jensen-Shannon distance, hydrogen acceptors": discrete_JSD(
-                gen_dict["acceptors"], train_dict["acceptors"]
-            ),
-        }
-
-    descriptors = pd.DataFrame(list(descriptors.items()), columns=["outcome", "value"])
-    descriptors["input_file"] = os.path.basename(sampled_file)
-    descriptors["bin"] = bin
-    descriptors.to_csv(
-        output_file,
-        mode="a+",
-        index=False,
-        header=not os.path.exists(output_file),
-        compression="gzip" if str(output_file).endswith(".gz") else None,
-    )
-
-    descriptors.reset_index(inplace=True, drop=True)
-    return descriptors
-
-
-def get_dicts(train_file, sampled_file, max_orig_mols, seed):
     set_seed(seed)
+    train_df, sample_df = get_dataframes(train_file, sampled_file, max_orig_mols)
 
-    # We need to have access to the bins column in generated smile
-    gen_smiles = read_file(
-        sampled_file, max_lines=max_orig_mols, stream=True, smile_only=False
-    )
-    train_smiles = read_file(train_file, smile_only=True)
+    out = calculate_outcomes_dataframe(sample_df, train_df)
 
-    train_dict = process_smiles(train_smiles)
+    # `input_file` column added for legacy reasons
+    out["input_file"] = os.path.basename(sampled_file)
+    out.to_csv(output_file, index=False)
 
-    # We need to keep track of frequency in sampled file
-    smiles_idx = get_column_idx(sampled_file, "smiles")
-
-    try:
-        bin_idx = get_column_idx(sampled_file, "bin")
-    except ValueError:
-        bin_idx = None
-
-    gen_dict = process_smiles(
-        gen_smiles,
-        train_smiles=set(train_smiles),
-        is_gen=True,
-        smiles_idx=smiles_idx,
-        bin_idx=bin_idx,
-    )
-
-    return train_dict, gen_dict
-
-
-def split_by_frequency(gen_dict):
-    common_descriptors = {
-        "canonical",
-        "n_valid_mols",
-        "n_novel_mols",
-        "n_smiles",
-        "n_unique",
-    }
-
-    # Set of unique frequency bins
-    unique_bin_set = set(gen_dict["bin"])
-
-    # Storing only the values that are unique to each frequency bins
-    result_dict = {
-        key: value for key, value in gen_dict.items() if key not in common_descriptors
-    }
-
-    result = pd.DataFrame(result_dict)
-
-    # Generating a dictionary of frequency ranges and respective dictionary of properties
-    freq_dict = {}
-    for item in sorted(unique_bin_set):
-        freq_dict[item] = pandas.DataFrame.to_dict(
-            result[result["bin"] == item], orient="list"
-        )
-
-    # Keeping track of all the descriptors common throughout the frequency ranges
-    freq_dict["common_descriptors"] = {}
-    for i in common_descriptors:
-        freq_dict["common_descriptors"][i] = gen_dict[i]
-
-    return freq_dict
-
-
-def calculate_outcomes(train_file, sampled_file, output_file, max_orig_mols, seed):
-    train_dict, gen_dict = get_dicts(train_file, sampled_file, max_orig_mols, seed)
-
-    freq_dict = split_by_frequency(gen_dict)
-    final_outcome = []
-    for key, value in freq_dict.items():
-        final_outcome.append(
-            process_outcomes(train_dict, value, output_file, sampled_file, bin=key)
-        )
-
-    final_outcome = pd.concat(final_outcome)
-    return final_outcome
+    return out
 
 
 def main(args):
