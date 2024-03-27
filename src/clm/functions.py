@@ -136,6 +136,14 @@ def get_rdkit_fingerprints(mols, include_none=False):
     return fps
 
 
+def get_column_idx(input_file, column_name):
+    with open(input_file, "r") as f:
+        first_line = f.readline().strip()
+        idx = first_line.split(",").index(column_name)
+
+    return idx
+
+
 def read_file(smiles_file, max_lines=None, smile_only=False, stream=False):
     def _read_file(
         input_file,
