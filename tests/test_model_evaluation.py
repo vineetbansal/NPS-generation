@@ -45,8 +45,9 @@ def test_calculate_outcomes():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_file = Path(temp_dir) / "calculate_outcome.csv"
         outcomes = calculate_outcomes(
-            train_file=test_dir / "prep_outcomes_freq.csv",
-            sampled_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
+            sampled_file=test_dir / "prep_outcomes_freq.csv",
+            # For LOTUS, train/test "_all.smi" files are the same
+            train_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
             output_file=output_file,
             max_orig_mols=10000,
             seed=12,

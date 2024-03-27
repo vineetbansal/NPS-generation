@@ -70,24 +70,25 @@ def safe_sascorer(mol):
 
 
 molecular_properties = {
+    "canonical_smile": Chem.MolToSmiles,
     "elements": lambda mol: [atom.GetSymbol() for atom in mol.GetAtoms()],
-    "mws": lambda mol: Descriptors.MolWt(mol),
-    "logp": lambda mol: Descriptors.MolLogP(mol),
-    "tcs": lambda mol: BertzCT(mol),
-    "tpsa": lambda mol: TPSA(mol),
-    "qed": lambda mol: safe_qed(mol),
-    "rings1": lambda mol: Lipinski.RingCount(mol),
-    "rings2": lambda mol: Lipinski.NumAliphaticRings(mol),
-    "rings3": lambda mol: Lipinski.NumAromaticRings(mol),
-    "SA": lambda mol: safe_sascorer(mol),
+    "mws": Descriptors.MolWt,
+    "logp": Descriptors.MolLogP,
+    "tcs": BertzCT,
+    "tpsa": TPSA,
+    "qed": safe_qed,
+    "rings1": Lipinski.RingCount,
+    "rings2": Lipinski.NumAliphaticRings,
+    "rings3": Lipinski.NumAromaticRings,
+    "SA": safe_sascorer,
     "NP": lambda mol: npscorer.scoreMol(mol, fscore),
-    "sp3": lambda mol: Lipinski.FractionCSP3(mol),
-    "rot": lambda mol: pct_rotatable_bonds(mol),
-    "stereo": lambda mol: pct_stereocenters(mol),
+    "sp3": Lipinski.FractionCSP3,
+    "rot": pct_rotatable_bonds,
+    "stereo": pct_stereocenters,
     "murcko": lambda mol: MurckoScaffoldSmiles(mol=mol),
-    "donors": lambda mol: Lipinski.NumHDonors(mol),
-    "acceptors": lambda mol: Lipinski.NumHAcceptors(mol),
-    "fps": lambda mol: RDKFingerprint(mol),
+    "donors": Lipinski.NumHDonors,
+    "acceptors": Lipinski.NumHAcceptors,
+    "fps": RDKFingerprint,
 }
 
 
@@ -284,7 +285,7 @@ def split_by_frequency(gen_dict):
 
     # Generating a dictionary of frequency ranges and respective dictionary of properties
     freq_dict = {}
-    for item in unique_bin_set:
+    for item in sorted(unique_bin_set):
         freq_dict[item] = pandas.DataFrame.to_dict(
             result[result["bin"] == item], orient="list"
         )
