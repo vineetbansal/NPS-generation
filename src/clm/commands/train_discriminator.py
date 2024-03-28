@@ -54,18 +54,23 @@ def calculate_fingerprint(smile):
 def train_discriminator(train_file, sample_file, max_mols, output_file, seed):
     set_seed(seed)
 
-    train_smiles = read_file(train_file, smile_only=True)
-    gen_smiles = read_file(sample_file, smile_only=True)
+    train_smiles = set(read_file(train_file, smile_only=True))
+    sample_smiles_gen = read_file(sample_file, smile_only=True, stream=True)
 
-    gen_smiles = np.unique(gen_smiles)
-    novel_smiles = [sm for sm in gen_smiles if sm not in set(train_smiles)]
+    max_mols = max_mols or 100_000
+    novel_smiles = set()
+    for sample_smile in sample_smiles_gen:
+        if len(novel_smiles) >= max_mols:
+            break
+        if sample_smile not in train_smiles:
+            novel_smiles.add(sample_smile)
 
-    # Sample a random choice of molecules
-    if len(novel_smiles) > max_mols and len(train_smiles) > max_mols:
-        novel_smiles = np.random.choice(novel_smiles, max_mols)
-        train_smiles = np.random.choice(train_smiles, max_mols)
-    elif len(novel_smiles) > len(train_smiles):
-        novel_smiles = np.random.choice(novel_smiles, len(train_smiles))
+    novel_smiles = np.array(list(novel_smiles))
+    train_smiles = (
+        np.random.choice(list(train_smiles), max_mols)
+        if len(train_smiles) > max_mols
+        else np.array(list(train_smiles))
+    )
 
     np_fps = []
     for smile in tqdm(np.concatenate((train_smiles, novel_smiles), axis=0)):
