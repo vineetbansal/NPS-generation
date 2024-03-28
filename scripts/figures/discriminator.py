@@ -8,9 +8,7 @@ from sklearn.metrics import confusion_matrix
 
 
 def add_args(parser):
-    parser.add_argument(
-        "--outcome_file", type=str, help="Path to input file"
-    )
+    parser.add_argument("--outcome_file", type=str, help="Path to input file")
     parser.add_argument(
         "--plot_type", type=str, help="The type of plot you wanna visualize"
     )
@@ -19,46 +17,57 @@ def add_args(parser):
 
 def plot(outcome_file, plot_type):
     outcome = pd.read_csv(outcome_file)
-    if plot_type == 'A':
-        y_test, y_scores = list(outcome['y'].dropna()), list(outcome['y_prob_1'].dropna())
+    if plot_type == "A":
+        y_test, y_scores = list(outcome["y"].dropna()), list(
+            outcome["y_prob_1"].dropna()
+        )
 
         fpr, tpr, _ = roc_curve(y_test, y_scores)
         roc_auc = auc(fpr, tpr)
 
         # Plot ROC curve
         plt.figure()
-        plt.plot(fpr, tpr, color='darkorange',
-                 lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
-        plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+        plt.plot(
+            fpr,
+            tpr,
+            color="darkorange",
+            lw=2,
+            label="ROC curve (area = %0.2f)" % roc_auc,
+        )
+        plt.plot([0, 1], [0, 1], color="navy", lw=1, linestyle="--")
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title('ROC curve, classifying training vs. generated molecules')
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("True Positive Rate")
+        plt.title("ROC curve, classifying training vs. generated molecules")
         plt.legend(loc="lower right")
         plt.show()
 
     else:
-        y_test, y_pred = list(outcome['y'].dropna()), list(outcome['y_pred'].dropna())
+        y_test, y_pred = list(outcome["y"].dropna()), list(outcome["y_pred"].dropna())
 
         cm = confusion_matrix(y_test, y_pred)
         # Normalize the confusion matrix to show percentages
-        cm_percentage = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100
+        cm_percentage = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis] * 100
 
-        classes = ['Known', 'Generated']
+        classes = ["Known", "Generated"]
         # Plot confusion matrix
-        sns.heatmap(cm_percentage, annot=True, fmt=".2f", cmap="Blues", xticklabels=classes, yticklabels=classes)
-        plt.ylabel('True label')
-        plt.xlabel('Predicted label')
-        plt.title('Confusion Matrix, classifying training vs. generated molecules')
+        sns.heatmap(
+            cm_percentage,
+            annot=True,
+            fmt=".2f",
+            cmap="Blues",
+            xticklabels=classes,
+            yticklabels=classes,
+        )
+        plt.ylabel("True label")
+        plt.xlabel("Predicted label")
+        plt.title("Confusion Matrix, classifying training vs. generated molecules")
         plt.show()
 
 
 def main(args):
-    plot(
-        outcome_file=args.outcome_file,
-        plot_type=args.plot_type
-    )
+    plot(outcome_file=args.outcome_file, plot_type=args.plot_type)
 
 
 if __name__ == "__main__":
