@@ -13,6 +13,7 @@ import torch
 from scipy import histogram
 from scipy.stats import gaussian_kde
 from scipy.spatial.distance import jensenshannon
+import hashlib
 
 converter = deepsmiles.Converter(rings=True, branches=True)
 
@@ -133,6 +134,14 @@ def get_rdkit_fingerprints(mols, include_none=False):
             fp = Chem.RDKFingerprint(mol)
             fps.append(fp)
     return fps
+
+
+def get_column_idx(input_file, column_name):
+    with open(input_file, "r") as f:
+        first_line = f.readline().strip()
+        idx = first_line.split(",").index(column_name)
+
+    return idx
 
 
 def read_file(smiles_file, max_lines=None, smile_only=False, stream=False):
@@ -420,4 +429,15 @@ def write_to_csv_file(file_name, df):
         file_name,
         index=False,
         compression="gzip" if str(file_name).endswith(".gz") else None,
+    )
+
+
+def assert_checksum_equals(generated_file, oracle):
+    assert (
+        hashlib.md5(
+            "".join(open(generated_file, "r").readlines()).encode("utf8")
+        ).hexdigest()
+        == hashlib.md5(
+            "".join(open(oracle, "r").readlines()).encode("utf8")
+        ).hexdigest()
     )
