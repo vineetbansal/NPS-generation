@@ -48,16 +48,14 @@ def create_output_dir(output_file):
 def calculate_fingerprint(smile):
     if (mol := clean_mol(smile, raise_error=False)) is not None:
         return Chem.RDKFingerprint(mol)
-    return None
 
 
-def train_discriminator(train_file, sample_file, max_mols, output_file, seed):
+def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
     set_seed(seed)
 
     train_smiles = set(read_file(train_file, smile_only=True))
     sample_smiles_gen = read_file(sample_file, smile_only=True, stream=True)
 
-    max_mols = max_mols or 100_000
     novel_smiles = set()
     for sample_smile in sample_smiles_gen:
         if len(novel_smiles) >= max_mols:
@@ -120,9 +118,9 @@ def main(args):
     train_discriminator(
         train_file=args.train_file,
         sample_file=args.sampled_file,
-        max_mols=args.max_mols,
         output_file=args.output_file,
         seed=args.seed,
+        max_mols=args.max_mols,
     )
 
 
