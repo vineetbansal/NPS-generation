@@ -1,8 +1,3 @@
-"""
-Train a model to distinguish generated versus real metabolites and report its
-cross-validation accuracy.
-"""
-
 import argparse
 import numpy as np
 import os
@@ -16,9 +11,7 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-
-# import functions
-from clm.functions import read_file, clean_mols, set_seed, seed_type
+from clm.functions import read_file, set_seed, seed_type, clean_mol
 
 
 def add_args(parser):
@@ -30,6 +23,12 @@ def add_args(parser):
         type=str,
         help="Sampled csv file with smiles as a column, or a text file with one SMILES per line.",
     )
+    parser.add_argument(
+        "--max_mols",
+        type=int,
+        default=50000,
+        help="Total number of molecules to sample.",
+    )
     parser.add_argument("--output_file", type=str)
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
@@ -37,9 +36,7 @@ def add_args(parser):
     return parser
 
 
-def train_discriminator(train_file, sample_file, output_file, seed):
-    set_seed(seed)
-    # create output directory if it does not exist
+def create_output_dir(output_file):
     output_dir = os.path.dirname(output_file)
     if not os.path.isdir(output_dir):
         try:
@@ -47,82 +44,72 @@ def train_discriminator(train_file, sample_file, output_file, seed):
         except FileExistsError:
             pass
 
-    # read SMILES from training set
-    train_smiles = read_file(
-        train_file, smile_only=True
-    )  # (this was originally train = pd.read_csv(train_file))
 
-    # TODO: there doesn't seem to be any training csv files
-    # train_smiles = train['smiles'].values
+def calculate_fingerprint(smile):
+    if (mol := clean_mol(smile, raise_error=False)) is not None:
+        return Chem.RDKFingerprint(mol)
 
-    # read generated SMILES
-    gen_smiles = read_file(sample_file, smile_only=True)
-    # get unique smiles
-    gen_smiles = np.unique(gen_smiles)
-    # remove known ones
-    gen_smiles = [sm for sm in gen_smiles if sm not in train_smiles]
 
-    # convert to molecules
-    train_mols = clean_mols(train_smiles)
-    gen_mols = clean_mols(gen_smiles)
-    gen_mols = [mol for mol in gen_mols if mol is not None]
+def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
+    set_seed(seed)
 
-    # sample a random number
-    if len(gen_mols) > len(train_mols):
-        gen_mols = np.random.choice(gen_mols, len(train_mols))
+    train_smiles = set(read_file(train_file, smile_only=True))
+    sample_smiles_gen = read_file(sample_file, smile_only=True, stream=True)
 
-    # calculate fingerprints for the train and generated sets
-    train_fps = [Chem.RDKFingerprint(mol) for mol in tqdm(train_mols)]
-    gen_fps = [Chem.RDKFingerprint(mol) for mol in tqdm(gen_mols)]
+    novel_smiles = set()
+    for sample_smile in sample_smiles_gen:
+        if len(novel_smiles) >= max_mols:
+            break
+        if sample_smile not in train_smiles:
+            novel_smiles.add(sample_smile)
 
-    # merge fingerprints and create labels
-    fps = train_fps + gen_fps
-    labels = [1] * len(train_mols) + [0] * len(gen_mols)
-
-    # convert to list of numpy arrays
-    np_fps = []
-    for fp in tqdm(fps):
-        arr = np.zeros((1,))
-        DataStructs.ConvertToNumpyArray(fp, arr)
-        np_fps.append(arr)
-
-    # split into train/test folds
-    X = np_fps
-    y = labels
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=0
+    novel_smiles = np.array(list(novel_smiles))
+    train_smiles = (
+        np.random.choice(list(train_smiles), max_mols)
+        if len(train_smiles) > max_mols
+        else np.array(list(train_smiles))
     )
 
-    # fit RF
+    np_fps = []
+    for smile in tqdm(np.concatenate((train_smiles, novel_smiles), axis=0)):
+        if (fp := calculate_fingerprint(smile)) is not None:
+            arr = np.zeros((1,))
+            DataStructs.ConvertToNumpyArray(fp, arr)
+            np_fps.append(arr)
+
+    labels = [1] * len(train_smiles) + [0] * len(novel_smiles)
+
+    # Split into train/test folds
+    X_train, X_test, y_train, y_test = train_test_split(
+        np_fps, labels, test_size=0.2, random_state=0
+    )
+
     rf = RandomForestClassifier(random_state=0)
     rf.fit(X_train, y_train)
-    # predict classes for held-out molecules
+
+    # Predict classes for held-out molecules
     y_pred = rf.predict(X_test)
     y_probs = rf.predict_proba(X_test)
 
-    # y_pred = cross_val_predict(rf, X, y, cv=5)
-    # y_prob = cross_val_predict(rf, X, y, cv=5, method='predict_proba')
-    # scores = cross_validate(rf, X, y, cv=3,
-    #                         scoring=('accuracy', 'roc_auc', 'average_precision'),
-    #                         return_train_score=False)
-
-    # calculate metrics
     acc = accuracy_score(y_test, y_pred)
-    # b_acc = balanced_accuracy_score(y_test, y_pred)
     auc = roc_auc_score(y_test, y_probs[:, 1])
     auprc = average_precision_score(y_test, y_probs[:, 1])
 
-    # create output df
     y_prob_1 = [x[1] for x in y_probs]
-    output_df = pd.DataFrame({"y": y_test, "y_pred": y_pred, "y_prob_1": y_prob_1})
-    score_df = pd.DataFrame(
-        {"score": ["accuracy", "auroc", "auprc"], "value": [acc, auc, auprc]}
+    output_dict = {
+        "y": y_test,
+        "y_pred": y_pred,
+        "y_prob_1": y_prob_1,
+        "score": ["accuracy", "auroc", "auprc"],
+        "value": [acc, auc, auprc],
+    }
+    output_df = pd.DataFrame(
+        dict([(key, pd.Series(value)) for key, value in output_dict.items()])
     )
-    output_df = output_df._append(score_df)
 
-    # save output
+    # Create an output directory if it doesn't exist already
+    create_output_dir(output_file)
     output_df.to_csv(output_file, index=False)
-
     output_df = output_df.reset_index(drop=True)
     return output_df
 
@@ -133,6 +120,7 @@ def main(args):
         sample_file=args.sampled_file,
         output_file=args.output_file,
         seed=args.seed,
+        max_mols=args.max_mols,
     )
 
 
