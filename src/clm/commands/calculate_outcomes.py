@@ -174,9 +174,9 @@ def calculate_outcomes_dataframe(sample_df, train_df):
         out.append(
             {
                 "bin": bin,
-                "% valid": len(sample_df[sample_df["is_valid"]]) / len(sample_df),
-                "% novel": len(sample_df[sample_df["is_novel"]]) / len(sample_df),
-                "% unique": len(sample_df["smile"].unique()) / len(sample_df),
+                "% valid": len(bin_df[sample_df["is_valid"]]) / len(bin_df),
+                "% novel": len(bin_df[sample_df["is_novel"]]) / len(bin_df),
+                "% unique": len(bin_df["smile"].unique()) / len(bin_df),
                 "KL divergence, atoms": scipy.stats.entropy(p2, p1),
                 "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
                 "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
@@ -235,7 +235,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                     bin_df["acceptors"], train_df["acceptors"]
                 ),
                 "Frechet ChemNet distance": fcd(
-                    sample_df["canonical_smile"], train_df["canonical_smile"]
+                    bin_df["canonical_smile"], train_df["canonical_smile"]
                 ),
             }
         )

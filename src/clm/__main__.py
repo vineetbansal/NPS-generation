@@ -16,6 +16,8 @@ from clm.commands import (
     write_nn_Tc,
     inner_prep_nn_tc_PubChem,
     inner_prep_outcomes_freq,
+    write_freq_distribution,
+    train_discriminator,
 )
 
 
@@ -40,6 +42,8 @@ def main():
         write_nn_Tc,
         inner_prep_nn_tc_PubChem,
         inner_prep_outcomes_freq,
+        write_freq_distribution,
+        train_discriminator,
     )
 
     subparsers = parser.add_subparsers(title="Choose a command")
