@@ -45,7 +45,7 @@ def add_args(parser):
         help="Sampled csv file with smiles as a column, or a text file with one SMILES per line.",
     )
     parser.add_argument("--output_file", type=str)
-    parser.add_argument("--max_orig_mols", type=int, default=10000)
+    parser.add_argument("--max_orig_mols", type=int, default=None)
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
@@ -151,6 +151,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
 
     out = []
     for bin, bin_df in sample_df.groupby("bin"):
+        bin_df = bin_df.reset_index(drop=True)
         element_distribution = dict(
             zip(
                 *np.unique(
@@ -169,13 +170,12 @@ def calculate_outcomes_dataframe(sample_df, train_df):
         p_m1, p_m2 = calculate_probabilities(
             train_murcko_distribution, murcko_distribution
         )
-
         fcd = FCD(canonize=False)
         out.append(
             {
                 "bin": bin,
-                "% valid": len(bin_df[sample_df["is_valid"]]) / len(bin_df),
-                "% novel": len(bin_df[sample_df["is_novel"]]) / len(bin_df),
+                "% valid": len(bin_df[bin_df["is_valid"]]) / len(bin_df),
+                "% novel": len(bin_df[bin_df["is_novel"]]) / len(bin_df),
                 "% unique": len(bin_df["smile"].unique()) / len(bin_df),
                 "KL divergence, atoms": scipy.stats.entropy(p2, p1),
                 "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
@@ -235,7 +235,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                     bin_df["acceptors"], train_df["acceptors"]
                 ),
                 "Frechet ChemNet distance": fcd(
-                    bin_df["canonical_smile"], train_df["canonical_smile"]
+                    bin_df[bin_df["is_novel"]]["canonical_smile"], train_df["canonical_smile"]
                 ),
             }
         )
