@@ -114,7 +114,7 @@ rule train_discriminator:
         mem_mb=64000,
         runtime=1000,
     shell:
-        'clm write_nn_Tc '
+        'clm train_discriminator '
         '--train_file {input.train_file} '
         '--sampled_file {input.sampled_file} '
         '--output_file {output.output_file} '
@@ -130,7 +130,7 @@ rule freq_distribution:
         mem_mb=64000,
         runtime=1000,
     shell:
-        'clm write_nn_Tc '
+        'clm write_freq_distribution '
         '--sampled_file {input.sampled_file} '
         '--test_file {input.test_file} '
         '--output_file {output.output_file} '

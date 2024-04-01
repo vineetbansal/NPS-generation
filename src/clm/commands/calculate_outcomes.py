@@ -45,7 +45,7 @@ def add_args(parser):
         help="Sampled csv file with smiles as a column, or a text file with one SMILES per line.",
     )
     parser.add_argument("--output_file", type=str)
-    parser.add_argument("--max_orig_mols", type=int, default=10000)
+    parser.add_argument("--max_orig_mols", type=int, default=None)
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
@@ -90,7 +90,6 @@ molecular_properties = {
 
 
 def smile_properties_dataframe(input_file, max_smiles=None):
-
     data = []
     for smile in read_file(
         input_file, smile_only=True, stream=True, max_lines=max_smiles
@@ -152,7 +151,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
 
     out = []
     for bin, bin_df in sample_df.groupby("bin"):
-
+        bin_df = bin_df.reset_index(drop=True)
         element_distribution = dict(
             zip(
                 *np.unique(
@@ -171,10 +170,14 @@ def calculate_outcomes_dataframe(sample_df, train_df):
         p_m1, p_m2 = calculate_probabilities(
             train_murcko_distribution, murcko_distribution
         )
-
+        fcd = FCD(canonize=False)
         out.append(
             {
                 "bin": bin,
+                "n_mols": len(bin_df),
+                "% valid": len(bin_df[bin_df["is_valid"]]) / len(bin_df),
+                "% novel": len(bin_df[bin_df["is_novel"]]) / len(bin_df),
+                "% unique": len(bin_df["smile"].unique()) / len(bin_df),
                 "KL divergence, atoms": scipy.stats.entropy(p2, p1),
                 "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
                 "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
@@ -232,6 +235,10 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                 "Jensen-Shannon distance, hydrogen acceptors": discrete_JSD(
                     bin_df["acceptors"], train_df["acceptors"]
                 ),
+                "Frechet ChemNet distance": fcd(
+                    bin_df[bin_df["is_novel"]]["canonical_smile"],
+                    train_df["canonical_smile"],
+                ),
             }
         )
     out = pd.DataFrame(out)
@@ -239,29 +246,6 @@ def calculate_outcomes_dataframe(sample_df, train_df):
     # Have 'bin' as a column and each of our other columns as rows in an
     # 'outcome' column, with values in a 'value' column
     out = out.melt(id_vars=["bin"], var_name="outcome", value_name="value")
-
-    # Outcomes that are not bin-specific
-    fcd = FCD(canonize=False)
-    common_outcomes = {
-        "% valid": len(sample_df[sample_df["is_valid"]]) / len(sample_df),
-        "% novel": len(sample_df[sample_df["is_novel"]]) / len(sample_df),
-        "% unique": len(sample_df["smile"].unique()) / len(sample_df),
-        # TODO: Move this as a bin-specific outcome
-        "Frechet ChemNet distance": fcd(
-            sample_df["canonical_smile"], train_df["canonical_smile"]
-        ),
-    }
-
-    # Yes, this is slow, but possibly the most intuitive way to add this data.
-    # TODO: Just use a <blank> value or something intuitive for `bin` column
-    for k, v in common_outcomes.items():
-        out = pd.concat(
-            [
-                out,
-                pd.DataFrame([{"bin": "common_descriptors", "outcome": k, "value": v}]),
-            ]
-        )
-
     return out
 
 
