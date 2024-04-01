@@ -235,7 +235,8 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                     bin_df["acceptors"], train_df["acceptors"]
                 ),
                 "Frechet ChemNet distance": fcd(
-                    bin_df[bin_df["is_novel"]]["canonical_smile"], train_df["canonical_smile"]
+                    bin_df[bin_df["is_novel"]]["canonical_smile"],
+                    train_df["canonical_smile"],
                 ),
             }
         )
