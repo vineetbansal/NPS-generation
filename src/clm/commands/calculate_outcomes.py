@@ -174,6 +174,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
         out.append(
             {
                 "bin": bin,
+                "n_mols": len(bin_df),
                 "% valid": len(bin_df[bin_df["is_valid"]]) / len(bin_df),
                 "% novel": len(bin_df[bin_df["is_novel"]]) / len(bin_df),
                 "% unique": len(bin_df["smile"].unique()) / len(bin_df),

@@ -77,6 +77,9 @@ bin,outcome,value,input_file
 1,"Jensen-Shannon distance, hydrogen acceptors",0.35714072190879564,prep_outcomes_freq.csv
 2,"Jensen-Shannon distance, hydrogen acceptors",0.22064053573918707,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, hydrogen acceptors",0.20572801556857429,prep_outcomes_freq.csv
-1,Frechet ChemNet distance,14.108518412211005,prep_outcomes_freq.csv
-2,Frechet ChemNet distance,14.108518412211005,prep_outcomes_freq.csv
-3-10,Frechet ChemNet distance,14.108518412211005,prep_outcomes_freq.csv
+1,Frechet ChemNet distance,13.622936227064727,prep_outcomes_freq.csv
+2,Frechet ChemNet distance,14.532675387035198,prep_outcomes_freq.csv
+3-10,Frechet ChemNet distance,18.023703851452932,prep_outcomes_freq.csv
+1,n_mols,500.0,prep_outcomes_freq.csv
+2,n_mols,500.0,prep_outcomes_freq.csv
+3-10,n_mols,500.0,prep_outcomes_freq.csv
