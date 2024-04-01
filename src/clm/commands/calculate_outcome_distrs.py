@@ -22,7 +22,7 @@ from rdkit.Chem.rdMolDescriptors import (
 from tqdm import tqdm
 
 # import functions
-from clm.functions import clean_mols, pct_rotatable_bonds, pct_stereocenters
+from clm.functions import clean_mols, pct_rotatable_bonds, pct_stereocenters, set_seed
 
 # suppress Chem.MolFromSmiles error output
 from rdkit import rdBase
@@ -36,7 +36,9 @@ def add_args(parser):
     return parser
 
 
-def calculate_outcome_distr(input_file, output_file):
+def calculate_outcome_distr(input_file, output_file, seed=None):
+    set_seed(seed)
+
     # create results container
     res = []
 
@@ -132,7 +134,8 @@ def calculate_outcome_distr(input_file, output_file):
         # count heteroatoms separately for DeepMet vs. PubChem
         for src in df["source"].unique():
             src_idxs = np.where(df["source"] == src)[0]
-            src_elements = np.take(elements, src_idxs)
+            # TODO: was previously src_elements = np.take(elements, src_idxs)
+            src_elements = [elements[i] for i in src_idxs]
             src_counts = np.unique(list(chain(*src_elements)), return_counts=True)
             for idx, element in enumerate(src_counts[0]):
                 atom_count = src_counts[1][idx]
@@ -160,7 +163,14 @@ def calculate_outcome_distr(input_file, output_file):
 
     res = pd.concat(res)
     # write output
-    res.to_csv(output_file, index=False,  compression="gzip" if str(output_file).endswith(".gz") else None)
+    res.to_csv(
+        output_file,
+        index=False,
+        compression="gzip" if str(output_file).endswith(".gz") else None,
+    )
+
+    res = res.reset_index(drop=True)
+    return res
 
 
 def main(args):

@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+from clm.functions import read_file
 
 parser = argparse.ArgumentParser(description=__doc__)
 
@@ -7,7 +8,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 def add_args(parser):
     parser.add_argument("--sample_file", type=str, help="Path to the sampled file")
     parser.add_argument("--train_file", type=str, help="Path to the train file")
-    parser.add_argument("--sample_no", type=int, help="Number of samples to select")
+    parser.add_argument("--max_mols", type=int, help="Number of samples to select")
     parser.add_argument("--pubchem_file", type=str, help="Path to the PubChem file")
     parser.add_argument(
         "--output_file", type=str, help="Path to the save the output file"
@@ -16,28 +17,34 @@ def add_args(parser):
     return parser
 
 
-def write_outcome_distr(sample_file, sample_no, train_file, pubchem_file, output_file):
+def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file, output_file):
+
     sample_file = pd.read_csv(sample_file, delimiter=",")
     sample = sample_file.sample(
-        n=sample_no, replace=True, weights=sample_file["size"], ignore_index=True
+        n=max_mols, replace=True, weights=sample_file["size"], ignore_index=True
     )
-    sample.assign(source="model")
+
     pubchem = pd.read_csv(
         pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
     )
-    formulas = set(sample.formula)
-    pubchem = pubchem[pubchem["formula"].isin(formulas)]
-    pubchem.assign(source="pubchem")
-    train = pd.read_csv(train_file)
-    train.assign(source="train")
-    combination = pd.concat([sample, pubchem, train])
-    combination.to_csv(output_file, index=False)
+    pubchem = pubchem[pubchem["formula"].isin(set(sample.formula))]
+    pubchem = pubchem.drop_duplicates(subset=["formula"], keep="first")
+
+    train = pd.DataFrame({"smiles": read_file(train_file, smile_only=True)})
+    combination = pd.concat(
+        [
+            sample.assign(source="model"),
+            pubchem.assign(source="pubchem"),
+            train.assign(source="train"),
+        ]
+    )
+    combination.to_csv(output_file, index=False, columns=["smiles", "source"])
 
 
 def main(args):
     write_outcome_distr(
         sample_file=args.sample_file,
-        sample_no=args.sample_no,
+        max_mols=args.max_mols,
         train_file=args.train_file,
         pubchem_file=args.pubchem_file,
         output_file=args.output_file,
