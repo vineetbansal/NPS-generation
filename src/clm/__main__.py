@@ -18,6 +18,8 @@ from clm.commands import (
     inner_prep_outcomes_freq,
     write_freq_distribution,
     train_discriminator,
+    write_outcome_distr,
+    calculate_outcome_distrs,
 )
 
 
@@ -44,6 +46,8 @@ def main():
         inner_prep_outcomes_freq,
         write_freq_distribution,
         train_discriminator,
+        write_outcome_distr,
+        calculate_outcome_distrs,
     )
 
     subparsers = parser.add_subparsers(title="Choose a command")
