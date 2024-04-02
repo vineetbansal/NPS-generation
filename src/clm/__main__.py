@@ -20,7 +20,7 @@ from clm.commands import (
     train_discriminator,
     write_outcome_distr,
     calculate_outcome_distrs,
-    add_carbon
+    add_carbon,
 )
 
 
@@ -49,7 +49,7 @@ def main():
         train_discriminator,
         write_outcome_distr,
         calculate_outcome_distrs,
-        add_carbon
+        add_carbon,
     )
 
     subparsers = parser.add_subparsers(title="Choose a command")
