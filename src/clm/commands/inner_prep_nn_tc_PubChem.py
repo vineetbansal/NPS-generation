@@ -49,7 +49,7 @@ def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
         n=sample_no, replace=True, weights=sample_file["size"], ignore_index=True
     )
     # Save the current index values in an `id` column, since we will need
-    # these to reorder rows later.
+    # these for filtering later.
     sample["id"] = sample.index
 
     pubchem = pd.concat(
@@ -78,17 +78,14 @@ def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
     data = pd.merge(sample, pubchem, on="formula", how="left", indicator=True)
 
     # In case there are duplicate matches for the (left) sample table
-    # (i.e. both the `id` and `formula` columns match), we want to select a
-    # random row from the (right) PubChem table.
+    # (i.e. grouping by `id` and `formula` gives multiple rows), we want to
+    # select a random row from the (right) PubChem table.
     logger.info("Removing duplicates from PubChem matches")
     data = (
         data.groupby(["id", "formula"])
         .apply(lambda x: x.sample(1))
         .reset_index(drop=True)
     )
-
-    logger.info("Reordering by original index value")
-    data = data.sort_values(by=["id"]).drop(columns=["id"]).reset_index(drop=True)
 
     # `indicator=True` in `pd.merge` adds a `_merge` column that we can inspect
     # to filter on rows that were present in both tables, and get the
