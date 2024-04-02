@@ -1,4 +1,5 @@
 import argparse
+import io
 import pandas as pd
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -19,7 +20,10 @@ def add_args(parser):
 
 
 def prep_outcomes_freq(sample_file, max_molecules, output_file):
-    data = pd.read_csv(sample_file)
+    if isinstance(sample_file, io.TextIOBase):
+        data = pd.read_csv(sample_file)
+    else:
+        data = sample_file
 
     # TODO: make this process dynamic later
     frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]

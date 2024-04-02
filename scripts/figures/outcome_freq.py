@@ -20,7 +20,21 @@ def plot(outcome_dir, outcome_type):
     #                 'Valid':' % valid',
     #                 'External Diversity': 'External diversity',
     #                 'External nn tc': 'External nearest-neighbor Tc',
-    #                 'Frechet ChemNet distance', 'Internal diversity', 'Internal nearest-neighbor Tc', 'Jensen-Shannon distance, # of aliphatic rings', 'Jensen-Shannon distance, # of aromatic rings', 'Jensen-Shannon distance, # of rings', 'Jensen-Shannon distance, % rotatable bonds', 'Jensen-Shannon distance, % sp3 carbons', 'Jensen-Shannon distance, % stereocenters', 'Jensen-Shannon distance, Bertz TC', 'Jensen-Shannon distance, MWs', 'Jensen-Shannon distance, Murcko scaffolds', 'Jensen-Shannon distance, NP score', 'Jensen-Shannon distance, QED', 'Jensen-Shannon distance, SA score', 'Jensen-Shannon distance, TPSA', 'Jensen-Shannon distance, atoms', 'Jensen-Shannon distance, hydrogen acceptors', 'Jensen-Shannon distance, hydrogen donors', 'Jensen-Shannon distance, logP', 'KL divergence, atoms', 'Wasserstein distance, atoms'}
+    #                 'Frechet ChemNet distance', 'Internal diversity',
+    #                 'Internal nearest-neighbor Tc',
+    #                 'Jensen-Shannon distance, # of aliphatic rings',
+    #                 'Jensen-Shannon distance, # of aromatic rings',
+    #                 'Jensen-Shannon distance, # of rings',
+    #                 'Jensen-Shannon distance, % rotatable bonds',
+    #                 'Jensen-Shannon distance, % sp3 carbons',
+    #                 'Jensen-Shannon distance, % stereocenters',
+    #                 'Jensen-Shannon distance, Bertz TC',
+    #                 'Jensen-Shannon distance, MWs',
+    #                 'Jensen-Shannon distance, Murcko scaffolds',
+    #                 'Jensen-Shannon distance, NP score',
+    #                 'Jensen-Shannon distance, QED',
+    #                 'Jensen-Shannon distance, SA score',
+    #                 'Jensen-Shannon distance, TPSA', 'Jensen-Shannon distance, atoms', 'Jensen-Shannon distance, hydrogen acceptors', 'Jensen-Shannon distance, hydrogen donors', 'Jensen-Shannon distance, logP', 'KL divergence, atoms', 'Wasserstein distance, atoms'}
     freq_map = {
         "1-1": "1",
         "2-2": "2",
@@ -57,8 +71,11 @@ def plot(outcome_dir, outcome_type):
     )
 
     plt.title(outcome_type)
-    plt.ylabel("Values")
+    plt.ylabel(outcome_type)
+    plt.xlabel("Frequency")
     plt.xticks(list(range(len(labels))), labels)
+    file_path = f"scripts/figures/ped_fig/{outcome_type}.png"
+    plt.savefig(file_path)
     plt.show()
 
 
