@@ -45,7 +45,12 @@ def add_args(parser):
         help="Sampled csv file with smiles as a column, or a text file with one SMILES per line.",
     )
     parser.add_argument("--output_file", type=str)
-    parser.add_argument("--max_orig_mols", type=int, default=None)
+    parser.add_argument(
+        "--max_orig_mols",
+        type=int,
+        default=None,
+        help="Max number of sampled smiles to process from each frequency bin.",
+    )
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
