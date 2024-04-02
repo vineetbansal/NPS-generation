@@ -10,6 +10,7 @@ from clm.commands.calculate_outcomes import (
 from clm.commands.write_nn_Tc import write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
+from clm.commands.calculate_outcome_distrs import calculate_outcome_distr
 from clm.functions import assert_checksum_equals
 
 base_dir = Path(__file__).parent.parent
@@ -93,9 +94,23 @@ def test_train_discriminator():
             / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi",
             sample_file=test_dir
             / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
+            max_mols=50000,
             output_file=output_file,
             seed=0,
         )
 
         true_outcomes = pd.read_csv(test_dir / "train_discriminator.csv")
+        pd.testing.assert_frame_equal(outcomes, true_outcomes)
+
+
+def test_outcome_distr():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_file = Path(temp_dir) / "outcome_distr.csv"
+        outcomes = calculate_outcome_distr(
+            input_file=test_dir / "write_outcome_distr.csv",
+            output_file=output_file,
+            seed=0,
+        )
+
+        true_outcomes = pd.read_csv(test_dir / "outcome_distr.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)

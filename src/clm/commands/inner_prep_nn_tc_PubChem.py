@@ -39,7 +39,7 @@ def function(df, split_data):
 def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file):
     sample_file = pd.read_csv(sample_file, delimiter=",")
     sample = sample_file.sample(
-        n=sample_no, replace=True, weights=sample_file["target_size"], ignore_index=True
+        n=sample_no, replace=True, weights=sample_file["size"], ignore_index=True
     )
     pubchem = pd.read_csv(
         pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
