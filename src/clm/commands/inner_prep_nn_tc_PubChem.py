@@ -1,9 +1,13 @@
 import argparse
+import logging
 import os
+import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from clm.functions import set_seed, seed_type
 
 parser = argparse.ArgumentParser(description=__doc__)
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -29,24 +33,34 @@ def add_args(parser):
     return parser
 
 
-def function(df, split_data):
-    current = pd.DataFrame([df])
-    current_formula = current["formula"].values[0]
-    if (current_formula not in split_data.keys()) or (
-        cands := split_data[current_formula]
-    ).shape[0] == 0:
-        return current.assign(source="DeepMet")
-    match = cands.sample(n=1)
-    return pd.concat([current.assign(source="DeepMet"), match.assign(source="PubChem")])
-
-
 def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
     set_seed(seed)
-    sample_file = pd.read_csv(sample_file, delimiter=",")
+    sample_file = pd.concat(
+        [
+            chunk
+            for chunk in tqdm(
+                pd.read_csv(sample_file, delimiter=",", chunksize=1000),
+                desc="Loading sample data",
+            )
+        ]
+    )
+
     sample = sample_file.sample(
         n=sample_no, replace=True, weights=sample_file["size"], ignore_index=True
     )
-    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+    # Save the current index values in an `id` column, since we will need
+    # these to reorder rows later.
+    sample["id"] = sample.index
+
+    pubchem = pd.concat(
+        [
+            chunk
+            for chunk in tqdm(
+                pd.read_csv(pubchem_file, delimiter="\t", header=None, chunksize=1000),
+                desc="Loading PubChem data",
+            )
+        ]
+    )
 
     # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
     match len(pubchem.columns):
@@ -60,16 +74,47 @@ def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
         case _:
             raise RuntimeError("Unexpected column count for PubChem")
 
-    formulas = set(sample.formula)
-    pubchem = pubchem[pubchem["formula"].isin(formulas)]
-    split_data = {formula: df for formula, df in pubchem.groupby("formula")}
+    logger.info("Joining sample table with PubChem on formula")
+    data = pd.merge(sample, pubchem, on="formula", how="left", indicator=True)
 
-    result = sample.apply(lambda x: function(x, split_data), axis=1)
-    matches = pd.concat(result.to_list())
+    # In case there are duplicate matches for the (left) sample table
+    # (i.e. both the `id` and `formula` columns match), we want to select a
+    # random row from the (right) PubChem table.
+    logger.info("Removing duplicates from PubChem matches")
+    data = (
+        data.groupby(["id", "formula"])
+        .apply(lambda x: x.sample(1))
+        .reset_index(drop=True)
+    )
+
+    logger.info("Reordering by original index value")
+    data = data.sort_values(by=["id"]).drop(columns=["id"]).reset_index(drop=True)
+
+    # `indicator=True` in `pd.merge` adds a `_merge` column that we can inspect
+    # to filter on rows that were present in both tables, and get the
+    # smiles/mass/formula values from the right table.
+    data = data[data["_merge"] == "both"][["smiles_y", "mass_y", "formula"]].rename(
+        columns={"smiles_y": "smiles", "mass_y": "mass"}
+    )
+
+    # Finally, lay out the rows from the sample and PubChem tables vertically,
+    # with a `source` column telling us where the data came from.
+    data = pd.concat(
+        [
+            # values from the (left) sample table
+            sample[["smiles", "mass", "formula", "size"]].assign(source="DeepMet"),
+            # values from the (right) PubChem table (`size` is NaN)
+            data.assign(size=np.nan, source="PubChem"),
+        ],
+        axis=0,
+    )
+
     dirname = os.path.dirname(output_file)
     if dirname:
         os.makedirs(dirname, exist_ok=True)
-    matches.to_csv(output_file, index=False)
+    data.to_csv(output_file, index=False)
+
+    return data
 
 
 def main(args):
