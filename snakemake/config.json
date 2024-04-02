@@ -1,12 +1,12 @@
 {
-  "output_dir": "/media/vineetb/T7/projects/nps/data/output",
-  "dataset": "/media/vineetb/T7/projects/nps/data/npmrd_plants.txt",
-  "pubchem_tsv_file": "/media/vineetb/T7/projects/nps/data/PubChem_with_fps.tsv",
+  "output_dir": "data",
+  "dataset": "/path/to/<dataset>.txt",
+  "pubchem_tsv_file": "/path/to/PubChem.tsv",
 
   "representations": ["SMILES"],
   "folds": 10,
-  "seeds": [0, 1, 2],
-  "enum_factors": [30],
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "enum_factors": [0, 10, 30, 50, 100],
   "max_input_smiles": 0,
 
   "model_params": {
@@ -29,5 +29,5 @@
   "min_tc": 0,
   "top_k": 30,
   "err_ppm": 10,
-  "random_seed": 5831
+  "random_seed": null
 }
