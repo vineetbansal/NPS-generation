@@ -37,6 +37,7 @@ rule all:
         repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
         freq_distribution=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_freq_distribution.csv",
         repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
+	calculate_outcome_distr=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv", repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
 
 rule prep_outcome_freq:
     input:
@@ -50,7 +51,7 @@ rule prep_outcome_freq:
         'clm inner_prep_outcomes_freq '
         '--sample_file {input.sample_file} '
         '--output_file {output} '
-        '--max_molecules 50000 '
+        '--max_molecules 500000 '
 
 
 rule calculate_outcomes:
@@ -66,7 +67,7 @@ rule calculate_outcomes:
         'clm calculate_outcomes '
         '--train_file {input.train_file} '
         '--sampled_file {input.sampled_file} '
-        '--max_orig_mols 50000 '
+        '--max_orig_mols 500000 '
         '--output_file {output.output_file} '
 	    '--seed 12 '
 
@@ -84,7 +85,7 @@ rule prep_nn_tc:
         'clm inner_prep_nn_tc_PubChem '
         '--sample_file {input.sampled_file} '
         '--pubchem_file {input.pubchem_file} '
-        '--sample_no 50000 '
+        '--sample_no 500000 '
         '--output_file {output.output_file} '
 
 
@@ -133,4 +134,37 @@ rule freq_distribution:
         'clm write_freq_distribution '
         '--sampled_file {input.sampled_file} '
         '--test_file {input.test_file} '
+        '--output_file {output.output_file} '
+
+
+rule write_outcome_distr:
+    input:
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
+        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
+        pubchem_file=config['pubchem_tsv_file'],
+    output:
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_outcome_distr.csv",
+    resources:
+        mem_mb=64000,
+        runtime=1000,
+    shell:
+        'clm write_outcome_distr '
+        '--sample_file {input.sample_file} '
+        '--train_file {input.train_file} '
+        '--pubchem_file {input.pubchem_file} '
+        '--max_mols 100000 '
+        '--output_file {output.output_file} '
+
+
+rule calculate_outcome_distrs:
+    input:
+        input_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_outcome_distr.csv",
+    output:
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv",
+    resources:
+        mem_mb=64000,
+        runtime=1000,
+    shell:
+        'clm calculate_outcome_distrs '
+        '--input_file {input.input_file} '
         '--output_file {output.output_file} '
