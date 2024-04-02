@@ -1,0 +1,4 @@
+smiles,mass,formula,size
+BrC(Br)(Br)C1(C(Br)(Br)Br)C=CC(C(Br)(Br)Br)(C(Br)(Br)Br)O1,1061.03061,C8H2Br12O,5
+BrC(Br)C(Br)(c1ccccc1)C(Br)(c1ccccc1)C(Br)(Br)Br,755.51444,C16H11Br7,6
+[N+]O,31.005265,HNO+,1

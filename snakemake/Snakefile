@@ -214,7 +214,7 @@ rule tabulate_molecules:
 
 rule collect_tabulated_molecules:
     """
-    Aggregate sampled smiles from all models run on a fold, adding
+    Aggregate sampled smiles from all samples obtained in a fold, adding
     sampling frequency in the process.
     """
     input:

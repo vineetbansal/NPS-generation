@@ -1,6 +1,7 @@
 import argparse
 import os
 import pandas as pd
+from clm.functions import set_seed, seed_type
 
 parser = argparse.ArgumentParser(description=__doc__)
 
@@ -21,6 +22,9 @@ def add_args(parser):
         required=True,
         help="Path to the save the output file",
     )
+    parser.add_argument(
+        "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
+    )
 
     return parser
 
@@ -36,14 +40,25 @@ def function(df, split_data):
     return pd.concat([current.assign(source="DeepMet"), match.assign(source="PubChem")])
 
 
-def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file):
+def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
+    set_seed(seed)
     sample_file = pd.read_csv(sample_file, delimiter=",")
     sample = sample_file.sample(
         n=sample_no, replace=True, weights=sample_file["size"], ignore_index=True
     )
-    pubchem = pd.read_csv(
-        pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
-    )
+    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+
+    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    match len(pubchem.columns):
+        case 3:
+            pubchem.columns = ["smiles", "mass", "formula"]
+        case 4:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+            # ignore the fingerprint column since we don't need it
+            pubchem = pubchem.drop(columns="fingerprint")
+        case _:
+            raise RuntimeError("Unexpected column count for PubChem")
 
     formulas = set(sample.formula)
     pubchem = pubchem[pubchem["formula"].isin(formulas)]
@@ -63,6 +78,7 @@ def main(args):
         sample_no=args.sample_no,
         pubchem_file=args.pubchem_file,
         output_file=args.output_file,
+        seed=args.seed,
     )
 
 

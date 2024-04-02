@@ -7,6 +7,7 @@ from clm.commands.calculate_outcomes import (
     calculate_outcomes_dataframe,
     calculate_outcomes,
 )
+from clm.commands.inner_prep_nn_tc_PubChem import prep_nn_tc
 from clm.commands.write_nn_Tc import write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
@@ -60,6 +61,20 @@ def test_calculate_outcomes():
             .sort_values(["outcome", "bin"])
             .reset_index(drop=True),
         )
+
+
+def test_prep_nn_tc():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_file = Path(temp_dir) / "prep_nn_tc_PubChem.csv"
+        prep_nn_tc(
+            sample_file=test_dir / "prep_nn_tc_input.csv",
+            sample_no=100,
+            pubchem_file=test_dir / "PubChem_truncated.tsv",
+            output_file=output_file,
+            seed=0,
+        )
+
+        assert_checksum_equals(output_file, test_dir / "prep_nn_tc_output.csv")
 
 
 def test_write_nn_tc():
