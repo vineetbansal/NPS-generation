@@ -11,6 +11,7 @@ from clm.commands.write_nn_Tc import write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
 from clm.commands.calculate_outcome_distrs import calculate_outcome_distr
+from clm.commands.add_carbon import add_carbon
 from clm.functions import assert_checksum_equals
 
 base_dir = Path(__file__).parent.parent
@@ -114,3 +115,15 @@ def test_outcome_distr():
 
         true_outcomes = pd.read_csv(test_dir / "outcome_distr.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
+
+
+def test_add_carbon():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_file = Path(temp_dir) / "add_carbon.csv"
+        add_carbon(
+            input_file=test_dir / "LOTUS_SMILES_0_unique_masses_trunc.csv",
+            output_file=output_file,
+            seed=0,
+        )
+
+        assert_checksum_equals(output_file, test_dir / "add_carbon.csv")
