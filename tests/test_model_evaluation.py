@@ -64,7 +64,6 @@ def test_calculate_outcomes():
 
 def test_prep_nn_tc():
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = "out"
         output_file = Path(temp_dir) / "prep_nn_tc_PubChem.csv"
         prep_nn_tc(
             sample_file=test_dir / "prep_nn_tc_input.csv",
