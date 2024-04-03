@@ -32,7 +32,7 @@ rdBase.DisableLog("rdApp.error")
 
 def add_args(parser):
     parser.add_argument("--input_file", type=str, help="Path to the input file.")
-    parser.add_argument("--output_file", type=str, help="ca to the output file")
+    parser.add_argument("--output_file", type=str, help="Path to the output file")
     return parser
 
 
