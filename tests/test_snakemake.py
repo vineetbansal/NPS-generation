@@ -17,7 +17,7 @@ pubchem_tsv_file = base_dir / "tests/test_data/PubChem_truncated.tsv"
 def test_snakemake():
     with tempfile.TemporaryDirectory() as temp_dir:
         success = snakemake.snakemake(
-            snakefile=snakefile,
+            snakefile=str(snakefile),
             cores=1,
             configfiles=[config_file],
             config={
