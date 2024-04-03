@@ -21,6 +21,7 @@ from clm.commands import (
     write_outcome_distr,
     calculate_outcome_distrs,
     add_carbon,
+    plot,
 )
 
 
@@ -50,6 +51,7 @@ def main():
         write_outcome_distr,
         calculate_outcome_distrs,
         add_carbon,
+        plot,
     )
 
     subparsers = parser.add_subparsers(title="Choose a command")
