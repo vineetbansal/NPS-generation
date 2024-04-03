@@ -7,7 +7,7 @@ def add_args(parser):
         "evaluation_type",
         type=str,
         help="Type of evaluation you want figures of. Valid options are:  \n"
-             " calculate_outcomes",
+        " calculate_outcomes",
     )
     parser.add_argument(
         "--outcome_dir",
