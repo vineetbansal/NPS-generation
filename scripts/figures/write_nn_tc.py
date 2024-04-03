@@ -1,20 +1,38 @@
 import argparse
 import glob
 import pandas as pd
+from pathlib import Path
+import os
 from matplotlib import pyplot as plt
 import seaborn as sns
 from clm.commands.inner_prep_outcomes_freq import prep_outcomes_freq
 
 
 def add_args(parser):
-    parser.add_argument("--outcome_dir", type=str, help="Path to the write nn tc file")
     parser.add_argument(
-        "--plot_type", type=str, help="The metrics that you want to plot"
+        "--outcome_dir",
+        type=str,
+        help="Path to directory where all the model evaluation files are saved ",
+    )
+    parser.add_argument(
+        "--plot_type",
+        type=str,
+        help="The figure to be plotted: \n"
+        "1. 'A' for nn_tc of Generated vs. PubChem \n"
+        "2. 'B' for nn_tc by Frequency \n",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        help="Path to directory to save resulting images(s) at",
     )
     return parser
 
 
-def plot(outcome_dir, plot_type):
+def plot(outcome_dir, plot_type, output_dir):
+    # Make an output directory if it doesn't yet
+    os.makedirs(output_dir, exist_ok=True)
+
     source_map = {
         "DeepMet": "Generated metabolites",
         "PubChem": "Negative control (PubChem)",
@@ -25,6 +43,7 @@ def plot(outcome_dir, plot_type):
     )
 
     if plot_type == "A":
+        # Generate a dictionary of source and respective values to be plotted
         split_outcomes = {
             source_map[df["source"].iloc[0]]: list(df["nn_tc"])
             for _, df in outcome.groupby("source")
@@ -45,7 +64,9 @@ def plot(outcome_dir, plot_type):
         plt.title(plot_type)
         plt.ylabel("Nearest-neighbor Tc")
         plt.xticks(list(range(len(labels))), labels)
-        plt.savefig("scripts/figures/fig/nn_tc_gen_v_pubchem.png")
+
+        file_name = Path(output_dir) / "nn_tc_gen_v_pubchem"
+        plt.savefig(file_name)
         plt.show()
 
     else:
@@ -57,9 +78,13 @@ def plot(outcome_dir, plot_type):
             "31-100": "31-100",
             "101-": ">100",
         }
+
+        # Split the outcomes by frequency bins
         outcome_freq = prep_outcomes_freq(
-            outcome, max_molecules=10_000_000, output_file="nn_tc_freq.csv"
+            outcome, max_molecules=10_000_000, output_file=None
         )
+
+        # Generate a dictionary of frequency bin and respective value (nn_tc) to be plotted
         split_freq = {
             freq_map[df["bin"].iloc[0]]: list(df["nn_tc"])
             for df in [outcome_freq[outcome_freq["bin"] == i] for i in freq_map.keys()]
@@ -82,12 +107,18 @@ def plot(outcome_dir, plot_type):
         plt.ylabel("Nearest-neighbor Tc")
         plt.xlabel("Frequency")
         plt.xticks(list(range(len(labels))), labels)
-        plt.savefig("scripts/figures/fig/nn_tc_by_freq.png")
+
+        file_name = Path(output_dir) / "nn_tc_by_freq"
+        plt.savefig(file_name)
         plt.show()
 
 
 def main(args):
-    plot(outcome_dir=args.outcome_dir, plot_type=args.plot_type)
+    plot(
+        outcome_dir=args.outcome_dir,
+        plot_type=args.plot_type,
+        output_dir=args.output_dir,
+    )
 
 
 if __name__ == "__main__":

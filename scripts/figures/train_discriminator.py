@@ -1,5 +1,6 @@
 import argparse
 import glob
+from pathlib import Path
 import pandas as pd
 import seaborn as sns
 import numpy as np
@@ -9,14 +10,27 @@ from sklearn.metrics import confusion_matrix
 
 
 def add_args(parser):
-    parser.add_argument("--outcome_dir", type=str, help="Path to input file")
     parser.add_argument(
-        "--plot_type", type=str, help="The type of plot you wanna visualize"
+        "--outcome_dir",
+        type=str,
+        help="Path to directory where all the model evaluation files are saved ",
+    )
+    parser.add_argument(
+        "--plot_type",
+        type=str,
+        help="The type of plot you would like to visualize: \n"
+        "1. 'A' for ROC curve, classifying Training vs Generated Molecules \n"
+        "2. 'B' for confusion matrix, classifying Training vs Generated Molecules \n",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        help="Path to directory to save resulting images(s) at",
     )
     return parser
 
 
-def plot(outcome_dir, plot_type):
+def plot(outcome_dir, plot_type, output_dir):
     outcome_files = glob.glob(f"{outcome_dir}/*train_discriminator_.csv")
     outcome = pd.concat(
         [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
@@ -45,7 +59,9 @@ def plot(outcome_dir, plot_type):
         plt.ylabel("True Positive Rate")
         plt.title("ROC curve, classifying training vs. generated molecules")
         plt.legend(loc="lower right")
-        plt.savefig("scripts/figures/ped_fig/train_disc_line.png")
+
+        filepath = Path(output_dir) / "train_disc_line"
+        plt.savefig(filepath)
         plt.show()
 
     else:
@@ -68,12 +84,18 @@ def plot(outcome_dir, plot_type):
         plt.ylabel("True label")
         plt.xlabel("Predicted label")
         plt.title("Confusion Matrix, classifying training vs. generated molecules")
-        plt.savefig("scripts/figures/ped_fig/train_disc_confusion_matrix.png")
+
+        filepath = Path(output_dir) / "train_disc_confusion_matrix"
+        plt.savefig(filepath)
         plt.show()
 
 
 def main(args):
-    plot(outcome_dir=args.outcome_dir, plot_type=args.plot_type)
+    plot(
+        outcome_dir=args.outcome_dir,
+        plot_type=args.plot_type,
+        output_dir=args.output_dir,
+    )
 
 
 if __name__ == "__main__":

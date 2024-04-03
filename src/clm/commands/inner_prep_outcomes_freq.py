@@ -44,7 +44,8 @@ def prep_outcomes_freq(sample_file, max_molecules, output_file):
 
     # Save only the rows where we've assigned a bin
     data = data[data["bin"] != ""].reset_index(drop=True)
-    data.to_csv(output_file, index=False)
+    if output_file is not None:
+        data.to_csv(output_file, index=False)
 
     return data
 

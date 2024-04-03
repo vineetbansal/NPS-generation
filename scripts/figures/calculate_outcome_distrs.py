@@ -7,7 +7,11 @@ import seaborn as sns
 
 
 def add_args(parser):
-    parser.add_argument("--outcome_dir", type=str, help="Path to outcome directory")
+    parser.add_argument(
+        "--outcome_dir",
+        type=str,
+        help="Path to directory where all the model evaluation files are saved ",
+    )
     parser.add_argument(
         "--plot_type", type=str, help="The metrics that you want to plot"
     )
@@ -22,17 +26,16 @@ def plot(outcome_dir, plot_type):
 
     split_outcomes = {outcome: df for outcome, df in outcome.groupby("outcome")}
 
-    if plot_type == 'A':
-        outcome_map = {
-            "Molecular weight",
-            "QED",
-            "% sp3 carbons"
-        }
+    if plot_type == "A":
+        outcome_map = {"Molecular weight", "QED", "% sp3 carbons"}
         for plot_type in outcome_map:
             chosen_outcome = split_outcomes[plot_type]
-            split_source = pd.DataFrame({
-                source: df['value'].reset_index(drop=True) for source, df in chosen_outcome.groupby('source')
-            })
+            split_source = pd.DataFrame(
+                {
+                    source: df["value"].reset_index(drop=True)
+                    for source, df in chosen_outcome.groupby("source")
+                }
+            )
 
             sns.kdeplot(
                 data=split_source,
@@ -45,7 +48,6 @@ def plot(outcome_dir, plot_type):
             file_path = f"scripts/figures/ped_fig/{plot_type}.png"
             plt.savefig(file_path)
             plt.show()
-
 
 
 def main(args):
