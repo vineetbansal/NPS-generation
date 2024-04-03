@@ -22,7 +22,7 @@ from rdkit.Chem.rdMolDescriptors import (
 from tqdm import tqdm
 
 # import functions
-from clm.functions import clean_mols, pct_rotatable_bonds, pct_stereocenters, set_seed
+from clm.functions import clean_mol, pct_rotatable_bonds, pct_stereocenters, set_seed
 
 # suppress Chem.MolFromSmiles error output
 from rdkit import rdBase
@@ -32,7 +32,7 @@ rdBase.DisableLog("rdApp.error")
 
 def add_args(parser):
     parser.add_argument("--input_file", type=str, help="Path to the input file.")
-    parser.add_argument("--output_file", type=str, help="Path to the output file")
+    parser.add_argument("--output_file", type=str, help="ca to the output file")
     return parser
 
 
@@ -45,7 +45,7 @@ def calculate_outcome_distr(input_file, output_file, seed=None):
     # read SMILES and convert to molecules
     df = pd.read_csv(input_file)
     smiles = df["smiles"].tolist()
-    mols = clean_mols(smiles)
+    mols = [clean_mol(smile, raise_error=False) for smile in smiles]
     idxs = [idx for idx, mol in enumerate(mols) if mol]
     mols = [mols[idx] for idx in idxs]
     smiles = [smiles[idx] for idx in idxs]
