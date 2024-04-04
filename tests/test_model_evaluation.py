@@ -95,6 +95,8 @@ def test_write_nn_tc():
 
         assert_checksum_equals(output_file, test_dir / "write_nn_tc.csv")
 
+        plot(evaluation_type="write_nn_tc", outcome_dir=temp_dir, output_dir=temp_dir)
+
 
 def test_write_freq_distribution():
     with tempfile.TemporaryDirectory() as temp_dir:
