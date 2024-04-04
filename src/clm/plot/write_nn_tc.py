@@ -28,13 +28,10 @@ def plot_generated_v_ref(outcome, output_dir):
         "PubChem": "Negative control (PubChem)",
     }
 
-    # Generate a dictionary of source and respective values to be plotted
-    split_outcomes = {
-        source_map[df["source"].iloc[0]]: list(df["nn_tc"])
-        for _, df in outcome.groupby("source")
-    }
-    data = list(split_outcomes.values())
-    labels = list(split_outcomes.keys())
+    data, labels = [], []
+    for source, df in outcome.groupby("source"):
+        data.append(df["nn_tc"].tolist())
+        labels.append(source_map[source])
 
     sns.violinplot(
         data=data,
@@ -58,26 +55,14 @@ def plot_generated_v_ref(outcome, output_dir):
 
 
 def plot_by_frequency(outcome, output_dir):
-    freq_map = {
-        "1-1": "1",
-        "2-2": "2",
-        "3-10": "3-10",
-        "11-30": "11-30",
-        "31-100": "31-100",
-        "101-": ">100",
-    }
 
     # Split the outcomes by frequency bins
-    outcome_freq = prep_outcomes_freq(outcome, max_molecules=5000)
+    outcome_freq = prep_outcomes_freq(outcome, max_molecules=10000000)
 
-    # Generate a dictionary of frequency bin and respective value (nn_tc) to be plotted
-    split_freq = {
-        freq_map[df["bin"].iloc[0]]: list(df["nn_tc"])
-        for df in [outcome_freq[outcome_freq["bin"] == i] for i in freq_map.keys()]
-    }
-
-    data = list(split_freq.values())
-    labels = list(split_freq.keys())
+    data, labels = [], []
+    for bin, df in outcome_freq.groupby("bin"):
+        data.append(df["nn_tc"].tolist())
+        labels.append(bin)
 
     sns.violinplot(
         data=data,
