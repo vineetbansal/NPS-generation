@@ -28,7 +28,9 @@ dependencies = [
     "selfies",
     "snakemake",
     "torch",
-    "tqdm"
+    "tqdm",
+    "seaborn",
+    "matplotlib"
 ]
 dynamic = ["version"]
 
