@@ -71,13 +71,16 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
     )
 
     np_fps = []
-    for smile in tqdm(np.concatenate((train_smiles, novel_smiles), axis=0)):
+    labels = []
+    for idx, smile in tqdm(
+        enumerate(np.concatenate((train_smiles, novel_smiles), axis=0))
+    ):
         if (fp := calculate_fingerprint(smile)) is not None:
             arr = np.zeros((1,))
             DataStructs.ConvertToNumpyArray(fp, arr)
             np_fps.append(arr)
 
-    labels = [1] * len(train_smiles) + [0] * len(novel_smiles)
+            labels.append(1) if idx < len(train_smiles) else labels.append(0)
 
     # Split into train/test folds
     X_train, X_test, y_train, y_test = train_test_split(
