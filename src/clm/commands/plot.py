@@ -1,5 +1,6 @@
 import argparse
 from clm.plot.calculate_outcomes import plot as calculate_outcomes
+from clm.plot.write_nn_tc import plot as write_nn_tc
 
 
 def add_args(parser):
@@ -27,6 +28,8 @@ def add_args(parser):
 def plot(evaluation_type, outcome_dir, output_dir):
     if evaluation_type == "calculate_outcomes":
         calculate_outcomes(outcome_dir, output_dir)
+    elif evaluation_type == "write_nn_tc":
+        write_nn_tc(outcome_dir, output_dir)
 
 
 def main(args):
