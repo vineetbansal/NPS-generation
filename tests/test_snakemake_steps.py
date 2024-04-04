@@ -240,7 +240,7 @@ def test_08_write_structural_prior_CV():
             test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi",
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
-            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
+            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg_with_invalid_smile.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,
