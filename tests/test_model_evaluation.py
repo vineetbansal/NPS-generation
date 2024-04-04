@@ -13,6 +13,7 @@ from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
 from clm.commands.calculate_outcome_distrs import calculate_outcome_distr
 from clm.commands.add_carbon import add_carbon
+from clm.commands.plot import plot
 from clm.functions import assert_checksum_equals
 
 base_dir = Path(__file__).parent.parent
@@ -39,7 +40,7 @@ def test_generate_outcome_dicts():
 
 def test_calculate_outcomes():
     with tempfile.TemporaryDirectory() as temp_dir:
-        output_file = Path(temp_dir) / "calculate_outcome.csv"
+        output_file = Path(temp_dir) / "calculate_outcomes.csv"
         outcomes = calculate_outcomes(
             sampled_file=test_dir / "prep_outcomes_freq.csv",
             # For LOTUS, train/test "_all.smi" files are the same
@@ -60,6 +61,12 @@ def test_calculate_outcomes():
             true_outcomes.sort_index(axis=1)
             .sort_values(["outcome", "bin"])
             .reset_index(drop=True),
+        )
+
+        plot(
+            evaluation_type="calculate_outcomes",
+            outcome_dir=temp_dir,
+            output_dir=temp_dir,
         )
 
 
