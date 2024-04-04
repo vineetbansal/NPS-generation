@@ -1,4 +1,5 @@
 import argparse
+import io
 import pandas as pd
 from clm.functions import set_seed, seed_type
 
@@ -22,9 +23,11 @@ def add_args(parser):
     return parser
 
 
-def prep_outcomes_freq(sample_file, max_molecules, output_file, seed=None):
+def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
     set_seed(seed)
-    data = pd.read_csv(sample_file)
+
+    # Samples can be a csv file or a dataframe
+    data = pd.read_csv(samples) if isinstance(samples, io.TextIOBase) else samples
 
     # TODO: make this process dynamic later
     frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
@@ -45,14 +48,16 @@ def prep_outcomes_freq(sample_file, max_molecules, output_file, seed=None):
 
     # Save only the rows where we've assigned a bin
     data = data[data["bin"] != ""].reset_index(drop=True)
-    data.to_csv(output_file, index=False)
+
+    if output_file is not None:
+        data.to_csv(output_file, index=False)
 
     return data
 
 
 def main(args):
     prep_outcomes_freq(
-        sample_file=args.sample_file,
+        samples=args.sample_file,
         max_molecules=args.max_molecules,
         output_file=args.output_file,
         seed=args.seed,
