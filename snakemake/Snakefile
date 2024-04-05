@@ -372,6 +372,7 @@ rule write_structural_prior_CV_overall:
         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv"
     resources:
         mem_mb=64000,
+        cpus_per_task=8,
         runtime=15+MODEL_PARAMS["sample_mols"]//5000,
     shell:
         'clm inner_write_structural_prior_CV '

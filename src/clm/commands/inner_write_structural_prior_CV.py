@@ -1,4 +1,5 @@
 import argparse
+import os
 import numpy as np
 import logging
 import pandas as pd
@@ -56,8 +57,8 @@ def add_args(parser):
     parser.add_argument(
         "--n_threads",
         type=int,
-        default=1,
-        help="Number of threads to use. (default: 1)",
+        default=None,
+        help="Number of threads to use.",
     )
     return parser
 
@@ -176,7 +177,7 @@ def write_structural_prior_CV(
     err_ppm,
     chunk_size,
     seed,
-    n_threads=1,
+    n_threads=None,
 ):
     set_seed(seed)
 
@@ -230,6 +231,7 @@ def write_structural_prior_CV(
         return results
 
     rank_df, tc_df = pd.DataFrame(), pd.DataFrame()
+    n_threads = n_threads or int(os.environ.get("SLURM_NPROCS", 1))
     chunks_indices = np.array_split(np.arange(len(test)), n_threads)
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
         future_map = {}
