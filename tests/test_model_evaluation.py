@@ -127,6 +127,12 @@ def test_train_discriminator():
         true_outcomes = pd.read_csv(test_dir / "train_discriminator.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
+        plot(
+            evaluation_type="train_discriminator",
+            outcome_dir=temp_dir,
+            output_dir=temp_dir,
+        )
+
 
 def test_outcome_distr():
     with tempfile.TemporaryDirectory() as temp_dir:
