@@ -231,7 +231,7 @@ def write_structural_prior_CV(
         return results
 
     rank_df, tc_df = pd.DataFrame(), pd.DataFrame()
-    n_threads = n_threads or int(os.environ.get("SLURM_NPROCS", 1))
+    n_threads = n_threads or int(os.environ.get("SLURM_CPUS_PER_TASK", 1))
     chunks_indices = np.array_split(np.arange(len(test)), n_threads)
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
         future_map = {}
