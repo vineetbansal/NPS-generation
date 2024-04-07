@@ -203,7 +203,7 @@ rule tabulate_molecules:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_samples_masses.csv",
     resources:
         mem_mb=32000,
-        runtime=15+MODEL_PARAMS["sample_mols"]//100000,
+        runtime=lambda wildcards: 15+MODEL_PARAMS["sample_mols"]*(int(wildcards["enum_factor"])+1)//100000,
     shell:
         'clm inner_tabulate_molecules '
         '--input_file {input.input_file} '
@@ -222,7 +222,7 @@ rule collect_tabulated_molecules:
     output:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
     resources:
-        mem_mb=4000,
+        mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//1000000,
     shell:
         'clm inner_collect_tabulated_molecules '
@@ -248,7 +248,7 @@ rule process_tabulated_molecules:
     output:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv",
     resources:
-        mem_mb=64000,
+        mem_mb=128000,
         runtime=15+MODEL_PARAMS["sample_mols"]//100000,
     shell:
         'clm inner_process_tabulated_molecules '
@@ -371,8 +371,8 @@ rule write_structural_prior_CV_overall:
         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv"
     resources:
-        mem_mb=64000,
         cpus_per_task=8,
+        mem_mb=128000,
         runtime=15+MODEL_PARAMS["sample_mols"]//5000,
     shell:
         'clm inner_write_structural_prior_CV '

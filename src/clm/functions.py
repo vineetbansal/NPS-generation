@@ -424,7 +424,9 @@ def get_mass_range(mass, err_ppm):
 
 
 def write_to_csv_file(file_name, df):
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    dirname = os.path.dirname(file_name)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
     df.to_csv(
         file_name,
         index=False,
