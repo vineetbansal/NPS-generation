@@ -240,9 +240,9 @@ def write_structural_prior_CV(
         results = future.result()
         for result in results:
             rank = pd.concat(result[0].to_list())
-            rank.insert(0, "Index", result[0].index)
+            rank.insert(0, "Index", range(len(rank)))
             tc = pd.concat(result[1].to_list())
-            tc.insert(0, "Index", result[1].index)
+            tc.insert(0, "Index", range(len(tc)))
             rank_df = pd.concat([rank_df, rank])
             tc_df = pd.concat([tc_df, tc])
 
