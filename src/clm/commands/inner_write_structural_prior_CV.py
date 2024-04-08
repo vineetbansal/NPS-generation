@@ -37,6 +37,12 @@ def add_args(parser):
         help="Path to the file containing PubChem information.",
     )
     parser.add_argument(
+        "--carbon_file",
+        type=str,
+        default=None,
+        help="Path to the training dataset altered by the add carbon step.",
+    )
+    parser.add_argument(
         "--sample_file", type=str, help="Path to the file containing sample molecules."
     )
     parser.add_argument(
@@ -175,6 +181,7 @@ def write_structural_prior_CV(
     chunk_size,
     seed,
     n_threads=None,
+    carbon_file=None,
 ):
     set_seed(seed)
 
@@ -217,6 +224,18 @@ def write_structural_prior_CV(
         "PubChem": pubchem.assign(source="PubChem"),
         "train": train.assign(source="train"),
     }
+
+    if carbon_file:
+        addcarbon = pd.read_csv(carbon_file, delimiter=r"\s")
+
+        # Rename carbon's column names to coincide with other inputs and drop input smiles
+        addcarbon.rename(columns={"mutated_smiles": "smiles"}, inplace=True)
+        addcarbon.drop(columns="input_smiles", inplace=True)
+
+        # assign frequencies of add carbons as none
+        addcarbon = addcarbon.assign(size=np.nan)
+
+        inputs["addcarbon"] = addcarbon.assign(source="addcarbon")
 
     def process_chunk(indices):
         results = []
@@ -264,6 +283,7 @@ def main(args):
         chunk_size=args.chunk_size,
         seed=args.seed,
         n_threads=args.n_threads,
+        carbon_file=args.carbon_file,
     )
 
 
