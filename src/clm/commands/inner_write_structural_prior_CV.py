@@ -12,7 +12,6 @@ from clm.functions import (
     get_ecfp6_fingerprints,
     set_seed,
     seed_type,
-    clean_mols,
     clean_mol,
     generate_df,
     get_mass_range,
@@ -137,11 +136,9 @@ def match_molecules(row, dataset, data_type):
         if "target_fingerprint" in tc:
             target_fps = [get_fp_obj(fp) for fp in tc["target_fingerprint"]]
         else:
-            target_mols = clean_mols(
-                tc["target_smiles"].values,
-                selfies=False,
-                disable_progress=True,
-            )
+            target_mols = [
+                clean_mol(smile, selfies=False) for smile in tc["target_smiles"].values
+            ]
             target_fps = get_ecfp6_fingerprints(target_mols)
         tc["Tc"] = [
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
