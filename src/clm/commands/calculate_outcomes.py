@@ -104,7 +104,7 @@ def smile_properties_dataframe(input_file, max_smiles=None):
             smile_only=True,
             stream=True,
             max_lines=max_smiles,
-            randomize=True,
+            randomize=False,
         ),
         start=1,
     ):

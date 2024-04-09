@@ -198,7 +198,7 @@ def read_file(
         return iter(data) if stream else data
     else:
         gen = _read_file(smiles_file, max_lines, smile_only)
-        return gen if stream else list(gen)
+        return gen if stream else np.array(list(gen))
 
 
 def write_smiles(smiles, smiles_file, mode="w"):
