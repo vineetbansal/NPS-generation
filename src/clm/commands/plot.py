@@ -2,6 +2,7 @@ import argparse
 from clm.plot.calculate_outcomes import plot as calculate_outcomes
 from clm.plot.write_nn_tc import plot as write_nn_tc
 from clm.plot.train_discriminator import plot as train_discriminator
+from clm.plot.freq_distribution import plot as freq_distribution
 
 
 def add_args(parser):
@@ -9,7 +10,7 @@ def add_args(parser):
         "evaluation_type",
         type=str,
         help="Type of evaluation you want figures of. Valid options are:  \n"
-        " calculate_outcomes, write_nn_tc, train_discriminator",
+        " calculate_outcomes, write_nn_tc, train_discriminator, freq_distribution \n",
     )
     parser.add_argument(
         "--outcome_dir",
@@ -33,6 +34,8 @@ def plot(evaluation_type, outcome_dir, output_dir):
         write_nn_tc(outcome_dir, output_dir)
     elif evaluation_type == "train_discriminator":
         train_discriminator(outcome_dir, output_dir)
+    elif evaluation_type == "freq_distribution":
+        freq_distribution(outcome_dir, output_dir)
 
 
 def main(args):
