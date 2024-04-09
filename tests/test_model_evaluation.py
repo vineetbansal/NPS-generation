@@ -110,6 +110,12 @@ def test_write_freq_distribution():
         true_outcomes = pd.read_csv(test_dir / "write_freq_distribution.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
+        plot(
+            evaluation_type="freq_distribution",
+            outcome_dir=temp_dir,
+            output_dir=temp_dir,
+        )
+
 
 def test_train_discriminator():
     with tempfile.TemporaryDirectory() as temp_dir:
