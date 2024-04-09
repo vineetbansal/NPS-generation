@@ -144,7 +144,25 @@ def get_column_idx(input_file, column_name):
     return idx
 
 
-def read_file(smiles_file, max_lines=None, smile_only=False, stream=False):
+def read_file(
+    smiles_file, max_lines=None, smile_only=False, stream=False, randomize=False
+):
+    """
+    Read a line-delimited file of SMILES strings, optionally limiting the number
+    of lines read and/or returning only the SMILES strings themselves.
+    Randomization, if enabled, will shuffle the lines in the file before reading.
+
+    Args:
+        smiles_file: Input file containing SMILES strings, or comma-separated file with "smiles" in the header.
+        max_lines: Maximum number of lines to return.
+        smile_only: Whether to return only the SMILES strings.
+        stream: Whether to return a generator or a list.
+        randomize: Whether to shuffle the lines in the file before reading.
+
+    Returns:
+        An iterator or list of strings.
+    """
+
     def _read_file(
         input_file,
         max_lines=None,
@@ -171,11 +189,16 @@ def read_file(smiles_file, max_lines=None, smile_only=False, stream=False):
                 if max_lines is not None and count == max_lines:
                     return
 
-    gen = _read_file(smiles_file, max_lines, smile_only)
-    if stream:
-        return gen
+    if randomize:
+        # if randomizing, we have to consume the generator and shuffle it
+        gen = _read_file(smiles_file, max_lines=None, smile_only=smile_only)
+        data = np.array(list(gen))
+        np.random.shuffle(data)
+        data = data[:max_lines]
+        return iter(data) if stream else data
     else:
-        return np.array(list(gen))
+        gen = _read_file(smiles_file, max_lines, smile_only)
+        return gen if stream else list(gen)
 
 
 def write_smiles(smiles, smiles_file, mode="w"):
