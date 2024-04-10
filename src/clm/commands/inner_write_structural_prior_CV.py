@@ -216,7 +216,6 @@ def write_structural_prior_CV(
         "train": train.assign(source="train"),
     }
 
-
     if carbon_file:
         addcarbon = pd.read_csv(carbon_file, delimiter=r"\s")
 
