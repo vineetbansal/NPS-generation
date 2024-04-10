@@ -1,12 +1,10 @@
 import argparse
-import os
 import numpy as np
 import logging
 import pandas as pd
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from clm.functions import (
     get_ecfp6_fingerprints,
@@ -37,6 +35,12 @@ def add_args(parser):
         help="Path to the file containing PubChem information.",
     )
     parser.add_argument(
+        "--carbon_file",
+        type=str,
+        default=None,
+        help="Path to the training dataset altered by the add carbon step.",
+    )
+    parser.add_argument(
         "--sample_file", type=str, help="Path to the file containing sample molecules."
     )
     parser.add_argument(
@@ -52,12 +56,6 @@ def add_args(parser):
     )
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
-    )
-    parser.add_argument(
-        "--n_threads",
-        type=int,
-        default=None,
-        help="Number of threads to use.",
     )
     return parser
 
@@ -174,7 +172,7 @@ def write_structural_prior_CV(
     err_ppm,
     chunk_size,
     seed,
-    n_threads=None,
+    carbon_file=None,
 ):
     set_seed(seed)
 
@@ -218,33 +216,33 @@ def write_structural_prior_CV(
         "train": train.assign(source="train"),
     }
 
-    def process_chunk(indices):
-        results = []
-        for datatype, dataset in inputs.items():
-            result = test.iloc[indices].progress_apply(
-                lambda x: match_molecules(x, dataset, datatype), axis=1
-            )
-            results.append(result)
-        return results
+    if carbon_file:
+        addcarbon = pd.read_csv(carbon_file, delimiter=r"\s")
+
+        # Rename carbon's column names to coincide with other inputs and drop input smiles
+        addcarbon.rename(columns={"mutated_smiles": "smiles"}, inplace=True)
+        addcarbon.drop(columns="input_smiles", inplace=True)
+
+        # assign frequencies of add carbons as none
+        addcarbon = addcarbon.assign(size=np.nan)
+
+        inputs["addcarbon"] = addcarbon.assign(source="addcarbon")
 
     rank_df, tc_df = pd.DataFrame(), pd.DataFrame()
-    n_threads = n_threads or int(os.environ.get("SLURM_CPUS_PER_TASK", 1))
-    chunks_indices = np.array_split(np.arange(len(test)), n_threads)
-    with ThreadPoolExecutor(max_workers=n_threads) as executor:
-        future_map = {}
-        for i, chunk_indices in enumerate(chunks_indices[::-1]):
-            future = executor.submit(process_chunk, chunk_indices)
-            future_map[future] = i
+    for datatype, dataset in inputs.items():
+        logging.info(f"Generating statistics for model {datatype}")
 
-    for future in as_completed(future_map):
-        results = future.result()
-        for result in results:
-            rank = pd.concat(result[0].to_list())
-            rank.insert(0, "Index", result[0].index)
-            tc = pd.concat(result[1].to_list())
-            tc.insert(0, "Index", result[1].index)
-            rank_df = pd.concat([rank_df, rank])
-            tc_df = pd.concat([tc_df, tc])
+        results = test.progress_apply(
+            lambda x: match_molecules(x, dataset, datatype), axis=1
+        )
+
+        logging.info(f"Generated statistics for model {datatype}")
+        rank = pd.concat(results[0].to_list())
+        rank.insert(0, "Index", range(len(rank)))
+        tc = pd.concat(results[1].to_list())
+        tc.insert(0, "Index", range(len(tc)))
+        rank_df = pd.concat([rank_df, rank])
+        tc_df = pd.concat([tc_df, tc])
 
     write_to_csv_file(ranks_file, rank_df)
     write_to_csv_file(
@@ -263,7 +261,7 @@ def main(args):
         err_ppm=args.err_ppm,
         chunk_size=args.chunk_size,
         seed=args.seed,
-        n_threads=args.n_threads,
+        carbon_file=args.carbon_file,
     )
 
 
