@@ -8,6 +8,7 @@
   "seeds": [0, 1],
   "enum_factors": [0, 2],
   "max_input_smiles": 1000,
+  "add_carbon": false,
 
   "model_params": {
     "rnn_type": "LSTM",

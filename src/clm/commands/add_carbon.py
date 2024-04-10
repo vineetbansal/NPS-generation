@@ -10,7 +10,7 @@ from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
 # import functions
-from clm.functions import clean_mol, clean_mols, write_smiles, set_seed
+from clm.functions import clean_mol, write_smiles, set_seed, read_file
 
 
 def add_args(parser):
@@ -23,9 +23,7 @@ def add_args(parser):
 def add_carbon(input_file, output_file, seed=None):
     set_seed(seed)
     # make output directories
-    output_dir = os.path.dirname(output_file)
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     # remove output file if it exists
     if os.path.exists(output_file):
@@ -39,17 +37,10 @@ def add_carbon(input_file, output_file, seed=None):
     f.flush()
 
     # read the input SMILES
-    df = pd.read_csv(input_file)
-    # extract SMILES
-    if "canonical_smiles" in list(df):
-        df = df.dropna(subset=["canonical_smiles"])
-        smiles = df["canonical_smiles"].values
-    else:
-        df = df.dropna(subset=["smiles"])
-        smiles = df["smiles"].values
+    smiles = read_file(input_file, smile_only=True)
 
     # calculate inchikeys
-    train_mols = clean_mols(smiles)
+    train_mols = [clean_mol(smile, raise_error=False) for smile in smiles]
     train_inchi = [Chem.inchi.MolToInchiKey(mol) for mol in train_mols if mol]
 
     # loop over the input SMILES
