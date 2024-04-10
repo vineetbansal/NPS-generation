@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 from fcd_torch import FCD
+import logging
 from rdkit import Chem
 from rdkit.Chem import Descriptors, Lipinski, RDKFingerprint
 from rdkit.Chem.GraphDescriptors import BertzCT
@@ -33,6 +34,7 @@ from clm.functions import (
 
 rdBase.DisableLog("rdApp.error")
 fscore = npscorer.readNPModel()
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -96,8 +98,15 @@ molecular_properties = {
 
 def smile_properties_dataframe(input_file, max_smiles=None):
     data = []
-    for smile in read_file(
-        input_file, smile_only=True, stream=True, max_lines=max_smiles
+    for i, smile in enumerate(
+        read_file(
+            input_file,
+            smile_only=True,
+            stream=True,
+            max_lines=max_smiles,
+            randomize=False,
+        ),
+        start=1,
     ):
         if (mol := clean_mol(smile, raise_error=False)) is not None:
             row = tuple(fun(mol) for fun in molecular_properties.values())
@@ -105,6 +114,8 @@ def smile_properties_dataframe(input_file, max_smiles=None):
             row = tuple([None] * len(molecular_properties))
 
         data.append((smile,) + row)
+        if i % 1_000 == 0:
+            logger.info(f"Processed {i} SMILES")
 
     df = pd.DataFrame(data, columns=["smile"] + list(molecular_properties.keys()))
     return df
@@ -124,21 +135,29 @@ def calculate_probabilities(*dicts):
 
 
 def get_dataframes(train_file, sampled_file, max_orig_mols=None):
+    logger.info(f"Reading training smiles from {train_file}")
     train_df = smile_properties_dataframe(train_file)
+
+    logger.info(f"Reading sample smiles from {sampled_file}")
     sample_smiles_df = smile_properties_dataframe(
         sampled_file, max_smiles=max_orig_mols
     )
 
     sample_smiles_df["is_valid"] = sample_smiles_df.apply(
-        lambda row: clean_mol(row["smile"], raise_error=False) is not None, axis=1
+        lambda row: row["canonical_smile"] is not None, axis=1
     )
+    n_valid_smiles = sample_smiles_df["is_valid"].sum()
+    logger.info(f"{n_valid_smiles} valid SMILES out of {len(sample_smiles_df)}")
 
     sample_smiles_df["is_novel"] = sample_smiles_df.apply(
         lambda row: row["smile"] not in train_df["smile"], axis=1
     )
+    n_novel_smiles = sample_smiles_df["is_novel"].sum()
+    logger.info(f"{n_novel_smiles} novel SMILES out of {len(sample_smiles_df)}")
 
-    # Re-read the sample_file to obtain bin/other information, and merge
+    logger.info("Re-reading sample file to obtain bin/other information")
     sample_bin_df = pd.read_csv(sampled_file)
+    logger.info("Merging bin information")
     sample_df = sample_smiles_df.merge(
         sample_bin_df, left_on="smile", right_on="smiles"
     )
@@ -156,6 +175,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
 
     out = []
     for bin, bin_df in sample_df.groupby("bin"):
+        logger.info(f"Calculating outcomes for bin {bin}")
         bin_df = bin_df.reset_index(drop=True)
         element_distribution = dict(
             zip(
@@ -260,6 +280,7 @@ def calculate_outcomes(
     set_seed(seed)
     train_df, sample_df = get_dataframes(train_file, sampled_file, max_orig_mols)
 
+    logger.info("Calculating outcomes")
     out = calculate_outcomes_dataframe(sample_df, train_df)
 
     # `input_file` column added for legacy reasons

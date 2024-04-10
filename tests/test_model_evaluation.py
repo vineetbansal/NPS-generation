@@ -110,6 +110,12 @@ def test_write_freq_distribution():
         true_outcomes = pd.read_csv(test_dir / "write_freq_distribution.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
+        plot(
+            evaluation_type="freq_distribution",
+            outcome_dir=temp_dir,
+            output_dir=temp_dir,
+        )
+
 
 def test_train_discriminator():
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -149,11 +155,16 @@ def test_outcome_distr():
 
 def test_add_carbon():
     with tempfile.TemporaryDirectory() as temp_dir:
-        output_file = Path(temp_dir) / "add_carbon.csv"
+        output_dir = Path(temp_dir)
         add_carbon(
             input_file=test_dir / "LOTUS_SMILES_0_unique_masses_trunc.csv",
-            output_file=output_file,
+            output_file=output_dir / "add_carbon.csv",
             seed=0,
         )
 
-        assert_checksum_equals(output_file, test_dir / "add_carbon.csv")
+        assert_checksum_equals(
+            output_dir / "add_carbon.csv", test_dir / "add_carbon.csv"
+        )
+        assert_checksum_equals(
+            output_dir / "add_carbon-unique.smi", test_dir / "add_carbon-unique.smi"
+        )
