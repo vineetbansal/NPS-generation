@@ -134,8 +134,14 @@ rule collapse_train_test_data:
     run:
         # Note: We use python instead of sort | uniq > to avoid locale specific issues
         # on the command line, and get a deterministic sort
-        shell('python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.train_file} > {output.train_file} && '
-        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file} ')
+        def collapse(input_file, output_file):
+            with open(output_file, 'w') as f:
+                lines = ''.join(sorted(set(line for file_path in sorted(input_file) for line in open(file_path, 'r'))))
+                f.write(lines)
+
+        collapse(input.train_file, output.train_file)
+        collapse(input.test_file, output.test_file)
+
         if ADD_CARBON:
             import pandas as pd
             df = pd.concat([pd.read_csv(file, delimiter="\s+") for file in input.carbon_file]).drop_duplicates()
