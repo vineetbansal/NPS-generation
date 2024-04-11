@@ -77,9 +77,7 @@ def preprocess(
         input_smiles, neutralise=True, min_heavy_atoms=3, valid_atoms=None
     ):
         logger.info("Preprocessing chunk of {} SMILES".format(len(input_smiles)))
-        logger.info(
-            "converting {} input SMILES to molecules".format(len(input_smiles))
-        )
+        logger.info("converting {} input SMILES to molecules".format(len(input_smiles)))
         mols = clean_mols(input_smiles)
 
         logger.info("Removing heavy atoms from {} molecules".format(len(mols)))

@@ -23,7 +23,11 @@ def add_args(parser):
 
 def calculate_fingerprint(smile, ecfp6=False):
     if (mol := clean_mol(smile, raise_error=False)) is not None:
-        return AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024) if ecfp6 else Chem.RDKFingerprint(mol)
+        return (
+            AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024)
+            if ecfp6
+            else Chem.RDKFingerprint(mol)
+        )
     return None
 
 
@@ -49,7 +53,9 @@ def write_nn_Tc(query_file, reference_file, output_file, ecfp6=False):
     n_processed = 0
     for query in pd.read_csv(query_file, chunksize=10000):
         results = query["smiles"].apply(
-            lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref_fps, ecfp6=ecfp6)
+            lambda x: find_max_similarity_fingerprint(
+                x, ref_smiles, ref_fps, ecfp6=ecfp6
+            )
         )
         query = query.assign(nn_tc=[i[0] for i in results])
         query = query.assign(nn=[i[1] for i in results])
