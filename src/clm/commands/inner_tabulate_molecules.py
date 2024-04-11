@@ -41,7 +41,10 @@ def add_args(parser):
 def tabulate_molecules(input_file, train_file, representation, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    train_smiles = set(read_file(train_file))
+    train_smiles = read_file(train_file)
+    train_smiles_inchi_keys = set(
+        Chem.inchi.MolToInchiKey(Chem.MolFromSmiles(smile)) for smile in train_smiles
+    )
     sampled_smiles = read_file(input_file, stream=True)
 
     new_smiles = []
@@ -60,8 +63,9 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
             mass = round(Descriptors.ExactMolWt(mol), 6)
             formula = rdMolDescriptors.CalcMolFormula(mol)
             canonical_smile = Chem.MolToSmiles(mol, isomericSmiles=False)
+            inchi_key = Chem.inchi.MolToInchiKey(mol)
 
-            if canonical_smile not in train_smiles:
+            if inchi_key not in train_smiles_inchi_keys:
                 new_smiles.append([canonical_smile, mass, formula])
 
     freqs = (
