@@ -26,6 +26,8 @@ def test_snakemake():
                 "pubchem_tsv_file": pubchem_tsv_file,
                 "representations": ["SMILES"],
                 "enum_factors": [0],
+                "folds": 3,
+                "sample_seeds": [0],
                 "output_dir": temp_dir,
             },
             dryrun=False,
