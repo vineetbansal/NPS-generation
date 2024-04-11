@@ -34,11 +34,17 @@ def plot(outcome_dir, output_dir):
 
     # Plot every figure possible
     for outcome_name, _outcome in outcome.groupby("outcome"):
+        _data = {}
+        for bin, df in _outcome.groupby("bin"):
+            _data[bin] = df["value"].tolist()
+
+        # rearrange by bin ascending
         data = []
         labels = []
-        for bin, df in _outcome.groupby("bin"):
-            data.append(df["value"].tolist())
+        sorted_bins = sorted(_data.keys(), key=lambda x: int(x.split("-")[0]))
+        for bin in sorted_bins:
             labels.append(bin)
+            data.append(_data[bin])
 
         sns.violinplot(
             data=data,
