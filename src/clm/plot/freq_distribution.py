@@ -5,6 +5,7 @@ from collections import Counter
 import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
+import os
 
 
 def add_args(parser):
@@ -62,6 +63,9 @@ def plot_box_plot(novel_outcomes, output_dir):
 
 
 def plot(outcome_dir, output_dir):
+    # Make output directory if it doesn't exist yet
+    os.makedirs(output_dir, exist_ok=True)
+
     outcome_files = glob.glob(f"{outcome_dir}/*freq_distribution.csv")
     outcome = pd.concat(
         [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
