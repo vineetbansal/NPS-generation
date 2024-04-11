@@ -100,6 +100,10 @@ rule create_training_sets:
 
 
 rule add_carbon:
+    """
+    Insert character 'C' - representing carbon atom - at a random point in
+    training set SMILES.
+    """
     input:
         train0_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi"
     output:
@@ -320,27 +324,19 @@ rule write_structural_prior_CV:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
     run:
+        command=(f"clm inner_write_structural_prior_CV "
+                 f"--ranks_file {output.ranks_file} "
+                 f"--tc_file {output.tc_file} "
+                 f"--train_file {input.train_file}"
+                 f" --test_file {input.test_file}"
+                 f" --pubchem_file {input.pubchem_file}"
+                 f" --sample_file {input.sample_file} "
+                 f"--err_ppm {ERR_PPM} "
+                 f"--seed {config['random_seed']}")
         if ADD_CARBON:
-            shell('clm inner_write_structural_prior_CV '
-            '--ranks_file {output.ranks_file} '
-            '--tc_file {output.tc_file} '
-            '--train_file {input.train_file} '
-            '--test_file {input.test_file} '
-            '--pubchem_file {input.pubchem_file} '
-            '--sample_file {input.sample_file} '
-            '--carbon_file {input.carbon_file} '
-            '--err_ppm {ERR_PPM} '
-            '--seed {config[random_seed]} ')
-        else:
-            shell('clm inner_write_structural_prior_CV '
-            '--ranks_file {output.ranks_file} '
-            '--tc_file {output.tc_file} '
-            '--train_file {input.train_file} '
-            '--test_file {input.test_file} '
-            '--pubchem_file {input.pubchem_file} '
-            '--sample_file {input.sample_file} '
-            '--err_ppm {ERR_PPM} '
-            '--seed {config[random_seed]} ')
+            command = f"{command} --carbon_file {input.carbon_file}"
+
+        shell(command)
 
 
 rule write_formula_prior_CV:
@@ -414,24 +410,17 @@ rule write_structural_prior_CV_overall:
         mem_mb=128000,
         runtime=15+MODEL_PARAMS["sample_mols"]//5000,
     run:
+        command = (f"clm inner_write_structural_prior_CV "
+                   f"--ranks_file {output.ranks_file} "
+                   f"--tc_file {output.tc_file} "
+                   f"--train_file {input.train_file} "
+                   f"--test_file {input.test_file} "
+                   f"--pubchem_file {input.pubchem_file} "
+                   f"--sample_file {input.sample_file} "
+                   f"--err_ppm {ERR_PPM} "
+                   f"--seed {config['random_seed']} ")
+
         if ADD_CARBON:
-            shell('clm inner_write_structural_prior_CV '
-            '--ranks_file {output.ranks_file} '
-            '--tc_file {output.tc_file} '
-            '--train_file {input.train_file} '
-            '--test_file {input.test_file} '
-            '--pubchem_file {input.pubchem_file} '
-            '--sample_file {input.sample_file} '
-            '--carbon_file {input.carbon_file} '
-            '--err_ppm {ERR_PPM} '
-            '--seed {config[random_seed]} ')
-        else:
-            shell('clm inner_write_structural_prior_CV '
-            '--ranks_file {output.ranks_file} '
-            '--tc_file {output.tc_file} '
-            '--train_file {input.train_file} '
-            '--test_file {input.test_file} '
-            '--pubchem_file {input.pubchem_file} '
-            '--sample_file {input.sample_file} '
-            '--err_ppm {ERR_PPM} '
-            '--seed {config[random_seed]} ')
+            command = f"{command} --carbon_file {input.carbon_file}"
+
+        shell(command)
