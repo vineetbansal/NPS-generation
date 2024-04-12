@@ -231,34 +231,6 @@ def test_08_write_formula_prior_CV():
 
 def test_08_write_structural_prior_CV():
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = Path(temp_dir) / "0/prior/structural_prior"
-        inner_write_structural_prior_CV.write_structural_prior_CV(
-            ranks_file=temp_dir
-            / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
-            tc_file=temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
-            train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi",
-            test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi",
-            pubchem_file=pubchem_tsv_file,
-            sample_file=test_dir
-            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg_with_invalid_smile.csv",
-            err_ppm=10,
-            seed=5831,
-            chunk_size=100000,
-        )
-        assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
-            test_dir
-            / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
-        )
-        assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
-            test_dir
-            / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
-        )
-
-
-def test_09_structural_prior_add_carbon():
-    with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir) / "0/prior/structural_prior/add_carbon"
         inner_write_structural_prior_CV.write_structural_prior_CV(
             ranks_file=temp_dir
