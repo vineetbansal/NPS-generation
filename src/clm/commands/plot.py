@@ -5,6 +5,7 @@ from clm.plot.train_discriminator import plot as train_discriminator
 from clm.plot.freq_distribution import plot as freq_distribution
 from clm.plot.calculate_outcome_distrs import plot as calculate_outcome_distrs
 
+
 def add_args(parser):
     parser.add_argument(
         "evaluation_type",
