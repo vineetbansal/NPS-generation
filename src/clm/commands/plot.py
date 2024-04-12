@@ -3,7 +3,7 @@ from clm.plot.calculate_outcomes import plot as calculate_outcomes
 from clm.plot.write_nn_tc import plot as write_nn_tc
 from clm.plot.train_discriminator import plot as train_discriminator
 from clm.plot.freq_distribution import plot as freq_distribution
-
+from clm.plot.calculate_outcome_distrs import plot as calculate_outcome_distrs
 
 def add_args(parser):
     parser.add_argument(
@@ -36,6 +36,8 @@ def plot(evaluation_type, outcome_dir, output_dir):
         train_discriminator(outcome_dir, output_dir)
     elif evaluation_type == "freq_distribution":
         freq_distribution(outcome_dir, output_dir)
+    elif evaluation_type == "calculate_outcome_distrs":
+        calculate_outcome_distrs(outcome_dir, output_dir)
 
 
 def main(args):
