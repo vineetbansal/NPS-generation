@@ -13,7 +13,7 @@ instances of the rules will be run for any given dataset, depending on the numbe
 the number of independent seeds against which to run the models etc.
 
 The following dependency graph illustrates the particular instances of the steps that would be run, when
-running the workflow for 3 folds and 2 seeds (This is the starter configuration provided in the file `config_fast.json`).
+running the workflow for 2 folds, 2 training seeds, and 2 sampling seeds (This is the starter configuration provided in the file `config_fast.json`).
 
 ![DAG](dag.png "DAG")
 
