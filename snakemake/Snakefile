@@ -180,7 +180,7 @@ rule sample_molecules_RNN:
     shell:
         'clm inner_sample_molecules_RNN '
         '--representation {wildcards.repr} '
-        '--seed {wildcards.train_seed} '
+        '--seed {wildcards.sample_seed} '
         '--rnn_type {MODEL_PARAMS[rnn_type]} '
         '--embedding_size {MODEL_PARAMS[embedding_size]} '
         '--hidden_size {MODEL_PARAMS[hidden_size]} '
