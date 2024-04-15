@@ -6,7 +6,8 @@ threads: 1
 DATASET = os.path.splitext(os.path.basename(config["dataset"]))[0]
 REPRESENTATIONS = config["representations"]
 REPRESENTATIONS_NO_SELFIES = [r for r in REPRESENTATIONS if r!="SELFIES"]
-SEEDS = config["seeds"]
+TRAIN_SEEDS = config["train_seeds"]
+SAMPLE_SEEDS = config["sample_seeds"]
 FOLDS = config["folds"]
 ENUM_FACTORS = config["enum_factors"]
 METRICS = config["metrics"]
@@ -20,7 +21,8 @@ wildcard_constraints:
     dataset=DATASET,
     repr='|'.join(REPRESENTATIONS),
     fold='\d+',
-    seed='\d+'
+    train_seed='\d+',
+    sample_seed='\d+'
 
 # -----------------------------------------------------------------------------
 
@@ -31,11 +33,11 @@ rule all:
     input:
         output_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv", enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, metric=METRICS),
         ranks_file_formula=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv",
-                       enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, seed=SEEDS, fold=range(FOLDS)),
+                       enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
         ranks_file_structure=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv",
-                   enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, seed=SEEDS, fold=range(FOLDS)),
+                   enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
         tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv",
-                   enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, seed=SEEDS, fold=range(FOLDS)),
+                   enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
         ranks_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
             enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, metric=METRICS),
         tc_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv",
@@ -154,8 +156,8 @@ rule train_models_RNN:
         input_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
         vocab_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary"
     output:
-        model_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_model.pt",
-        loss_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_loss.csv"
+        model_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_model.pt",
+        loss_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_loss.csv"
     resources:
         mem_mb=32000,
         runtime=15+MODEL_PARAMS["max_epochs"]*15,
@@ -163,7 +165,7 @@ rule train_models_RNN:
     shell:
             'clm inner_train_models_RNN '
             '--representation {wildcards.repr} '
-            '--seed {wildcards.seed} '
+            '--seed {wildcards.train_seed} '
             '--rnn_type {MODEL_PARAMS[rnn_type]} '
             '--embedding_size {MODEL_PARAMS[embedding_size]} '
             '--hidden_size {MODEL_PARAMS[hidden_size]} '
@@ -189,9 +191,9 @@ rule sample_molecules_RNN:
     """
     input:
         vocab_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary",
-        model_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_model.pt"
+        model_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_model.pt"
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_samples.csv"
+        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv"
     resources:
         mem_mb=1000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
@@ -199,7 +201,7 @@ rule sample_molecules_RNN:
     shell:
         'clm inner_sample_molecules_RNN '
         '--representation {wildcards.repr} '
-        '--seed {wildcards.seed} '
+        '--seed {wildcards.sample_seed} '
         '--rnn_type {MODEL_PARAMS[rnn_type]} '
         '--embedding_size {MODEL_PARAMS[embedding_size]} '
         '--hidden_size {MODEL_PARAMS[hidden_size]} '
@@ -218,10 +220,10 @@ rule tabulate_molecules:
     frequency. Filter out smiles that are found in `train_file`.
     """
     input:
-        input_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_samples.csv",
+        input_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv",
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_samples_masses.csv",
+        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples_masses.csv",
     resources:
         mem_mb=32000,
         runtime=lambda wildcards: 15+MODEL_PARAMS["sample_mols"]*(int(wildcards["enum_factor"])+1)//100000,
@@ -239,7 +241,7 @@ rule collect_tabulated_molecules:
     sampling frequency in the process.
     """
     input:
-        input_files=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{seed}}_samples_masses.csv", seed=SEEDS, allow_missing=True)
+        input_files=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples_masses.csv", train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True)
     output:
         output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
     resources:

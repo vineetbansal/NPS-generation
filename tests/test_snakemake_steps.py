@@ -118,7 +118,7 @@ def test_03_sample_molecules_RNN():
             vocab_file=test_dir
             / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
             model_file=test_dir / "0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt",
-            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_samples.csv",
+            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_0_samples.csv",
         )
         # Samples and their associated loss values can vary between platforms
         # and architectures, so we simply ensure that this step runs without
@@ -130,14 +130,15 @@ def test_04_tabulate_molecules():
         temp_dir = Path(temp_dir) / "0/prior/samples"
         inner_tabulate_molecules.tabulate_molecules(
             input_file=test_dir
-            / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples.csv",
+            / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv",
             representation="SMILES",
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
-            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_samples_masses.csv",
+            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
         )
         assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_0_0_samples_masses.csv",
-            test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples_masses.csv",
+            temp_dir / "LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
+            test_dir
+            / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
         )
 
 
@@ -147,9 +148,9 @@ def test_05_collect_tabulated_molecules():
         inner_collect_tabulated_molecules.collect_tabulated_molecules(
             input_files=[
                 test_dir
-                / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples_masses.csv",
+                / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
                 test_dir
-                / "0/prior/samples/LOTUS_truncated_SMILES_0_1_samples_masses.csv",
+                / "0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples_masses.csv",
             ],
             output_file=temp_dir / "LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
