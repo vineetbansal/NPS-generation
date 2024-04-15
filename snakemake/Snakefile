@@ -98,6 +98,23 @@ rule create_training_sets:
         '--max-input-smiles {config[max_input_smiles]} '
 
 
+rule add_carbon:
+    """
+    Insert character 'C' - representing carbon atom - at a random point in
+    training set SMILES.
+    """
+    input:
+        train0_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi"
+    output:
+        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv"
+    resources:
+        mem_mb=20000,
+        runtime=10,
+    shell:
+        'clm add_carbon '
+        '--input_file {input.train0_file} '
+        '--output_file {output.carbon_file} '
+
 rule collapse_train_test_data:
     """
     Generate single files for training and testing smiles respectively, out
@@ -108,19 +125,23 @@ rule collapse_train_test_data:
     """
     input:
         train_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True),
-        test_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True)
+        test_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True),
+        carbon_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv", fold=range(FOLDS), allow_missing=True)
     output:
         train_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
-        test_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi"
+        test_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
+        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_carbon_all.csv"
     resources:
         mem_mb=20000,
         runtime=10,
     shell:
+        # Read input files, sort them, remove duplicates and write them out
         # Note: We use python instead of sort | uniq > to avoid locale specific issues
         # on the command line, and get a deterministic sort
         'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.train_file} > {output.train_file} && '
-        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file} '
-
+        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file} &&'
+        # For carbon_file, get header from first file and ignore it in the rest
+        'python -c "import sys; lines = [open(sys.argv[1]).readline()] + sorted(set(line for file_path in sorted(sys.argv[1:]) for i, line in enumerate(open(file_path)) if i>0)); sys.stdout.writelines(lines)" {input.carbon_file} > {output.carbon_file} '
 
 rule train_models_RNN:
     """
@@ -286,7 +307,8 @@ rule write_structural_prior_CV:
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
         test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_{{fold}}.smi",
         pubchem_file=config['pubchem_tsv_file'],
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
+        carbon_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv"
     output:
          ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv",
          tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv"
@@ -303,6 +325,7 @@ rule write_structural_prior_CV:
         '--sample_file {input.sample_file} '
         '--err_ppm {ERR_PPM} '
         '--seed {config[random_seed]} '
+        '--carbon_file {input.carbon_file} '
 
 
 rule write_formula_prior_CV:
@@ -366,7 +389,8 @@ rule write_structural_prior_CV_overall:
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
         test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
         pubchem_file=config['pubchem_tsv_file'],
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv"
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv",
+        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_carbon_all.csv"
     output:
         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv"
@@ -384,3 +408,4 @@ rule write_structural_prior_CV_overall:
         '--sample_file {input.sample_file} '
         '--err_ppm {ERR_PPM} '
         '--seed {config[random_seed]} '
+        '--carbon_file {input.carbon_file} '
