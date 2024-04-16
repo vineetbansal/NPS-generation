@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import logging
 import pandas as pd
+from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
@@ -79,6 +80,11 @@ def get_fp_obj(fp_string, bits=1024):
     return fp
 
 
+def get_inchikey(smile):
+    # Get Inchikey for a valid smile
+    return Chem.inchi.MolToInchiKey(clean_mol(smile, raise_error=True))
+
+
 def match_molecules(row, dataset, data_type):
     match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
@@ -103,7 +109,13 @@ def match_molecules(row, dataset, data_type):
     # source (model/train/PubChem)
     match.columns = "target_" + match.columns
 
-    rank = match[match["target_smiles"] == row["smiles"]][
+    # For Pubchem, Inchi keys may not have been pre-calculated
+    if data_type == "PubChem" and "target_inchikey" not in match.columns:
+        match["target_inchikey"] = match["target_smiles"].apply(
+            lambda x: get_inchikey(x)
+        )
+
+    rank = match[match["target_inchikey"] == row["inchikey"]][
         ["target_size", "target_rank", "target_source"]
     ]
 
@@ -195,12 +207,15 @@ def write_structural_prior_CV(
     logger.info("Reading PubChem file")
     pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
 
-    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    # PubChem tsv can have 3, 4 or 5 columns
     match len(pubchem.columns):
         case 3:
             pubchem.columns = ["smiles", "mass", "formula"]
         case 4:
             pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+        case 5:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint", "inchikey"]
             pubchem = pubchem.dropna(subset="fingerprint")
         case _:
             raise RuntimeError("Unexpected column count for PubChem")
