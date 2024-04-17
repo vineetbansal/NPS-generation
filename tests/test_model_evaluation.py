@@ -122,9 +122,9 @@ def test_train_discriminator():
         output_file = Path(temp_dir) / "train_discriminator.csv"
         outcomes = train_discriminator(
             train_file=test_dir
-            / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi",
+            / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
             sample_file=test_dir
-            / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg_with_invalid_smile.csv",
+            / "snakemake_output/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
             max_mols=50000,
             output_file=output_file,
             seed=0,
@@ -157,7 +157,8 @@ def test_add_carbon():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_dir = Path(temp_dir)
         add_carbon(
-            input_file=test_dir / "LOTUS_SMILES_0_unique_masses_trunc.csv",
+            input_file=test_dir
+            / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
             output_file=output_dir / "add_carbon.csv",
             seed=0,
         )

@@ -1,7 +1,10 @@
 import argparse
-
+import logging
 import pandas as pd
 from clm.functions import read_file
+
+
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -15,10 +18,13 @@ def add_args(parser):
 
 
 def write_freq_distribution(sampled_file, test_file, output_file):
+    logger.info(f"Reading sampled data from {sampled_file}")
     sampled_data = pd.read_csv(sampled_file)
+    logger.info(f"Reading test smiles from {test_file}")
     test_smiles = set(read_file(test_file, stream=True, smile_only=True))
 
     # Label smiles not found in test set as novel
+    logger.info("Finding novel smiles in sampled data")
     sampled_data["is_novel"] = True
     sampled_data.loc[sampled_data["smiles"].isin(test_smiles), "is_novel"] = False
 

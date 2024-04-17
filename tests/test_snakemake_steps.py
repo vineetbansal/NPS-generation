@@ -194,6 +194,8 @@ def test_07_write_structural_prior_CV():
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
+            carbon_file=test_dir
+            / "0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,
@@ -241,19 +243,20 @@ def test_08_write_structural_prior_CV():
             test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi",
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
-            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg_with_invalid_smile.csv",
+            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
+            carbon_file=test_dir
+            / "0/prior/inputs/train0_LOTUS_truncated_SMILES_carbon_all.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,
-            carbon_file=base_dir / "tests/test_data/add_carbon.csv",
         )
         assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
             test_dir
-            / "0/prior/structural_prior/add_carbon/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
+            / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
         )
         assert_checksum_equals(
             temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
             test_dir
-            / "0/prior/structural_prior/add_carbon/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
+            / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
         )
