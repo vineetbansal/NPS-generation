@@ -22,7 +22,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install sphinx myst-parser
+          pip install sphinx myst-parser sphinxcontrib-bibtex sphinx-rtd-theme
 
       - uses: actions/checkout@v2
 
