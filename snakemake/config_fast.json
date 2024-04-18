@@ -1,10 +1,10 @@
 {
   "output_dir": "data",
-  "dataset": "/media/vineetb/T7/projects/nps/NPS-generation/tests/test_data/LOTUS_truncated.txt",
-  "pubchem_tsv_file": "/media/vineetb/T7/projects/nps/NPS-generation/tests/test_data/PubChem_truncated.tsv",
+  "dataset": "/path/to/<dataset>.txt",
+  "pubchem_tsv_file": "/path/to/PubChem.tsv",
 
   "representations": ["SMILES"],
-  "folds": 3,
+  "folds": 2,
   "train_seeds": [0, 1],
   "sample_seeds": [0, 1],
   "enum_factors": [0],
@@ -30,5 +30,5 @@
   "min_tc": 0,
   "top_k": 30,
   "err_ppm": 10,
-  "random_seed": 5831
+  "random_seed": null
 }
