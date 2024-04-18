@@ -1,0 +1,21 @@
+clm.util package
+================
+
+Submodules
+----------
+
+clm.util.SmilesEnumerator module
+--------------------------------
+
+.. automodule:: clm.util.SmilesEnumerator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: clm.util
+   :members:
+   :undoc-members:
+   :show-inheritance:

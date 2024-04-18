@@ -1,0 +1,56 @@
+clm package
+===========
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   clm.commands
+   clm.data
+   clm.plot
+   clm.util
+
+Submodules
+----------
+
+clm.datasets module
+-------------------
+
+.. automodule:: clm.datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.functions module
+--------------------
+
+.. automodule:: clm.functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.loggers module
+------------------
+
+.. automodule:: clm.loggers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.models module
+-----------------
+
+.. automodule:: clm.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: clm
+   :members:
+   :undoc-members:
+   :show-inheritance:
