@@ -5,22 +5,16 @@ threads: 1
 # -----------------------------------------------------------------------------
 DATASET = os.path.splitext(os.path.basename(config["dataset"]))[0]
 REPRESENTATIONS = config["representations"]
-REPRESENTATIONS_NO_SELFIES = [r for r in REPRESENTATIONS if r != "SELFIES"]
-SEEDS = config["seeds"]
 FOLDS = config["folds"]
 ENUM_FACTORS = config["enum_factors"]
-METRICS = config["metrics"]
 OUTPUT_DIR = config['output_dir']
-MODEL_PARAMS = config['model_params']
-ERR_PPM = config['err_ppm']
 
 shell.executable("/bin/bash")
 
 wildcard_constraints:
     dataset=DATASET,
     repr='|'.join(REPRESENTATIONS),
-    fold='\d+',
-    seed='\d+'
+    fold='\d+'
 
 # -----------------------------------------------------------------------------
 

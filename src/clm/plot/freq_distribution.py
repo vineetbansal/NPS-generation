@@ -6,6 +6,12 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 import os
+import logging
+import numpy as np
+import matplotlib.cbook as cbook
+
+
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -23,12 +29,11 @@ def add_args(parser):
 
 
 def plot_distribution(novel_outcomes, output_dir):
+    logger.info("Plotting frequency distribution")
     data = list(novel_outcomes[True])
 
-    x, y = [], []
-    for key, val in Counter(data).items():
-        x.append(key)
-        y.append(val)
+    counter = Counter(data)
+    x, y = counter.keys(), counter.values()
 
     sns.scatterplot(x=x, y=y)
     plt.title("Frequency Distribution Plot")
@@ -47,13 +52,31 @@ def plot_distribution(novel_outcomes, output_dir):
 
 
 def plot_box_plot(novel_outcomes, output_dir):
-    data = [list(novel_outcomes[True]), list(novel_outcomes[False])]
-    sns.boxplot(data=data, width=0.2)
+    logger.info("Plotting frequency box plot")
+    novel_molecules_count = np.array(novel_outcomes[True])
+    known_molecules_count = np.array(novel_outcomes[False])
+
+    # The `CategoricalPlotter` object in `sns.boxplot` makes a copy of the
+    # entire underlying DataFrame! (see the `comp_data` property). This is
+    # extremely slow and memory-intensive. So we follow a manual approach ala
+    # https://stackoverflow.com/questions/29895754
+    bxpstats = []
+    bxpstats.extend(
+        cbook.boxplot_stats(np.ravel(novel_molecules_count), labels=["Novel molecules"])
+    )
+    bxpstats.extend(
+        cbook.boxplot_stats(np.ravel(known_molecules_count), labels=["Known molecules"])
+    )
+
+    fig, ax = plt.subplots(1, 1)
+    ax.bxp(bxpstats)
+    ax.set_yscale("log")
+
+    # Direct but very slow/memory-intensive
+    # sns.boxplot(data=(novel_molecules_count, known_molecules_count), width=0.2, log_scale=(False, True))
 
     plt.title("Frequency with which test set molecules sampled from a given CV fold")
     plt.ylabel("Sampling Frequency")
-    plt.xticks([0, 1], ["Novel Molecules", "Known Molecules"])
-    plt.yscale("log")
 
     file_path = Path(output_dir) / "freq_distr_box"
     plt.savefig(file_path)
@@ -67,15 +90,27 @@ def plot(outcome_dir, output_dir):
     os.makedirs(output_dir, exist_ok=True)
 
     outcome_files = glob.glob(f"{outcome_dir}/*freq_distribution.csv")
-    outcome = pd.concat(
-        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
-    )
+
+    columns = []
+    outcome = []
+
+    for outcome_file in outcome_files:
+        logger.info(f"Reading outcome file {outcome_file}")
+        data = pd.read_csv(outcome_file, delimiter=",", usecols=("is_novel", "size"))
+        logger.info(f"Read outcome dataframe of shape {data.shape}")
+        columns = data.columns.values.tolist()
+        data = data.values.tolist()
+        outcome.extend(data)
+
+    logger.info("Creating combined DataFrame")
+    outcome = pd.DataFrame(outcome, columns=columns)
+    logger.info(f"Created combined DataFrame of shape {outcome.shape}")
 
     # Dictionary of novelty (True or False) mapped to list of frequency of generation
-    # E.g. True : [1, 3, 4, 5] means there are four distinct novel smiles
-    # each of which were generated  once, thrice, four, and five times
+    # E.g. True : [1, 1, 4, 5] means there are four distinct novel smiles
+    # each of which were generated  once, once, four, and five times
     novel_outcomes = {
-        is_novel: df["size"] for is_novel, df in outcome.groupby("is_novel")
+        is_novel: df["size"].tolist() for is_novel, df in outcome.groupby("is_novel")
     }
 
     plot_distribution(novel_outcomes, output_dir)
