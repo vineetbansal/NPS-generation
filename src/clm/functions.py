@@ -213,7 +213,7 @@ def write_smiles(smiles, smiles_file, mode="w", add_inchikeys=False):
             f.write(sm)
             if add_inchikeys:
                 if mol := clean_mol(sm, raise_error=False):
-                    inchikey = get_inchikey(mol)
+                    inchikey = Chem.inchi.MolToInchiKey(mol)
                 else:
                     inchikey = ""
                 f.write(f",{inchikey}")
@@ -478,11 +478,3 @@ def assert_checksum_equals(generated_file, oracle):
             "".join(open(oracle, "r").readlines()).encode("utf8")
         ).hexdigest()
     )
-
-
-def get_inchikey(mol, inchikey=True):
-    # Get Inchikey for a valid smile
-    canonical_smile = Chem.MolToSmiles(mol)
-    if inchikey:
-        return Chem.inchi.MolToInchiKey(mol)
-    return canonical_smile

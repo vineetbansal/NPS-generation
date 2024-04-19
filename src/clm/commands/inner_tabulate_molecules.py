@@ -5,7 +5,7 @@ from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-from clm.functions import read_file, clean_mol, get_inchikey
+from clm.functions import read_file, clean_mol
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -62,7 +62,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
             mass = round(Descriptors.ExactMolWt(mol), 6)
             formula = rdMolDescriptors.CalcMolFormula(mol)
             canonical_smile = Chem.MolToSmiles(mol, isomericSmiles=False)
-            inchikey = get_inchikey(mol)
+            inchikey = Chem.inchi.MolToInchiKey(mol)
 
             if inchikey not in train_data:
                 new_smiles.append([canonical_smile, mass, formula, inchikey])

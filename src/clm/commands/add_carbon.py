@@ -10,7 +10,7 @@ from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
 # import functions
-from clm.functions import clean_mol, write_smiles, set_seed, read_file, get_inchikey
+from clm.functions import clean_mol, write_smiles, set_seed, read_file
 
 
 def add_args(parser):
@@ -43,7 +43,7 @@ def add_carbon(input_file, output_file, seed=None):
     if all([len(part) == 1 for part in smiles_parts]):
         smiles = [part[0] for part in smiles_parts]
         train_mols = [clean_mol(smile, raise_error=False) for smile in smiles]
-        train_inchi = set([get_inchikey(mol) for mol in train_mols if mol])
+        train_inchi = set([Chem.inchi.MolToInchiKey(mol) for mol in train_mols if mol])
     elif all([len(part) == 2 for part in smiles_parts]):
         smiles = [part[0] for part in smiles_parts]
         train_inchi = set([part[1] for part in smiles_parts])
@@ -78,7 +78,7 @@ def add_carbon(input_file, output_file, seed=None):
 
             # if it is valid, compute canonical smiles
             mut_can = Chem.MolToSmiles(mut_mol, isomericSmiles=False)
-            mut_inchi = get_inchikey(mut_mol)
+            mut_inchi = Chem.inchi.MolToInchiKey(mut_mol)
             # can't be in the training set
             if mut_inchi in train_inchi:
                 continue
