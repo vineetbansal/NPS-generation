@@ -1,2 +1,4 @@
-inchikey,mass,formula,smiles,size
-ZXKINMCYCKHYFR-UHFFFAOYSA-N,32.014187,H2NO-,N[O-],1
+smiles,mass,formula,size
+C,16.0313,CH4,2
+OBr,95.921077,HBrO,1
+[N+],14.002525,N+,2
