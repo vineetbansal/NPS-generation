@@ -169,4 +169,3 @@ def test_add_carbon():
         assert_checksum_equals(
             output_dir / "add_carbon-unique.smi", test_dir / "add_carbon-unique.smi"
         )
-        print("remove")
