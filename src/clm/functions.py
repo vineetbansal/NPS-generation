@@ -480,7 +480,7 @@ def assert_checksum_equals(generated_file, oracle):
     )
 
 
-def get_inchikey(mol, inchikey=False):
+def get_inchikey(mol, inchikey=True):
     # Get Inchikey for a valid smile
     canonical_smile = Chem.MolToSmiles(mol)
     if inchikey:
