@@ -194,7 +194,8 @@ def test_07_write_structural_prior_CV():
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
-            carbon_file=test_dir / "0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv",
+            carbon_file=test_dir
+            / "0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,
@@ -243,7 +244,8 @@ def test_08_write_structural_prior_CV():
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
-            carbon_file= test_dir / "0/prior/inputs/train0_LOTUS_truncated_SMILES_carbon_all.csv",
+            carbon_file=test_dir
+            / "0/prior/inputs/train0_LOTUS_truncated_SMILES_carbon_all.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,

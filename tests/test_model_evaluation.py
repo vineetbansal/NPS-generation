@@ -158,7 +158,7 @@ def test_add_carbon():
         output_dir = Path(temp_dir)
         add_carbon(
             input_file=test_dir
-                       / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
+            / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
             output_file=output_dir / "add_carbon.csv",
             seed=0,
         )
