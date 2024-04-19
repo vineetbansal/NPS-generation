@@ -201,14 +201,23 @@ def read_file(
         return gen if stream else np.array(list(gen))
 
 
-def write_smiles(smiles, smiles_file, mode="w"):
+def write_smiles(smiles, smiles_file, mode="w", add_inchikeys=False):
     """
     Write a list of SMILES to a line-delimited file.
     """
     os.makedirs(os.path.dirname(smiles_file), exist_ok=True)
     with open(smiles_file, mode) as f:
+        if add_inchikeys:
+            f.write("smiles,inchikey\n")
         for sm in smiles:
-            _ = f.write(sm + "\n")
+            f.write(sm)
+            if add_inchikeys:
+                if mol := clean_mol(sm, raise_error=False):
+                    inchikey = Chem.inchi.MolToInchiKey(mol)
+                else:
+                    inchikey = ""
+                f.write(f",{inchikey}")
+            f.write("\n")
 
 
 """
@@ -412,7 +421,8 @@ def pct_stereocenters(mol):
 
 
 def generate_df(smiles_file, chunk_size):
-    smiles = read_file(smiles_file)
+    smiles_df = pd.read_csv(smiles_file)
+    smiles = smiles_df["smiles"].to_list()
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
     for i in tqdm(range(0, len(smiles), chunk_size)):
@@ -436,6 +446,8 @@ def generate_df(smiles_file, chunk_size):
         if chunk_data:
             df = pd.concat([df, pd.DataFrame(chunk_data)], ignore_index=True)
 
+    # Add any additional columns from the input file
+    df = df.merge(smiles_df, how="left", on="smiles")
     return df
 
 

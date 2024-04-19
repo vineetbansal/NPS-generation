@@ -122,12 +122,15 @@ def write_formula_prior_CV(
     print("Reading PubChem file")
     pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
 
-    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    # PubChem tsv can have 3, 4 or 5 columns
     match len(pubchem.columns):
         case 3:
             pubchem.columns = ["smiles", "mass", "formula"]
         case 4:
             pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+        case 5:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint", "inchikey"]
             pubchem = pubchem.dropna(subset="fingerprint")
         case _:
             raise RuntimeError("Unexpected column count for PubChem")

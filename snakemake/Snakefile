@@ -140,9 +140,9 @@ rule collapse_train_test_data:
         # Read input files, sort them, remove duplicates and write them out
         # Note: We use python instead of sort | uniq > to avoid locale specific issues
         # on the command line, and get a deterministic sort
-        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.train_file} > {output.train_file} && '
-        'python -c "import sys; lines = sorted(set(line for file_path in sorted(sys.argv[1:]) for line in open(file_path, 'r'))); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file} &&'
-        # For carbon_file, get header from first file and ignore it in the rest
+        # Get header from first file and ignore it in the rest
+        'python -c "import sys; lines = [open(sys.argv[1]).readline()] + sorted(set(line for file_path in sorted(sys.argv[1:]) for i, line in enumerate(open(file_path)) if i>0)); sys.stdout.writelines(lines)" {input.train_file} > {output.train_file} && '
+        'python -c "import sys; lines = [open(sys.argv[1]).readline()] + sorted(set(line for file_path in sorted(sys.argv[1:]) for i, line in enumerate(open(file_path)) if i>0)); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file} && '
         'python -c "import sys; lines = [open(sys.argv[1]).readline()] + sorted(set(line for file_path in sorted(sys.argv[1:]) for i, line in enumerate(open(file_path)) if i>0)); sys.stdout.writelines(lines)" {input.carbon_file} > {output.carbon_file} '
 
 rule train_models_RNN:
@@ -217,7 +217,8 @@ rule sample_molecules_RNN:
 rule tabulate_molecules:
     """
     For sampled smiles from a model and a fold, add mass, formula and sampling
-    frequency. Filter out smiles that are found in `train_file`.
+    frequency. Filter out smiles that are found in `train_file`, based on a
+    comparison of InchiKeys.
     """
     input:
         input_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv",
