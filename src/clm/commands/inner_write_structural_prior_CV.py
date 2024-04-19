@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 import logging
 import pandas as pd
-from rdkit import Chem
+import clm
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
@@ -82,7 +82,7 @@ def get_fp_obj(fp_string, bits=1024):
 
 def get_inchikey(smile):
     # Get Inchikey for a valid smile
-    return Chem.inchi.MolToInchiKey(clean_mol(smile, raise_error=True))
+    return clm.functions.get_inchikey(clean_mol(smile, raise_error=True))
 
 
 def match_molecules(row, dataset, data_type):

@@ -9,6 +9,7 @@ from clm.functions import (
     clean_mols,
     remove_salts_solvents,
     NeutraliseCharges,
+    get_inchikey,
 )
 from clm.datasets import Vocabulary
 
@@ -122,7 +123,7 @@ def preprocess(
 
     # InchI Keys are a reliable way to identify duplicates
     logger.info(f"{len(mols)} total molecules")
-    inchikeys = np.array([Chem.inchi.MolToInchiKey(mol) for mol in mols])
+    inchikeys = np.array([get_inchikey(mol) for mol in mols])
     inchikeys, indices = np.unique(inchikeys, return_index=True)
     logger.info(f"{len(indices)} unique InChI keys found")
 
