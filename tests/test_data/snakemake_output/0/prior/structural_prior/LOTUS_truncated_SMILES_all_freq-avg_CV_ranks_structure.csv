@@ -3871,7 +3871,7 @@ Index,smiles,mass,formula,mass_known,formula_known,target_size,target_rank,targe
 884,COc1ccc(-c2oc3c(CC=C(C)C)c(OC4OC(CO)C(O)C(O)C4O)cc(O)c3c(=O)c2OC2OC(C)C(OC3OCC(O)C(O)C3O)C(O)C2O)cc1,808.279,C38H48O19,True,True,,,addcarbon,0
 885,COc1ccc(-c2oc3cc(OC4OC(CO)C(O)C(O)C4O)c(O)c(O)c3c(=O)c2O)cc1,478.1111,C22H22O12,True,True,,,addcarbon,0
 886,COc1ccc(C23Oc4cc5c(c(OC)c4C(O)(C(C(=O)N4CCCC4N=C(O)C(C)C)C2c2ccccc2)C3O)OCO5)cc1,630.2577,C35H38N2O9,True,True,,,addcarbon,0
-887,COc1ccc(C23Oc4cc5c(c(OC)c4C(O)(C(C(=O)N4CCCC4N=C(O)CC(C)C)C2c2ccccc2)C3O)OCO5)cc1,644.2734,C36H40N2O9,True,True,,16.0,addcarbon,51
+887,COc1ccc(C23Oc4cc5c(c(OC)c4C(O)(C(C(=O)N4CCCC4N=C(O)CC(C)C)C2c2ccccc2)C3O)OCO5)cc1,644.2734,C36H40N2O9,True,True,,,addcarbon,50
 888,COc1ccc(CC2C(=O)OCC2C(O)c2ccc(OC)c(OC)c2)cc1OC,402.1679,C22H26O7,True,True,,,addcarbon,30
 889,COc1ccc2c(c1)NC(=O)C2=O,177.0426,C9H7NO3,True,True,,,addcarbon,0
 890,COc1ccc2c(c1OC)C(CC1=CC3C(C(C)C)CCC(C)(OC)C3CC1)N(C)c1c-2ccc2cc3c(cc12)OCO3,583.3298,C37H45NO5,True,True,,,addcarbon,0

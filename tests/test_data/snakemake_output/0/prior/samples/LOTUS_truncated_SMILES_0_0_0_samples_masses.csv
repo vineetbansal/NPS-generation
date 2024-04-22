@@ -1,3 +1,2 @@
-smiles,mass,formula,size
-C,16.0313,CH4,1
-[N+]O,31.005265,HNO+,1
+inchikey,mass,formula,smiles,size
+SUNFGZRUFCAYCR-UHFFFAOYSA-N,15.995463,O-,[O-],1
