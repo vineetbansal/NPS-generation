@@ -1,5 +1,4 @@
 import argparse
-import os
 import numpy as np
 import logging
 import pandas as pd
@@ -24,6 +23,7 @@ from rdkit import rdBase
 rdBase.DisableLog("rdApp.error")
 tqdm.pandas()
 logger = logging.getLogger(__name__)
+pd.set_option("mode.chained_assignment", "raise")
 
 
 def add_args(parser):
@@ -62,7 +62,7 @@ def add_args(parser):
     parser.add_argument(
         "--n_threads",
         type=int,
-        default=None,
+        default=4,
         help="Number of threads to use.",
     )
     return parser
@@ -88,7 +88,9 @@ def get_fp_obj(fp_string, bits=1024):
 
 
 def match_molecules(row, dataset, data_type):
-    match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
+    match = dataset[
+        dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])
+    ].copy()
 
     # For the PubChem dataset, not all SMILES might be valid; consider only the ones that are.
     # If a `fingerprint` column exists, then we have a valid SMILE
@@ -146,7 +148,7 @@ def match_molecules(row, dataset, data_type):
                 clean_mol(smile, selfies=False) for smile in tc["target_smiles"].values
             ]
             target_fps = get_ecfp6_fingerprints(target_mols)
-        tc["Tc"] = [
+        tc.loc[:, "Tc"] = [
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
     else:
@@ -180,7 +182,7 @@ def write_structural_prior_CV(
     err_ppm,
     chunk_size,
     seed,
-    n_threads=None,
+    n_threads=4,
     carbon_file=None,
 ):
     set_seed(seed)
@@ -202,7 +204,7 @@ def write_structural_prior_CV(
     test = test.assign(formula_known=test["formula"].isin(train["formula"]))
 
     logger.info("Reading PubChem file")
-    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None, nrows=10000)
 
     # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
     match len(pubchem.columns):
@@ -217,7 +219,7 @@ def write_structural_prior_CV(
     pubchem = pubchem.assign(size=np.nan)
 
     logger.info("Reading sample file from generative model")
-    gen = pd.read_csv(sample_file)
+    gen = pd.read_csv(sample_file, nrows=10000)
 
     inputs = {
         "model": gen.assign(source="model"),
@@ -247,7 +249,7 @@ def write_structural_prior_CV(
         return results
 
     rank_df, tc_df = pd.DataFrame(), pd.DataFrame()
-    n_threads = n_threads or int(os.environ.get("SLURM_CPUS_PER_TASK", 1))
+    n_threads = 8
     chunks_indices = np.array_split(np.arange(len(test)), n_threads)
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
         future_map = {}
