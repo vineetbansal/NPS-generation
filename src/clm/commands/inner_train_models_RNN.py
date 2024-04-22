@@ -106,7 +106,7 @@ def add_args(parser):
 
 
 def load_dataset(representation, input_file, vocab_file):
-    inputs = read_file(input_file)
+    inputs = read_file(input_file, smile_only=True)
     if representation == "SELFIES":
         return SelfiesDataset(selfies=inputs, vocab_file=vocab_file)
     else:

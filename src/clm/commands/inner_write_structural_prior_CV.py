@@ -1,11 +1,13 @@
+import os
 import argparse
 import numpy as np
 import logging
 import pandas as pd
+from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed, ThreadPoolExecutor
 
 from clm.functions import (
     get_ecfp6_fingerprints,
@@ -62,7 +64,7 @@ def add_args(parser):
     parser.add_argument(
         "--n_threads",
         type=int,
-        default=4,
+        default=None,
         help="Number of threads to use.",
     )
     return parser
@@ -85,6 +87,11 @@ def get_fp_obj(fp_string, bits=1024):
     fp = ExplicitBitVect(bits)
     fp.FromBase64(fp_string)
     return fp
+
+
+def get_inchikey(smile):
+    # Get Inchikey for a valid smile
+    return Chem.inchi.MolToInchiKey(clean_mol(smile, raise_error=True))
 
 
 def match_molecules(row, dataset, data_type):
@@ -111,7 +118,13 @@ def match_molecules(row, dataset, data_type):
     # source (model/train/PubChem)
     match.columns = "target_" + match.columns
 
-    rank = match[match["target_smiles"] == row["smiles"]][
+    # For Pubchem, Inchi keys may not have been pre-calculated
+    if data_type == "PubChem" and "target_inchikey" not in match.columns:
+        match["target_inchikey"] = match["target_smiles"].apply(
+            lambda x: get_inchikey(x)
+        )
+
+    rank = match[match["target_inchikey"] == row["inchikey"]][
         ["target_size", "target_rank", "target_source"]
     ]
 
@@ -180,7 +193,7 @@ def write_structural_prior_CV(
     err_ppm,
     chunk_size,
     seed,
-    n_threads=8,
+    n_threads=None,
     carbon_file=None,
 ):
     set_seed(seed)
@@ -204,12 +217,15 @@ def write_structural_prior_CV(
     logger.info("Reading PubChem file")
     pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
 
-    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    # PubChem tsv can have 3, 4 or 5 columns
     match len(pubchem.columns):
         case 3:
             pubchem.columns = ["smiles", "mass", "formula"]
         case 4:
             pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+        case 5:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint", "inchikey"]
             pubchem = pubchem.dropna(subset="fingerprint")
         case _:
             raise RuntimeError("Unexpected column count for PubChem")
@@ -247,7 +263,7 @@ def write_structural_prior_CV(
         return results
 
     rank_df, tc_df = pd.DataFrame(), pd.DataFrame()
-    n_threads = 8
+    n_threads = n_threads or int(os.environ.get("SLURM_CPUS_PER_TASK", 1))
     chunks_indices = np.array_split(np.arange(len(test)), n_threads)
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
         future_map = {}
@@ -282,7 +298,6 @@ def main(args):
         err_ppm=args.err_ppm,
         chunk_size=args.chunk_size,
         seed=args.seed,
-        n_threads=args.n_threads,
         carbon_file=args.carbon_file,
     )
 

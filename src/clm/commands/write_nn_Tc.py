@@ -4,10 +4,11 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.DataStructs import FingerprintSimilarity
 from clm.functions import clean_mol, read_file
-from tqdm import tqdm
 import os
+import logging
 
-tqdm.pandas()
+
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -42,8 +43,10 @@ def write_nn_Tc(query_file, reference_file, output_file):
             ref_fps.append(fps)
             ref_smiles.append(smile)
 
-    for query in pd.read_csv(query_file, chunksize=1000):
-        results = query["smiles"].progress_apply(
+    total_lines = sum(1 for _ in open(query_file, "r"))
+    n_processed = 0
+    for query in pd.read_csv(query_file, chunksize=10000):
+        results = query["smiles"].apply(
             lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref_fps)
         )
         query = query.assign(nn_tc=[i[0] for i in results])
@@ -56,6 +59,9 @@ def write_nn_Tc(query_file, reference_file, output_file):
             header=not os.path.exists(output_file),
             compression="gzip" if str(output_file).endswith(".gz") else None,
         )
+
+        n_processed += len(query)
+        logger.info(f"Processed {n_processed}/{total_lines}")
 
 
 def main(args):

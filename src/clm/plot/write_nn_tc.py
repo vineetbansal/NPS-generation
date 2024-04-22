@@ -59,10 +59,17 @@ def plot_by_frequency(outcome, output_dir):
     # Split the outcomes by frequency bins
     outcome_freq = prep_outcomes_freq(outcome, max_molecules=10000000)
 
-    data, labels = [], []
+    _data = {}
     for bin, df in outcome_freq.groupby("bin"):
-        data.append(df["nn_tc"].tolist())
+        _data[bin] = df["nn_tc"].tolist()
+
+    # rearrange by bin ascending
+    data = []
+    labels = []
+    sorted_bins = sorted(_data.keys(), key=lambda x: int(x.split("-")[0]))
+    for bin in sorted_bins:
         labels.append(bin)
+        data.append(_data[bin])
 
     sns.violinplot(
         data=data,

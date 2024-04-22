@@ -105,27 +105,30 @@ def preprocess(
 
         mols = [mol for mol in mols if mol is not None]
 
-        logger.info("converting {} molecules back to SMILES ...".format(len(mols)))
-        smiles = [Chem.MolToSmiles(mol) for mol in mols]
-        smiles = [sm for sm in smiles if sm != ""]
+        return mols
 
-        return smiles
-
-    smiles = []
+    mols = []
     with tqdm(total=len(all_smiles)) as pbar:
         for i in range(0, len(all_smiles), chunk_size):
             input_smiles = all_smiles[i : i + chunk_size]
-            _smiles = preprocess_chunk(
+            _mols = preprocess_chunk(
                 input_smiles=input_smiles,
                 neutralise=neutralise,
                 min_heavy_atoms=min_heavy_atoms,
                 valid_atoms=valid_atoms,
             )
-            smiles.extend(_smiles)
+            mols.extend(_mols)
             pbar.update(len(input_smiles))
 
-    smiles = np.unique(np.array(smiles))
-    logger.info("got {} unique canonical SMILES".format(len(smiles)))
+    # InchI Keys are a reliable way to identify duplicates
+    logger.info(f"{len(mols)} total molecules")
+    inchikeys = np.array([Chem.inchi.MolToInchiKey(mol) for mol in mols])
+    inchikeys, indices = np.unique(inchikeys, return_index=True)
+    logger.info(f"{len(indices)} unique InChI keys found")
+
+    logger.info(f"converting {len(indices)} molecules back to SMILES")
+    smiles = [Chem.MolToSmiles(mol) for mol in np.array(mols)[indices]]
+    smiles = [sm for sm in smiles if sm != ""]
 
     if remove_rare:
         logger.info("Creating vocabulary")
@@ -138,7 +141,7 @@ def preprocess(
             if pct_smiles < 0.01 / 100 or len(token_smiles) <= 10:
                 smiles = np.setdiff1d(smiles, token_smiles)
 
-    write_smiles(smiles, output_file, "w")
+    write_smiles(smiles, output_file, mode="w", add_inchikeys=True)
 
 
 def main(args):

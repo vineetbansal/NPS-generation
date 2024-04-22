@@ -52,6 +52,12 @@ addopts = "-sv"
 
 [project.optional-dependencies]
 dev = [
+    "build",
+    "myst-parser",
     "pre-commit",
-    "pytest"
+    "pytest",
+    "sphinx",
+    "sphinxcontrib-bibtex",
+    "sphinx_rtd_theme",
+    "twine"
 ]

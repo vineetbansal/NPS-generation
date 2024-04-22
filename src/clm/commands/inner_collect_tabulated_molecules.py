@@ -24,7 +24,16 @@ def collect_tabulated_molecules(input_files, output_file):
     df = pd.concat(
         [pd.read_csv(file, sep=",") for file in input_files], ignore_index=True
     )
-    df = df.groupby(["smiles", "mass", "formula"], as_index=False).agg({"size": "sum"})
+    # Find unique combinations of inchikey, mass, and formula, and add a
+    # `size` column denoting the frequency of occurrence of each combination.
+    # For each unique combination, select the first canonical smile.
+    unique = df.groupby(["inchikey", "mass", "formula"]).first().reset_index()
+    unique["size"] = (
+        df.groupby(["inchikey", "mass", "formula"])
+        .agg({"size": "sum"})
+        .reset_index(drop=True)
+    )
+
     df.to_csv(output_file, index=False)
 
 

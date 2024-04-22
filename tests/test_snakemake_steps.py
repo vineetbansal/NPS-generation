@@ -118,7 +118,7 @@ def test_03_sample_molecules_RNN():
             vocab_file=test_dir
             / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
             model_file=test_dir / "0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt",
-            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_samples.csv",
+            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_0_samples.csv",
         )
         # Samples and their associated loss values can vary between platforms
         # and architectures, so we simply ensure that this step runs without
@@ -130,14 +130,15 @@ def test_04_tabulate_molecules():
         temp_dir = Path(temp_dir) / "0/prior/samples"
         inner_tabulate_molecules.tabulate_molecules(
             input_file=test_dir
-            / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples.csv",
+            / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv",
             representation="SMILES",
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
-            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_samples_masses.csv",
+            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
         )
         assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_0_0_samples_masses.csv",
-            test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples_masses.csv",
+            temp_dir / "LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
+            test_dir
+            / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
         )
 
 
@@ -147,9 +148,9 @@ def test_05_collect_tabulated_molecules():
         inner_collect_tabulated_molecules.collect_tabulated_molecules(
             input_files=[
                 test_dir
-                / "0/prior/samples/LOTUS_truncated_SMILES_0_0_samples_masses.csv",
+                / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
                 test_dir
-                / "0/prior/samples/LOTUS_truncated_SMILES_0_1_samples_masses.csv",
+                / "0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples_masses.csv",
             ],
             output_file=temp_dir / "LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
@@ -193,6 +194,8 @@ def test_07_write_structural_prior_CV():
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
+            carbon_file=test_dir
+            / "0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,
@@ -232,7 +235,7 @@ def test_08_write_formula_prior_CV():
 
 def test_08_write_structural_prior_CV():
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = Path(temp_dir) / "0/prior/structural_prior"
+        temp_dir = Path(temp_dir) / "0/prior/structural_prior/add_carbon"
         inner_write_structural_prior_CV.write_structural_prior_CV(
             ranks_file=temp_dir
             / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
@@ -241,7 +244,9 @@ def test_08_write_structural_prior_CV():
             test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi",
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
-            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg_with_invalid_smile.csv",
+            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
+            carbon_file=test_dir
+            / "0/prior/inputs/train0_LOTUS_truncated_SMILES_carbon_all.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,
@@ -255,33 +260,4 @@ def test_08_write_structural_prior_CV():
             temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
             test_dir
             / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
-        )
-
-
-def test_09_structural_prior_add_carbon():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = Path(temp_dir) / "0/prior/structural_prior/add_carbon"
-        inner_write_structural_prior_CV.write_structural_prior_CV(
-            ranks_file=temp_dir
-            / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
-            tc_file=temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
-            train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi",
-            test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi",
-            pubchem_file=pubchem_tsv_file,
-            sample_file=test_dir
-            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg_with_invalid_smile.csv",
-            err_ppm=10,
-            seed=5831,
-            chunk_size=100000,
-            carbon_file=base_dir / "tests/test_data/add_carbon.csv",
-        )
-        assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
-            test_dir
-            / "0/prior/structural_prior/add_carbon/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
-        )
-        assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
-            test_dir
-            / "0/prior/structural_prior/add_carbon/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
         )

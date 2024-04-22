@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import seaborn as sns
 import numpy as np
+import os
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import confusion_matrix
@@ -82,6 +83,9 @@ def plot_confusion_matrix(outcome, output_dir):
 
 
 def plot(outcome_dir, output_dir):
+    # Make output directory if it doesn't exist yet
+    os.makedirs(output_dir, exist_ok=True)
+
     outcome_files = glob.glob(f"{outcome_dir}/*train_discriminator.csv")
     outcome = pd.concat(
         [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]

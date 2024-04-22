@@ -26,6 +26,8 @@ def test_snakemake():
                 "pubchem_tsv_file": pubchem_tsv_file,
                 "representations": ["SMILES"],
                 "enum_factors": [0],
+                "folds": 3,
+                "sample_seeds": [0],
                 "output_dir": temp_dir,
             },
             dryrun=False,
@@ -40,10 +42,10 @@ def test_snakemake():
         checksum = hashlib.md5(
             "".join(open(ranks_file_overall, "r").readlines()).encode("utf8")
         ).hexdigest()
-        assert checksum == "dfa4142cae1c2f033bf31498e69189db"
+        assert checksum == "e96ebbecd034a1eaa0d96a667381b052"
 
         tc_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv"
         checksum = hashlib.md5(
             "".join(open(tc_file_overall, "r").readlines()).encode("utf8")
         ).hexdigest()
-        assert checksum == "d961fa2186e16d1c2a4725a18eddda35"
+        assert checksum == "16c72b68ef0a3e1415bffacff3c3fac4"

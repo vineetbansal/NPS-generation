@@ -10,7 +10,7 @@ from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
 # import functions
-from clm.functions import clean_mol, clean_mols, write_smiles, set_seed
+from clm.functions import clean_mol, write_smiles, set_seed, read_file
 
 
 def add_args(parser):
@@ -23,9 +23,7 @@ def add_args(parser):
 def add_carbon(input_file, output_file, seed=None):
     set_seed(seed)
     # make output directories
-    output_dir = os.path.dirname(output_file)
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     # remove output file if it exists
     if os.path.exists(output_file):
@@ -34,23 +32,25 @@ def add_carbon(input_file, output_file, seed=None):
     # open buffer
     f = open(output_file, "a+")
     # write header
-    row = "\t".join(["input_smiles", "mutated_smiles", "mass", "formula"])
+    row = "\t".join(["input_smiles", "mutated_smiles", "mass", "formula", "inchikey"])
     _ = f.write(row + "\n")
     f.flush()
 
     # read the input SMILES
-    df = pd.read_csv(input_file)
-    # extract SMILES
-    if "canonical_smiles" in list(df):
-        df = df.dropna(subset=["canonical_smiles"])
-        smiles = df["canonical_smiles"].values
-    else:
-        df = df.dropna(subset=["smiles"])
-        smiles = df["smiles"].values
+    smiles = read_file(input_file, smile_only=False)
 
-    # calculate inchikeys
-    train_mols = clean_mols(smiles)
-    train_inchi = [Chem.inchi.MolToInchiKey(mol) for mol in train_mols if mol]
+    smiles_parts = [sm.split(",") for sm in smiles]
+    if all([len(part) == 1 for part in smiles_parts]):
+        smiles = [part[0] for part in smiles_parts]
+        train_mols = [clean_mol(smile, raise_error=False) for smile in smiles]
+        train_inchi = set([Chem.inchi.MolToInchiKey(mol) for mol in train_mols if mol])
+    elif all([len(part) == 2 for part in smiles_parts]):
+        smiles = [part[0] for part in smiles_parts]
+        train_inchi = set([part[1] for part in smiles_parts])
+    else:
+        raise RuntimeError(
+            "The input file should have either 1 column (smile) or 2 columns (smiles, inchikey"
+        )
 
     # loop over the input SMILES
     # output_smiles = list()
@@ -92,7 +92,7 @@ def add_carbon(input_file, output_file, seed=None):
             formula = rdMolDescriptors.CalcMolFormula(mut_mol)
 
             # append to file
-            row = "\t".join([input_smiles, mut_can, str(mass), formula])
+            row = "\t".join([input_smiles, mut_can, str(mass), formula, mut_inchi])
             _ = f.write(row + "\n")
             f.flush()
 
