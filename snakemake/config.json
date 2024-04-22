@@ -1,7 +1,7 @@
 {
   "output_dir": "data",
-  "dataset": "/media/vineetb/T7/projects/nps/data/npmrd_plants.txt",
-  "pubchem_tsv_file": "/media/vineetb/T7/projects/nps/data/PubChem_with_fps.tsv",
+  "dataset": "/path/to/<dataset>.txt",
+  "pubchem_tsv_file": "/path/to/PubChem.tsv",
 
   "representations": ["SMILES"],
   "folds": 10,
