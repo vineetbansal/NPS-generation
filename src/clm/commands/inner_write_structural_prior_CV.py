@@ -88,9 +88,7 @@ def get_fp_obj(fp_string, bits=1024):
 
 
 def match_molecules(row, dataset, data_type):
-    match = dataset[
-        dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])
-    ].copy()
+    match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
     # For the PubChem dataset, not all SMILES might be valid; consider only the ones that are.
     # If a `fingerprint` column exists, then we have a valid SMILE
@@ -132,7 +130,7 @@ def match_molecules(row, dataset, data_type):
     # in terms of molecular mass.
     rank = rank.assign(n_candidates=match.shape[0])
 
-    tc = match
+    tc = match.copy()
     if tc.shape[0] > 1:
         tc = tc.head(1)
     if data_type == "model" and match.shape[0] > 1:
@@ -182,7 +180,7 @@ def write_structural_prior_CV(
     err_ppm,
     chunk_size,
     seed,
-    n_threads=4,
+    n_threads=8,
     carbon_file=None,
 ):
     set_seed(seed)
@@ -204,7 +202,7 @@ def write_structural_prior_CV(
     test = test.assign(formula_known=test["formula"].isin(train["formula"]))
 
     logger.info("Reading PubChem file")
-    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None, nrows=10000)
+    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
 
     # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
     match len(pubchem.columns):
@@ -219,7 +217,7 @@ def write_structural_prior_CV(
     pubchem = pubchem.assign(size=np.nan)
 
     logger.info("Reading sample file from generative model")
-    gen = pd.read_csv(sample_file, nrows=10000)
+    gen = pd.read_csv(sample_file)
 
     inputs = {
         "model": gen.assign(source="model"),

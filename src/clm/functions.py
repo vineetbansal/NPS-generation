@@ -412,7 +412,7 @@ def pct_stereocenters(mol):
 
 
 def generate_df(smiles_file, chunk_size):
-    smiles = read_file(smiles_file, max_lines=10000)
+    smiles = read_file(smiles_file)
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
     for i in tqdm(range(0, len(smiles), chunk_size)):
