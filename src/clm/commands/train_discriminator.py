@@ -11,7 +11,7 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from clm.functions import read_file, set_seed, seed_type, clean_mol
+from clm.functions import set_seed, seed_type, clean_mol
 
 
 def add_args(parser):
@@ -53,22 +53,26 @@ def calculate_fingerprint(smile):
 def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
     set_seed(seed)
 
-    train_smiles = set(read_file(train_file, smile_only=True))
+    train_smiles = pd.read_csv(train_file)
     sample_smiles = pd.read_csv(sample_file)
 
-    novel_smiles = sample_smiles[~sample_smiles["smiles"].isin(train_smiles)]
+    novel_smiles = sample_smiles[
+        ~sample_smiles["inchikey"].isin(train_smiles["inchikey"])
+    ]
+    novel_smiles.reset_index(drop=True, inplace=True)
 
+    train_smiles = train_smiles.smiles
     train_smiles = (
         np.random.choice(list(train_smiles), max_mols)
         if len(train_smiles) > max_mols
         else np.array(list(train_smiles))
     )
 
-    novel_smiles = list(
-        novel_smiles.sample(n=len(train_smiles), weights=sample_smiles.size).smiles
-        if novel_smiles.shape[0] > len(train_smiles)
-        else novel_smiles.smiles
-    )
+    # Match the number of novel and train smiles
+    if novel_smiles.shape[0] > len(train_smiles):
+        novel_smiles.sample(n=len(train_smiles), weights="size", random_state=seed)
+
+    novel_smiles = list(novel_smiles.smiles)
 
     np_fps = []
     labels = []
