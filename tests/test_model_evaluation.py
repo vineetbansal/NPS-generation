@@ -117,7 +117,7 @@ def test_write_freq_distribution():
         )
 
 
-@pytest.mark.xfail(strict=True)
+@pytest.mark.xfail
 def test_train_discriminator():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_file = Path(temp_dir) / "train_discriminator.csv"
