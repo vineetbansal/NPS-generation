@@ -25,7 +25,6 @@ from rdkit import rdBase
 rdBase.DisableLog("rdApp.error")
 tqdm.pandas()
 logger = logging.getLogger(__name__)
-pd.set_option("mode.chained_assignment", "raise")
 
 
 def add_args(parser):
@@ -159,7 +158,7 @@ def match_molecules(row, dataset, data_type):
                 clean_mol(smile, selfies=False) for smile in tc["target_smiles"].values
             ]
             target_fps = get_ecfp6_fingerprints(target_mols)
-        tc.loc[:, "Tc"] = [
+        tc["Tc"] = [
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
     else:
