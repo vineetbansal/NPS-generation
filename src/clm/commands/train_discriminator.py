@@ -26,7 +26,7 @@ def add_args(parser):
     parser.add_argument(
         "--max_mols",
         type=int,
-        default=50000,
+        default=100000,
         help="Total number of molecules to sample.",
     )
     parser.add_argument("--output_file", type=str)
@@ -54,20 +54,20 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
     set_seed(seed)
 
     train_smiles = set(read_file(train_file, smile_only=True))
-    sample_smiles_gen = read_file(sample_file, smile_only=True, stream=True)
+    sample_smiles = pd.read_csv(sample_file)
 
-    novel_smiles = set()
-    for sample_smile in sample_smiles_gen:
-        if len(novel_smiles) >= max_mols:
-            break
-        if sample_smile not in train_smiles:
-            novel_smiles.add(sample_smile)
+    novel_smiles = sample_smiles[~sample_smiles["smiles"].isin(train_smiles)]
 
-    novel_smiles = np.array(list(novel_smiles))
     train_smiles = (
         np.random.choice(list(train_smiles), max_mols)
         if len(train_smiles) > max_mols
         else np.array(list(train_smiles))
+    )
+
+    novel_smiles = list(
+        novel_smiles.sample(n=len(train_smiles), weights=sample_smiles.size).smiles
+        if novel_smiles.shape[0] > len(train_smiles)
+        else novel_smiles.smiles
     )
 
     np_fps = []
