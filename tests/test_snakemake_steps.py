@@ -1,6 +1,8 @@
 from pathlib import Path
 import tempfile
 
+import pandas as pd
+
 from clm.commands import (
     preprocess,
     create_training_sets,
@@ -37,20 +39,23 @@ def test_00_preprocess():
 def test_01_create_training_sets():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
-        create_training_sets.create_training_sets(
-            input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
-            train0_file=temp_dir / "train0_file_{fold}",
-            train_file=temp_dir / "train_file_{fold}",
-            vocab_file=temp_dir / "vocabulary_file_{fold}",
-            test0_file=temp_dir / "test0_file_{fold}",
-            test_file=temp_dir / "test_file_{fold}",
-            enum_factor=0,
-            folds=3,
-            representation="SMILES",
-            min_tc=0,
-            seed=5831,
-            max_input_smiles=1000,
-        )
+        folds = 3
+        for fold in range(folds):
+            create_training_sets.create_training_sets(
+                input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
+                train0_file=temp_dir / "train0_file_{fold}",
+                train_file=temp_dir / "train_file_{fold}",
+                vocab_file=temp_dir / "vocabulary_file_{fold}",
+                test0_file=temp_dir / "test0_file_{fold}",
+                test_file=temp_dir / "test_file_{fold}",
+                enum_factor=0,
+                folds=folds,
+                which_fold=fold,
+                representation="SMILES",
+                min_tc=0,
+                seed=5831,
+                max_input_smiles=1000,
+            )
         # `train0_file_0` denotes the train smiles without augmentation for fold
         # 0; Since we're running with enum_factor=0, this should be identical
         # to `train_file_0` (train smiles with augmentation for fold 0)
@@ -71,6 +76,17 @@ def test_01_create_training_sets():
             temp_dir / "test_file_0",
             test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
         )
+
+        # Check if the same InChI key appears in more than one CV fold
+        train0_all = pd.concat(
+            [pd.read_csv(temp_dir / f"train0_file_{fold}") for fold in range(folds)]
+        )
+        test0_all = pd.concat(
+            [pd.read_csv(temp_dir / f"test0_file_{fold}") for fold in range(folds)]
+        )
+
+        assert len(test0_all.inchikey) == len(test0_all.inchikey.unique())
+        assert len(train0_all.inchikey) == len(train0_all.inchikey.unique())
 
 
 def test_02_train_models_RNN():
