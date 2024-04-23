@@ -34,7 +34,7 @@ def collect_tabulated_molecules(input_files, output_file):
         .reset_index(drop=True)
     )
 
-    df.to_csv(output_file, index=False)
+    unique.to_csv(output_file, index=False)
 
 
 def main(args):
