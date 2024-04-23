@@ -4,14 +4,9 @@ import os
 import pandas as pd
 from rdkit import Chem, DataStructs
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (
-    accuracy_score,
-    roc_auc_score,
-    average_precision_score,
-)
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from clm.functions import read_file, set_seed, seed_type, clean_mol
+from clm.functions import set_seed, seed_type, clean_mol
 
 
 def add_args(parser):
@@ -26,7 +21,7 @@ def add_args(parser):
     parser.add_argument(
         "--max_mols",
         type=int,
-        default=50000,
+        default=100_000,
         help="Total number of molecules to sample.",
     )
     parser.add_argument("--output_file", type=str)
@@ -53,27 +48,32 @@ def calculate_fingerprint(smile):
 def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
     set_seed(seed)
 
-    train_smiles = set(read_file(train_file, smile_only=True))
-    sample_smiles_gen = read_file(sample_file, smile_only=True, stream=True)
+    train_smiles = pd.read_csv(train_file)
+    sample_smiles = pd.read_csv(sample_file)
 
-    novel_smiles = set()
-    for sample_smile in sample_smiles_gen:
-        if len(novel_smiles) >= max_mols:
-            break
-        if sample_smile not in train_smiles:
-            novel_smiles.add(sample_smile)
+    sample_smiles = sample_smiles[
+        ~sample_smiles["inchikey"].isin(train_smiles["inchikey"])
+    ]
 
-    novel_smiles = np.array(list(novel_smiles))
+    train_smiles = train_smiles.smiles
     train_smiles = (
-        np.random.choice(list(train_smiles), max_mols)
+        np.random.choice(train_smiles, size=max_mols, replace=False)
         if len(train_smiles) > max_mols
-        else np.array(list(train_smiles))
+        else train_smiles.to_numpy()
     )
+
+    # Match the number of novel and train smiles
+    if sample_smiles.shape[0] > len(train_smiles):
+        sample_smiles.sample(
+            n=len(train_smiles), weights="size", random_state=seed, replace=False
+        )
+
+    sample_smiles = sample_smiles.smiles.to_numpy()
 
     np_fps = []
     labels = []
     for idx, smile in tqdm(
-        enumerate(np.concatenate((train_smiles, novel_smiles), axis=0))
+        enumerate(np.concatenate((train_smiles, sample_smiles), axis=0))
     ):
         if (fp := calculate_fingerprint(smile)) is not None:
             arr = np.zeros((1,))
@@ -93,27 +93,19 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
     # Predict classes for held-out molecules
     y_pred = rf.predict(X_test)
     y_probs = rf.predict_proba(X_test)
-
-    acc = accuracy_score(y_test, y_pred)
-    auc = roc_auc_score(y_test, y_probs[:, 1])
-    auprc = average_precision_score(y_test, y_probs[:, 1])
-
     y_prob_1 = [x[1] for x in y_probs]
+
     output_dict = {
         "y": y_test,
         "y_pred": y_pred,
         "y_prob_1": y_prob_1,
-        "score": ["accuracy", "auroc", "auprc"],
-        "value": [acc, auc, auprc],
     }
-    output_df = pd.DataFrame(
-        dict([(key, pd.Series(value)) for key, value in output_dict.items()])
-    )
+    output_df = pd.DataFrame(output_dict)
 
     # Create an output directory if it doesn't exist already
     create_output_dir(output_file)
     output_df.to_csv(output_file, index=False)
-    output_df = output_df.reset_index(drop=True)
+
     return output_df
 
 

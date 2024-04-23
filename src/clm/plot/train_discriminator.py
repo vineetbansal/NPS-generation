@@ -90,6 +90,12 @@ def plot(outcome_dir, output_dir):
     outcome = pd.concat(
         [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
+
+    # Metrics for outcomes (from `sklearn.metrics`)
+    # acc = accuracy_score(outcome['y_test'], outcome['y_pred'])
+    # auc = roc_auc_score(outcome['y_test'], outcome['y_probs'])
+    # auprc = average_precision_score(outcome['y_test'], outcome['y_probs'])
+
     plot_roc_curve(outcome, output_dir)
     plot_confusion_matrix(outcome, output_dir)
 
