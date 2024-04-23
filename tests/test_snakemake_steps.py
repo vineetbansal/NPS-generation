@@ -77,16 +77,20 @@ def test_01_create_training_sets():
             test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
         )
 
-        # Check if the same InChI key appears in more than one CV fold
-        train0_all = pd.concat(
-            [pd.read_csv(temp_dir / f"train0_file_{fold}") for fold in range(folds)]
-        )
-        test0_all = pd.concat(
-            [pd.read_csv(temp_dir / f"test0_file_{fold}") for fold in range(folds)]
-        )
+        # Check if the same InChI key appears in both the training and test set in any CV split
+        test0_all = []
+        for fold in range(folds):
+            train0 = pd.read_csv(temp_dir / f"train0_file_{fold}")
+            test0 = pd.read_csv(temp_dir / f"test0_file_{fold}")
 
+            train0_inchi, test0_inchi = set(train0.inchikey), set(test0.inchikey)
+            assert train0_inchi.isdisjoint(test0_inchi)
+
+            test0_all.append(test0)
+
+        # Check if there's redundant InChI key in test sets across CV splits
+        test0_all = pd.concat(test0_all)
         assert len(test0_all.inchikey) == len(test0_all.inchikey.unique())
-        assert len(train0_all.inchikey) == len(train0_all.inchikey.unique())
 
 
 def test_02_train_models_RNN():
@@ -143,24 +147,34 @@ def test_03_sample_molecules_RNN():
 
 def test_04_tabulate_molecules():
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = Path(temp_dir) / "0/prior/samples"
+        output_file = (
+            Path(temp_dir)
+            / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv"
+        )
         inner_tabulate_molecules.tabulate_molecules(
             input_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv",
             representation="SMILES",
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
-            output_file=temp_dir / "LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
+            output_file=output_file,
         )
         assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
+            output_file,
             test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
         )
+        result = pd.read_csv(output_file)
+
+        # Check if same InChI key appears in more than one row
+        assert len(result.inchikey) == len(result.inchikey.unique())
 
 
 def test_05_collect_tabulated_molecules():
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = Path(temp_dir) / "0/prior/samples"
+        output_file = (
+            Path(temp_dir)
+            / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv"
+        )
         inner_collect_tabulated_molecules.collect_tabulated_molecules(
             input_files=[
                 test_dir
@@ -168,17 +182,25 @@ def test_05_collect_tabulated_molecules():
                 test_dir
                 / "0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples_masses.csv",
             ],
-            output_file=temp_dir / "LOTUS_truncated_SMILES_0_unique_masses.csv",
+            output_file=output_file,
         )
         assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_0_unique_masses.csv",
+            output_file,
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
+
+        result = pd.read_csv(output_file)
+
+        # Check if same InChI key appears in more than one row
+        assert len(result.inchikey) == len(result.inchikey.unique())
 
 
 def test_06_process_tabulated_molecules():
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = Path(temp_dir) / "0/prior/samples"
+        output_file = (
+            Path(temp_dir)
+            / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv"
+        )
         inner_process_tabulated_molecules.process_tabulated_molecules(
             input_file=[
                 test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
@@ -190,13 +212,17 @@ def test_06_process_tabulated_molecules():
                 test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi",
                 test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi",
             ],
-            output_file=temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
+            output_file=output_file,
             summary_fn="freq-avg",
         )
         assert_checksum_equals(
-            temp_dir / "LOTUS_truncated_SMILES_processed_freq-avg.csv",
+            output_file,
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
         )
+
+        result = pd.read_csv(output_file)
+        # Check if same InChI key appears in more than one row
+        assert len(result.inchikey) == len(result.inchikey.unique())
 
 
 def test_07_write_structural_prior_CV():
