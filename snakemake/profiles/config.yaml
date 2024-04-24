@@ -6,11 +6,10 @@ printshellcmds: true
 
 # cluster specific settings
 cluster:
-  makedir -p logs/{rules} &&
   sbatch 
     --cpus-per-task={threads} 
-    --mem={resources.mem}M 
-    --time={resources.time} --output=slurm_out/%x-%A 
+    --mem={resources.mem_mb}
+    --time={resources.runtime} --output=slurm_out/%x-%A 
     --job-name={rule} --parsable
     --partition={resources.partition}
 cluster-status: "slurm-status.py"
