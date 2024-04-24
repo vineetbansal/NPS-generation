@@ -48,12 +48,6 @@ def add_args(parser):
     )
     parser.add_argument("--output_file", type=str)
     parser.add_argument(
-        "--max_orig_mols",
-        type=int,
-        default=None,
-        help="Max number of sampled smiles to process from each frequency bin.",
-    )
-    parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
     return parser
@@ -134,14 +128,12 @@ def calculate_probabilities(*dicts):
     return return_values
 
 
-def get_dataframes(train_file, sampled_file, max_orig_mols=None):
+def get_dataframes(train_file, sampled_file):
     logger.info(f"Reading training smiles from {train_file}")
     train_df = smile_properties_dataframe(train_file)
 
     logger.info(f"Reading sample smiles from {sampled_file}")
-    sample_smiles_df = smile_properties_dataframe(
-        sampled_file, max_smiles=max_orig_mols
-    )
+    sample_smiles_df = smile_properties_dataframe(sampled_file)
 
     sample_smiles_df["is_valid"] = sample_smiles_df.apply(
         lambda row: row["canonical_smile"] is not None, axis=1
@@ -274,11 +266,9 @@ def calculate_outcomes_dataframe(sample_df, train_df):
     return out
 
 
-def calculate_outcomes(
-    sampled_file, train_file, output_file, max_orig_mols=None, seed=None
-):
+def calculate_outcomes(sampled_file, train_file, output_file, seed=None):
     set_seed(seed)
-    train_df, sample_df = get_dataframes(train_file, sampled_file, max_orig_mols)
+    train_df, sample_df = get_dataframes(train_file, sampled_file)
 
     logger.info("Calculating outcomes")
     out = calculate_outcomes_dataframe(sample_df, train_df)
@@ -295,7 +285,6 @@ def main(args):
         train_file=args.train_file,
         sampled_file=args.sampled_file,
         output_file=args.output_file,
-        max_orig_mols=args.max_orig_mols,
         seed=args.seed,
     )
 
