@@ -46,7 +46,6 @@ def test_calculate_outcomes():
             # For LOTUS, train/test "_all.smi" files are the same
             train_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
             output_file=output_file,
-            max_orig_mols=10000,
             seed=12,
         )
 
