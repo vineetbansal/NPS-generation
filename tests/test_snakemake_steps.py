@@ -77,7 +77,7 @@ def test_01_create_training_sets():
             test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
         )
 
-        # Check if the same InChI key appears in both the training and test set in any CV split
+        # Check that the same InChI key does not appear in both the training and test set in any CV split
         test0_all = []
         for fold in range(folds):
             train0 = pd.read_csv(temp_dir / f"train0_file_{fold}")
@@ -88,7 +88,7 @@ def test_01_create_training_sets():
 
             test0_all.append(test0)
 
-        # Check if there's redundant InChI key in test sets across CV splits
+        # Check that there's no redundant InChI key in test sets across CV splits
         test0_all = pd.concat(test0_all)
         assert len(test0_all.inchikey) == len(test0_all.inchikey.unique())
 
@@ -147,6 +147,7 @@ def test_03_sample_molecules_RNN():
 
 def test_04_tabulate_molecules():
     with tempfile.TemporaryDirectory() as temp_dir:
+        train_file = test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi"
         output_file = (
             Path(temp_dir)
             / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv"
@@ -155,7 +156,7 @@ def test_04_tabulate_molecules():
             input_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv",
             representation="SMILES",
-            train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
+            train_file=train_file,
             output_file=output_file,
         )
         assert_checksum_equals(
@@ -163,10 +164,13 @@ def test_04_tabulate_molecules():
             test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
         )
+        train = pd.read_csv(train_file)
         result = pd.read_csv(output_file)
 
-        # Check if same InChI key appears in more than one row
+        # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
+        # None of the InChI keys in the tabulated molecules should be in the training set
+        assert set(train.inchikey).isdisjoint(set(result.inchikey))
 
 
 def test_05_collect_tabulated_molecules():
@@ -191,7 +195,7 @@ def test_05_collect_tabulated_molecules():
 
         result = pd.read_csv(output_file)
 
-        # Check if same InChI key appears in more than one row
+        # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
 
 
@@ -221,7 +225,7 @@ def test_06_process_tabulated_molecules():
         )
 
         result = pd.read_csv(output_file)
-        # Check if same InChI key appears in more than one row
+        # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
 
 
