@@ -1,8 +1,10 @@
 import argparse
+import logging
 import pandas as pd
 from clm.functions import set_seed, seed_type
 
 parser = argparse.ArgumentParser(description=__doc__)
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -38,10 +40,14 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
         else:
             selected_rows = data[data["size"] > f_min]
 
+        bin_name = f"{f_min}-{f_max}" if f_max is not None else f"{f_min}-"
+
         if max_molecules is not None and len(selected_rows) > max_molecules:
             selected_rows = selected_rows.sample(n=max_molecules)
-
-        bin_name = f"{f_min}-{f_max}" if f_max is not None else f"{f_min}-"
+        elif max_molecules is not None and len(selected_rows) < max_molecules:
+            logger.warning(
+                f"Not enough molecules for frequency bin '{bin_name}'. Using {len(selected_rows)} molecules."
+            )
 
         data.loc[selected_rows.index, "bin"] = bin_name
 
