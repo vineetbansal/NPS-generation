@@ -47,7 +47,6 @@ def test_01_create_training_sets():
                 train_file=temp_dir / "train_file_{fold}",
                 vocab_file=temp_dir / "vocabulary_file_{fold}",
                 test0_file=temp_dir / "test0_file_{fold}",
-                test_file=temp_dir / "test_file_{fold}",
                 enum_factor=0,
                 folds=folds,
                 which_fold=fold,
@@ -67,14 +66,6 @@ def test_01_create_training_sets():
         assert_checksum_equals(
             temp_dir / "vocabulary_file_0",
             test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
-        )
-        # `test0_file_0` denotes the test smiles without augmentation for fold
-        # 0; Since we're running with enum_factor=0, this should be identical
-        # to `test_file_0` (test smiles with augmentation for fold 0)
-        assert_checksum_equals(temp_dir / "test0_file_0", temp_dir / "test_file_0")
-        assert_checksum_equals(
-            temp_dir / "test_file_0",
-            test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
         )
 
         # Check that the same InChI key does not appear in both the training and test set in any CV split

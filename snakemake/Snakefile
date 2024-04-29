@@ -77,7 +77,6 @@ rule create_training_sets:
     output:
         train_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
         vocab_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary",
-        test_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_{{fold}}.smi",
         train0_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
         test0_file= f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi"
     resources:
@@ -90,7 +89,6 @@ rule create_training_sets:
         '--train-file {output.train_file} '
         '--vocab-file {output.vocab_file} '
         '--test0-file {output.test0_file} '
-        '--test-file {output.test_file} '
         '--enum-factor {wildcards.enum_factor} '
         '--folds {FOLDS} '
         '--which-fold {wildcards.fold} '
@@ -126,13 +124,13 @@ rule collapse_train_test_data:
     file from `preprocess` in both cases.
     """
     input:
-        train_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True),
+        train_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True),
         test_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True),
         carbon_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv", fold=range(FOLDS), allow_missing=True)
     output:
         train_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
         test_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
-        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_carbon_all.csv"
+        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_carbon_all.csv"
     resources:
         mem_mb=20000,
         runtime=10,
@@ -307,8 +305,8 @@ rule write_structural_prior_CV:
     Fingerprint similarity values are written out to `tc_file`.
     """
     input:
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
-        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_{{fold}}.smi",
+        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
         pubchem_file=config['pubchem_tsv_file'],
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
         carbon_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv"
@@ -349,8 +347,8 @@ rule write_formula_prior_CV:
     This output is written to `ranks_file`.
     """
     input:
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
-        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_{{fold}}.smi",
+        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
         pubchem_file=config['pubchem_tsv_file'],
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
     output:
@@ -393,7 +391,7 @@ rule write_structural_prior_CV_overall:
         test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
         pubchem_file=config['pubchem_tsv_file'],
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv",
-        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_carbon_all.csv"
+        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_carbon_all.csv"
     output:
         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv"
