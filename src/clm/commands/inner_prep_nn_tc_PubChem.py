@@ -11,7 +11,7 @@ def add_args(parser):
         "--sample_file", type=str, required=True, help="Path to the sampled file"
     )
     parser.add_argument(
-        "--sample_no", type=int, default=500_000, help="Number of samples to select"
+        "--max_molecules", type=int, default=500_000, help="Number of samples to select"
     )
     parser.add_argument(
         "--pubchem_file", type=str, required=True, help="Path to the PubChem file"
@@ -29,12 +29,12 @@ def add_args(parser):
     return parser
 
 
-def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
+def prep_nn_tc(sample_file, max_molecules, pubchem_file, output_file, seed=None):
     set_seed(seed)
     sample = pd.read_csv(sample_file, delimiter=",")
-    if len(sample) > sample_no:
+    if len(sample) > max_molecules:
         sample = sample.sample(
-            n=sample_no, replace=True, weights=sample["size"], ignore_index=True
+            n=max_molecules, replace=True, weights=sample["size"], ignore_index=True
         )
     pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
 
@@ -69,7 +69,7 @@ def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
 def main(args):
     prep_nn_tc(
         sample_file=args.sample_file,
-        sample_no=args.sample_no,
+        max_molecules=args.max_molecules,
         pubchem_file=args.pubchem_file,
         output_file=args.output_file,
         seed=args.seed,

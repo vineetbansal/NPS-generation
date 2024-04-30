@@ -74,7 +74,7 @@ def test_prep_nn_tc():
         output_file = Path(temp_dir) / "prep_nn_tc_PubChem.csv"
         outcomes = prep_nn_tc(
             sample_file=test_dir / "prep_nn_tc_input.csv",
-            sample_no=100,
+            max_molecules=100,
             pubchem_file=test_dir / "PubChem_truncated.tsv",
             output_file=output_file,
             seed=0,
