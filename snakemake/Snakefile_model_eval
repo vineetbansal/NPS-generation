@@ -181,19 +181,3 @@ rule calculate_outcome_distrs:
         'clm calculate_outcome_distrs '
         '--input_file {input.input_file} '
         '--output_file {output.output_file} '
-
-
-rule nn_tc_ever_v_never:
-    input:
-        query_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-    output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv",
-    resources:
-        mem_mb=64000,
-        runtime=1000,
-    shell:
-        'clm write_nn_Tc '
-        '--query_file {input.query_file} '
-        '--reference_file {input.reference_file} '
-        '--output_file {output.output_file} '
