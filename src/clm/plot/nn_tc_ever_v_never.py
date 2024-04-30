@@ -26,10 +26,8 @@ def add_args(parser):
     return parser
 
 
-def plot_generated_v_ref(outcome, output_dir):
+def plot_generated_v_never(outcome, output_dir):
     data = []
-    # Fill all the empty ranks with 0
-    outcome["target_rank"].fillna(0, inplace=True)
     data.append(list(outcome[~(outcome["target_rank"] == 0)]["nn_tc"]))
     data.append(list(outcome[outcome["target_rank"] == 0]["nn_tc"]))
 
@@ -58,6 +56,30 @@ def plot_generated_v_ref(outcome, output_dir):
     plt.clf()
 
 
+def plot_generated_ratio(rank_df, output_dir):
+    data = {
+        "Ever Generated": len(rank_df[~(rank_df["target_rank"] == 0)]),
+        "Never Generated": len(rank_df[rank_df["target_rank"] == 0]),
+    }
+
+    sns.set_style("darkgrid")
+    colors = ["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"]
+
+    plt.pie(list(data.values()), labels=list(data.keys()), colors=colors)
+    percentage_generated = (
+        data["Ever Generated"]
+        / (data["Ever Generated"] + data["Never Generated"])
+        * 100
+    )
+    plt.title(f"{percentage_generated:.2f}% of held-out metabolites generated")
+
+    file_name = Path(output_dir) / "ratio_ever_v_never"
+    plt.savefig(file_name)
+
+    # Clear the previous figure
+    plt.clf()
+
+
 def plot(outcome_dir, ranks_file, output_dir):
     # Make an output directory if it doesn't yet
     os.makedirs(output_dir, exist_ok=True)
@@ -69,8 +91,12 @@ def plot(outcome_dir, ranks_file, output_dir):
     rank_df = pd.read_csv(ranks_file)
     rank_df = rank_df[rank_df["target_source"] == "model"]
 
+    # Fill all the empty ranks with 0
+    rank_df["target_rank"].fillna(0, inplace=True)
+
     merged_df = pd.merge(outcome, rank_df, how="inner", on=["smiles"])
-    plot_generated_v_ref(merged_df, output_dir)
+    plot_generated_v_never(merged_df, output_dir)
+    plot_generated_ratio(rank_df, output_dir)
 
 
 def main(args):
