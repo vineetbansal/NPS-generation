@@ -31,10 +31,8 @@ rule all:
             repr=REPRESENTATIONS,fold=range(FOLDS),dataset=DATASET,enum_factor=ENUM_FACTORS),
         freq_distribution=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_freq_distribution.csv",
             repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
-        calculate_outcome_distr=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv",
-            repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
-        nn_tc_ever_v_never=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv",
-            repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
+	calculate_outcome_distr=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv", repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
+
 rule prep_outcome_freq:
     """
     For sampled smiles in each fold, add a `bin` column denoting what
@@ -179,20 +177,4 @@ rule calculate_outcome_distrs:
     shell:
         'clm calculate_outcome_distrs '
         '--input_file {input.input_file} '
-        '--output_file {output.output_file} '
-
-
-rule nn_tc_ever_v_never:
-    input:
-        query_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-    output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv",
-    resources:
-        mem_mb=64000,
-        runtime=1000,
-    shell:
-        'clm write_nn_Tc '
-        '--query_file {input.query_file} '
-        '--reference_file {input.reference_file} '
         '--output_file {output.output_file} '
