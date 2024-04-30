@@ -32,20 +32,19 @@ def add_args(parser):
 def function(df, split_data):
     current = pd.DataFrame([df])
     current_formula = current["formula"].values[0]
-    if (current_formula not in split_data.keys()) or (
-        cands := split_data[current_formula]
-    ).shape[0] == 0:
+    if current_formula not in split_data.keys():
         return current.assign(source="DeepMet")
-    match = cands.sample(n=1)
+    match = split_data[current_formula].sample(n=1)
     return pd.concat([current.assign(source="DeepMet"), match.assign(source="PubChem")])
 
 
 def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
     set_seed(seed)
-    sample_file = pd.read_csv(sample_file, delimiter=",")
-    sample = sample_file.sample(
-        n=sample_no, replace=True, weights=sample_file["size"], ignore_index=True
-    )
+    sample = pd.read_csv(sample_file, delimiter=",")
+    if len(sample) > sample_no:
+        sample = sample.sample(
+            n=sample_no, replace=True, weights=sample["size"], ignore_index=True
+        )
     pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
 
     # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
@@ -60,8 +59,9 @@ def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
         case _:
             raise RuntimeError("Unexpected column count for PubChem")
 
-    formulas = set(sample.formula)
-    pubchem = pubchem[pubchem["formula"].isin(formulas)]
+    pubchem = pubchem[pubchem["formula"].isin(set(sample.formula))]
+
+    # Every formula in the key should be unique here
     split_data = {formula: df for formula, df in pubchem.groupby("formula")}
 
     result = sample.apply(lambda x: function(x, split_data), axis=1)
