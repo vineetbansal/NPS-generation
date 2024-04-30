@@ -8,7 +8,7 @@ printshellcmds: true
 cluster:
   sbatch 
     --cpus-per-task={threads} 
-    --mem={resources.mem_mb}
+    --mem={resources.mem_mb}M 
     --time={resources.runtime} --output=slurm_out/%x-%A 
     --job-name={rule} --parsable
     --partition={resources.partition}
