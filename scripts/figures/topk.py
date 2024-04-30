@@ -15,7 +15,7 @@ if __name__ == "__main__":
     print(df.columns)
     print(df.shape)
 
-    models = ("model", "PubChem")
+    models = ("model", "PubChem", "train")
     ys = {model: [] for model in models}
 
     ks = range(0, 30)
