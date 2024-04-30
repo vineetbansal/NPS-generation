@@ -114,6 +114,7 @@ rule add_carbon:
         'clm add_carbon '
         '--input_file {input.train0_file} '
         '--output_file {output.carbon_file} '
+        '--seed {config[random_seed]} '
 
 rule collapse_train_test_data:
     """
