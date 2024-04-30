@@ -31,7 +31,16 @@ def find_max_similarity_fingerprint(target_smile, ref_smiles, ref_fps):
     if target_fps is None:
         return None, None
 
-    tcs = [FingerprintSimilarity(target_fps, ref_fp) for ref_fp in ref_fps]
+    tcs = []
+    for ref_smile, ref_fp in zip(ref_smiles, ref_fps):
+        # Avoid comparing tcs of exactly same molecule
+        if not (
+            Chem.inchi.MolToInchiKey(clean_mol(target_smile, raise_error=False))
+            == Chem.inchi.MolToInchiKey(clean_mol(ref_smile, raise_error=False))
+        ):
+            tcs.append(FingerprintSimilarity(target_fps, ref_fp))
+        else:
+            tcs.append(-1)
 
     return np.max(tcs), ref_smiles[np.argmax(tcs)]
 
