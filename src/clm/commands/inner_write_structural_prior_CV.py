@@ -8,7 +8,7 @@ from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
 
 from clm.functions import (
-    get_rdkit_fingerprints,
+    get_ecfp6_fingerprints,
     set_seed,
     seed_type,
     clean_mol,
@@ -149,7 +149,7 @@ def match_molecules(row, dataset, data_type):
             target_mols = [
                 clean_mol(smile, selfies=False) for smile in tc["target_smiles"].values
             ]
-            target_fps = get_rdkit_fingerprints(target_mols)
+            target_fps = get_ecfp6_fingerprints(target_mols)
         tc["Tc"] = [
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
