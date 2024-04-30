@@ -35,6 +35,7 @@ rule all:
             repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
         nn_tc_ever_v_never=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv",
             repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
+
 rule prep_outcome_freq:
     """
     For sampled smiles in each fold, add a `bin` column denoting what
