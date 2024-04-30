@@ -25,8 +25,8 @@ rule all:
     input:
         calculate_outcomes_file=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv",
             fold=range(FOLDS),repr=REPRESENTATIONS,dataset=DATASET,enum_factor=ENUM_FACTORS),
-        # nn_tc_file=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_nn_tc.csv",
-          #  repr=REPRESENTATIONS,fold=range(FOLDS),dataset=DATASET,enum_factor=ENUM_FACTORS),
+        nn_tc_file=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_nn_tc.csv",
+           repr=REPRESENTATIONS,fold=range(FOLDS),dataset=DATASET,enum_factor=ENUM_FACTORS),
         train_discriminator=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_train_discriminator_.csv",
             repr=REPRESENTATIONS,fold=range(FOLDS),dataset=DATASET,enum_factor=ENUM_FACTORS),
         freq_distribution=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_freq_distribution.csv",

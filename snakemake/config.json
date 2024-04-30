@@ -1,13 +1,13 @@
 {
-  "output_dir": "/Genomics/argo/users/aa9078/PED_1",
-  "dataset": "/Genomics/argo/users/aa9078/data/prior/raw/PED.csv",
-  "pubchem_tsv_file": "/Genomics/singhlab/vineetb/CLM/snakemake/data/PubChem_with_fps.tsv",
+  "output_dir": "data",
+  "dataset": "/path/to/<dataset>.txt",
+  "pubchem_tsv_file": "/path/to/PubChem.tsv",
 
   "representations": ["SMILES"],
   "folds": 10,
-  "train_seeds": [0],
+  "train_seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   "sample_seeds": [0],
-  "enum_factors": [0, 1],
+  "enum_factors": [0, 10, 30, 50, 100],
   "max_input_smiles": 0,
 
   "model_params": {
@@ -30,5 +30,5 @@
   "min_tc": 0,
   "top_k": 30,
   "err_ppm": 10,
-  "random_seed": 12345
+  "random_seed": null
 }

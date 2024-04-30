@@ -6,10 +6,10 @@ printshellcmds: true
 
 # cluster specific settings
 cluster:
-  sbatch 
-    --cpus-per-task={threads} 
-    --mem={resources.mem_mb}M 
-    --time={resources.runtime} --output=slurm_out/%x-%A 
+  sbatch
+    --cpus-per-task={threads}
+    --mem={resources.mem_mb}M
+    --time={resources.runtime} --output=slurm_out/%x-%A
     --job-name={rule} --parsable
     --partition={resources.partition}
 cluster-status: "slurm-status.py"
