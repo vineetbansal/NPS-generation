@@ -1,6 +1,6 @@
 import argparse
-import os
 import pandas as pd
+import os
 from clm.functions import set_seed, seed_type
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -29,15 +29,6 @@ def add_args(parser):
     return parser
 
 
-def function(df, split_data):
-    current = pd.DataFrame([df])
-    current_formula = current["formula"].values[0]
-    if current_formula not in split_data.keys():
-        return current.assign(source="DeepMet")
-    match = split_data[current_formula].sample(n=1)
-    return pd.concat([current.assign(source="DeepMet"), match.assign(source="PubChem")])
-
-
 def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
     set_seed(seed)
     sample = pd.read_csv(sample_file, delimiter=",")
@@ -60,16 +51,19 @@ def prep_nn_tc(sample_file, sample_no, pubchem_file, output_file, seed=None):
             raise RuntimeError("Unexpected column count for PubChem")
 
     pubchem = pubchem[pubchem["formula"].isin(set(sample.formula))]
+    pubchem = pubchem.drop_duplicates(subset=["formula"], keep="first")
 
-    # Every formula in the key should be unique here
-    split_data = {formula: df for formula, df in pubchem.groupby("formula")}
+    combination = pd.concat(
+        [
+            sample.assign(source="DeepMet"),
+            pubchem.assign(source="PubChem"),
+        ]
+    )
 
-    result = sample.apply(lambda x: function(x, split_data), axis=1)
-    matches = pd.concat(result.to_list())
-    dirname = os.path.dirname(output_file)
-    if dirname:
-        os.makedirs(dirname, exist_ok=True)
-    matches.to_csv(output_file, index=False)
+    # Make an output directory if it doesn't yet
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    combination.to_csv(output_file, index=False)
+    return combination
 
 
 def main(args):
