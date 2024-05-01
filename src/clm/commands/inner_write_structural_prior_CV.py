@@ -115,8 +115,9 @@ def match_molecules(row, dataset, data_type):
             lambda x: get_inchikey(x)
         )
 
-    rank = match[match["target_inchikey"] == row["inchikey"]][
-        ["target_size", "target_rank", "target_source"]
+    row_inchikey = row["inchikey"]
+    rank = match[match["target_inchikey"] == row_inchikey][
+        ["target_size", "target_rank", "target_source", "target_inchikey"]
     ]
 
     # `rank` denotes the best match
@@ -128,6 +129,7 @@ def match_molecules(row, dataset, data_type):
                 "target_size": [np.nan],
                 "target_rank": [np.nan],
                 "target_source": [data_type],
+                "target_inchikey": [row_inchikey],
             }
         )
     # `n_candidates` is the number of candidates close enough to the NPS
@@ -160,6 +162,7 @@ def match_molecules(row, dataset, data_type):
                 "target_rank": np.nan,
                 "target_source": data_type,
                 "Tc": np.nan,
+                "target_inchikey": row_inchikey,
             },
             index=[0],
         )
