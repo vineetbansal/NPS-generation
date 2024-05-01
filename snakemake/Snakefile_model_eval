@@ -97,7 +97,7 @@ rule prep_nn_tc:
         'clm inner_prep_nn_tc_PubChem '
         '--sample_file {input.sampled_file} '
         '--pubchem_file {input.pubchem_file} '
-        '--sample_no 50000 '
+        '--max_molecules 50000 '
         '--output_file {output.output_file} '
 
 

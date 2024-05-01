@@ -72,15 +72,23 @@ def test_calculate_outcomes():
 def test_prep_nn_tc():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_file = Path(temp_dir) / "prep_nn_tc_PubChem.csv"
-        prep_nn_tc(
+        outcomes = prep_nn_tc(
             sample_file=test_dir / "prep_nn_tc_input.csv",
-            sample_no=100,
+            max_molecules=100,
             pubchem_file=test_dir / "PubChem_truncated.tsv",
             output_file=output_file,
             seed=0,
         )
 
-        assert_checksum_equals(output_file, test_dir / "prep_nn_tc_output.csv")
+        true_outcomes = pd.read_csv(test_dir / "prep_nn_tc_output.csv")
+        pd.testing.assert_frame_equal(
+            outcomes.sort_index(axis=1)
+            .sort_values(["smiles", "formula"])
+            .reset_index(drop=True),
+            true_outcomes.sort_index(axis=1)
+            .sort_values(["smiles", "formula"])
+            .reset_index(drop=True),
+        )
 
 
 def test_write_nn_tc():
