@@ -1,9 +1,8 @@
 import argparse
 import numpy as np
 import pandas as pd
-from rdkit import Chem
 from rdkit.DataStructs import FingerprintSimilarity
-from clm.functions import clean_mol, read_file
+from clm.functions import clean_mol, read_file, compute_fingerprint
 import os
 import logging
 
@@ -21,7 +20,7 @@ def add_args(parser):
 
 def calculate_fingerprint(smile):
     if (mol := clean_mol(smile, raise_error=False)) is not None:
-        return Chem.RDKFingerprint(mol)
+        return compute_fingerprint(mol)
     return None
 
 
