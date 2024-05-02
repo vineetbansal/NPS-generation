@@ -30,7 +30,6 @@ def write_freq_distribution(sampled_file, test_file, output_file):
 
     # Store values of is_novel column as true or false instead of 0 or 1
     sampled_data["is_novel"] = sampled_data["is_novel"].astype(bool)
-    sampled_data.to_csv(output_file, index=False)
 
     write_to_csv_file(output_file, sampled_data)
     smile_distribution = sampled_data.reset_index(drop=True)
