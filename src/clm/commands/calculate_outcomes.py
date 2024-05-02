@@ -6,7 +6,7 @@ import scipy.stats
 from fcd_torch import FCD
 import logging
 from rdkit import Chem
-from rdkit.Chem import Descriptors, Lipinski, RDKFingerprint
+from rdkit.Chem import Descriptors, Lipinski
 from rdkit.Chem.GraphDescriptors import BertzCT
 from rdkit.Chem.MolSurf import TPSA
 from rdkit.Chem.QED import qed
@@ -21,6 +21,7 @@ from clm.functions import (
     seed_type,
     set_seed,
     clean_mol,
+    compute_fingerprint,
     # Functions for calculating metrics
     continuous_JSD,
     discrete_JSD,
@@ -86,7 +87,7 @@ molecular_properties = {
     "murcko": lambda mol: MurckoScaffoldSmiles(mol=mol),
     "donors": Lipinski.NumHDonors,
     "acceptors": Lipinski.NumHAcceptors,
-    "fps": RDKFingerprint,
+    "fps": compute_fingerprint,
 }
 
 

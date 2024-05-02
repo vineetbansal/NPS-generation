@@ -8,7 +8,7 @@ from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
 
 from clm.functions import (
-    get_ecfp6_fingerprints,
+    compute_fingerprints,
     set_seed,
     seed_type,
     clean_mol,
@@ -40,6 +40,12 @@ def add_args(parser):
         type=str,
         default=None,
         help="Path to the training dataset altered by the add carbon step.",
+    )
+    parser.add_argument(
+        "--cv_ranks_files",
+        type=str,
+        nargs="+",
+        help="Rank files for individual CV folds.",
     )
     parser.add_argument(
         "--sample_file", type=str, help="Path to the file containing sample molecules."
@@ -151,7 +157,7 @@ def match_molecules(row, dataset, data_type):
             target_mols = [
                 clean_mol(smile, selfies=False) for smile in tc["target_smiles"].values
             ]
-            target_fps = get_ecfp6_fingerprints(target_mols)
+            target_fps = compute_fingerprints(target_mols, algorithm="ecfp6")
         tc["Tc"] = [
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
@@ -188,6 +194,7 @@ def write_structural_prior_CV(
     chunk_size,
     seed,
     carbon_file=None,
+    cv_ranks_files=None,
 ):
     set_seed(seed)
 
@@ -231,8 +238,11 @@ def write_structural_prior_CV(
     inputs = {
         "model": gen.assign(source="model"),
         "PubChem": pubchem.assign(source="PubChem"),
-        "train": train.assign(source="train"),
     }
+
+    # We are only comparing training set with test set for individual cv fold
+    if cv_ranks_files is None:
+        inputs["train"] = train.assign(source="train")
 
     if carbon_file:
         addcarbon = pd.read_csv(carbon_file, delimiter=r"\s")
@@ -262,6 +272,14 @@ def write_structural_prior_CV(
         rank_df = pd.concat([rank_df, rank])
         tc_df = pd.concat([tc_df, tc])
 
+    # The cv_rank_files contain statistics evaluated from individual cross-validation folds
+    # Since the test sets across all folds and the train set across all fold contain exactly the same unique elements,
+    # we aggregate results from all folds to assess test SMILES against training SMILES across all folds
+    if cv_ranks_files is not None:
+        cv_data = pd.concat([pd.read_csv(f) for f in cv_ranks_files])
+        train_cv_data = cv_data[cv_data["target_source"] == "train"]
+        rank_df = pd.concat([rank_df, train_cv_data])
+
     write_to_csv_file(ranks_file, rank_df)
     write_to_csv_file(
         tc_file, tc_df.drop("target_fingerprint", axis=1, errors="ignore")
@@ -280,6 +298,7 @@ def main(args):
         chunk_size=args.chunk_size,
         seed=args.seed,
         carbon_file=args.carbon_file,
+        cv_ranks_files=args.cv_ranks_files,
     )
 
 

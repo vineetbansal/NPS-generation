@@ -2,11 +2,11 @@ import argparse
 import numpy as np
 import os
 import pandas as pd
-from rdkit import Chem, DataStructs
+from rdkit import DataStructs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from clm.functions import set_seed, seed_type, clean_mol
+from clm.functions import set_seed, seed_type, clean_mol, compute_fingerprint
 
 
 def add_args(parser):
@@ -42,7 +42,7 @@ def create_output_dir(output_file):
 
 def calculate_fingerprint(smile):
     if (mol := clean_mol(smile, raise_error=False)) is not None:
-        return Chem.RDKFingerprint(mol)
+        return compute_fingerprint(mol)
 
 
 def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
