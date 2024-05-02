@@ -104,10 +104,10 @@ def remove_salts_solvents(mol, hac=3):
         return fragments[0]
 
 
-def get_ecfp6_fingerprints(mols, include_none=False):
+def compute_fingerprints(mols, algorithm="rdkit", include_none=False):
     """
-    Get ECFP6 fingerprints for a list of molecules. Optionally,
-    handle `None` values by returning a `None` value in that
+    Get ECFP6/ RDKIT fingerprints for a list of molecules. Optionally,
+    handle `None` values by including a `None` value in that
     position.
     """
     fps = []
@@ -115,25 +115,18 @@ def get_ecfp6_fingerprints(mols, include_none=False):
         if mol is None and include_none:
             fps.append(None)
         else:
-            fp = AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024)
+            fp = compute_fingerprint(mol, algorithm=algorithm)
             fps.append(fp)
     return fps
 
 
-def get_rdkit_fingerprints(mols, include_none=False):
-    """
-    Get RDKIT fingerprints for a list of molecules. Optionally,
-    handle `None` values by returning a `None` value in that
-    position.
-    """
-    fps = []
-    for mol in mols:
-        if mol is None and include_none:
-            fps.append(None)
-        else:
-            fp = Chem.RDKFingerprint(mol)
-            fps.append(fp)
-    return fps
+def compute_fingerprint(mol, algorithm="rdkit"):
+    if algorithm == "rdkit":
+        return Chem.RDKFingerprint(mol)
+    elif algorithm == "ecfp6":
+        return AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024)
+    else:
+        raise ValueError("Unsupported fingerprint algorithm specified")
 
 
 def get_column_idx(input_file, column_name):
