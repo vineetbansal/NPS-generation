@@ -227,7 +227,7 @@ def test_07_write_structural_prior_CV():
             ranks_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
             tc_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_tc.csv",
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
-            test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
+            test_file=test_dir / "0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi",
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
@@ -254,7 +254,7 @@ def test_08_write_formula_prior_CV():
         inner_write_formula_prior_CV.write_formula_prior_CV(
             ranks_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
-            test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
+            test_file=test_dir / "0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi",
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
