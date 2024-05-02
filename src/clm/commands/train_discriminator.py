@@ -6,7 +6,13 @@ from rdkit import DataStructs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from clm.functions import set_seed, seed_type, clean_mol, write_to_csv_file, compute_fingerprint
+from clm.functions import (
+    set_seed,
+    seed_type,
+    clean_mol,
+    write_to_csv_file,
+    compute_fingerprint,
+)
 
 
 def add_args(parser):
