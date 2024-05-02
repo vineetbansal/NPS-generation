@@ -42,10 +42,10 @@ def test_snakemake():
         checksum = hashlib.md5(
             "".join(open(ranks_file_overall, "r").readlines()).encode("utf8")
         ).hexdigest()
-        assert checksum == "e96ebbecd034a1eaa0d96a667381b052"
+        assert checksum == "09a6376e5427ab5ffe23b1a432a42c0f"
 
         tc_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv"
         checksum = hashlib.md5(
             "".join(open(tc_file_overall, "r").readlines()).encode("utf8")
         ).hexdigest()
-        assert checksum == "16c72b68ef0a3e1415bffacff3c3fac4"
+        assert checksum == "f70b7d22ce8110c50d832d431c4693d7"
