@@ -458,12 +458,15 @@ def get_mass_range(mass, err_ppm):
     return min_mass, max_mass
 
 
-def write_to_csv_file(file_name, df):
-    dirname = os.path.dirname(file_name)
-    if dirname:
-        os.makedirs(dirname, exist_ok=True)
+def write_to_csv_file(file_name, df, mode="w", header=True, columns=None):
+    # Make an output directory if it doesn't yet
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+
     df.to_csv(
         file_name,
+        mode=mode,
+        header=header,
+        columns=columns,
         index=False,
         compression="gzip" if str(file_name).endswith(".gz") else None,
     )

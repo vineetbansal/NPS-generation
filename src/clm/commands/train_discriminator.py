@@ -6,7 +6,7 @@ from rdkit import Chem, DataStructs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from clm.functions import set_seed, seed_type, clean_mol
+from clm.functions import set_seed, seed_type, clean_mol, write_to_csv_file
 
 
 def add_args(parser):
@@ -104,8 +104,8 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
 
     # Create an output directory if it doesn't exist already
     create_output_dir(output_file)
-    output_df.to_csv(output_file, index=False)
 
+    write_to_csv_file(output_file, output_df)
     return output_df
 
 

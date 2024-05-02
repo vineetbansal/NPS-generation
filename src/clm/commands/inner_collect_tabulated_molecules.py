@@ -2,6 +2,8 @@ import argparse
 import os
 import pandas as pd
 
+from clm.functions import write_to_csv_file
+
 parser = argparse.ArgumentParser()
 
 
@@ -34,7 +36,7 @@ def collect_tabulated_molecules(input_files, output_file):
         .reset_index(drop=True)
     )
 
-    unique.to_csv(output_file, index=False)
+    write_to_csv_file(output_file, unique)
 
 
 def main(args):

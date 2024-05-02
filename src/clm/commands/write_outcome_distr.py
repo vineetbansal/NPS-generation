@@ -1,6 +1,6 @@
 import argparse
 import pandas as pd
-from clm.functions import read_file
+from clm.functions import read_file, write_to_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
 
@@ -38,7 +38,7 @@ def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file, output_
             train.assign(source="train"),
         ]
     )
-    combination.to_csv(output_file, index=False, columns=["smiles", "source"])
+    write_to_csv_file(output_file, combination, columns=["smiles", "source"])
 
 
 def main(args):

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.DataStructs import FingerprintSimilarity
-from clm.functions import clean_mol, read_file
+from clm.functions import clean_mol, read_file, write_to_csv_file
 import os
 import logging
 
@@ -52,14 +52,9 @@ def write_nn_Tc(query_file, reference_file, output_file):
         query = query.assign(nn_tc=[i[0] for i in results])
         query = query.assign(nn=[i[1] for i in results])
 
-        query.to_csv(
-            output_file,
-            mode="a+",
-            index=False,
-            header=not os.path.exists(output_file),
-            compression="gzip" if str(output_file).endswith(".gz") else None,
+        write_to_csv_file(
+            output_file, df=query, mode="a+", header=not os.path.exists(output_file)
         )
-
         n_processed += len(query)
         logger.info(f"Processed {n_processed}/{total_lines}")
 

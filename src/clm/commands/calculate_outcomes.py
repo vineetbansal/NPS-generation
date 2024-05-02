@@ -21,6 +21,7 @@ from clm.functions import (
     seed_type,
     set_seed,
     clean_mol,
+    write_to_csv_file,
     # Functions for calculating metrics
     continuous_JSD,
     discrete_JSD,
@@ -275,8 +276,8 @@ def calculate_outcomes(sampled_file, train_file, output_file, seed=None):
 
     # `input_file` column added for legacy reasons
     out["input_file"] = os.path.basename(sampled_file)
-    out.to_csv(output_file, index=False)
 
+    write_to_csv_file(output_file, out)
     return out
 
 

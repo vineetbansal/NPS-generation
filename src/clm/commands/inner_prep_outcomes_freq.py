@@ -1,7 +1,7 @@
 import argparse
 import logging
 import pandas as pd
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, write_to_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
     data = data[data["bin"] != ""].reset_index(drop=True)
 
     if output_file is not None:
-        data.to_csv(output_file, index=False)
+        write_to_csv_file(output_file, data)
 
     return data
 

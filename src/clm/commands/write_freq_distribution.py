@@ -1,7 +1,7 @@
 import argparse
 import logging
 import pandas as pd
-from clm.functions import read_file
+from clm.functions import read_file, write_to_csv_file
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ def write_freq_distribution(sampled_file, test_file, output_file):
     sampled_data["is_novel"] = sampled_data["is_novel"].astype(bool)
     sampled_data.to_csv(output_file, index=False)
 
+    write_to_csv_file(output_file, sampled_data)
     smile_distribution = sampled_data.reset_index(drop=True)
     return smile_distribution
 

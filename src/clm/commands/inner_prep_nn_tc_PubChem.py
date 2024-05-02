@@ -1,7 +1,6 @@
 import argparse
 import pandas as pd
-import os
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, write_to_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
 
@@ -60,9 +59,7 @@ def prep_nn_tc(sample_file, max_molecules, pubchem_file, output_file, seed=None)
         ]
     )
 
-    # Make an output directory if it doesn't yet
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    combination.to_csv(output_file, index=False)
+    write_to_csv_file(output_file, combination)
     return combination
 
 

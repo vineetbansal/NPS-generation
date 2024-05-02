@@ -1,7 +1,7 @@
 import argparse
-import os
 import pandas as pd
 import numpy as np
+from clm.functions import write_to_csv_file
 
 
 def add_args(parser):
@@ -70,8 +70,7 @@ def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
             on="inchikey",
         )
 
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    data.to_csv(output_file, index=False)
+    write_to_csv_file(output_file, data)
 
 
 def main(args):
