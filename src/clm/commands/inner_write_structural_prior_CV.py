@@ -236,6 +236,8 @@ def write_structural_prior_CV(
         "model": gen.assign(source="model"),
         "PubChem": pubchem.assign(source="PubChem"),
     }
+
+    # We are only comparing training set with test set for individual cv fold
     if cv_ranks_files is None:
         inputs["train"] = train.assign(source="train")
 
@@ -267,6 +269,9 @@ def write_structural_prior_CV(
         rank_df = pd.concat([rank_df, rank])
         tc_df = pd.concat([tc_df, tc])
 
+    # The cv_rank_files contain statistics evaluated from individual cross-validation folds
+    # Since the test sets across all folds and the train set across all fold contain exactly the same unique elements,
+    # we aggregate results from all folds to assess test SMILES against training SMILES across all folds
     if cv_ranks_files is not None:
         cv_data = pd.concat([pd.read_csv(f) for f in cv_ranks_files])
         train_cv_data = cv_data[cv_data["target_source"] == "train"]
