@@ -8,10 +8,9 @@ import sys
 import logging
 import numpy as np
 import pandas as pd
-from rdkit.Chem import AllChem
 from rdkit import rdBase
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from clm.functions import clean_mol
+from clm.functions import clean_mol, compute_fingerprint
 
 
 rdBase.DisableLog("rdApp.error")
@@ -22,7 +21,7 @@ def process_chunk(df, indices):
     def fp(row):
         mol = clean_mol(row["smile"], selfies=False, raise_error=False)
         fp = (
-            AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024).ToBase64()
+            compute_fingerprint(mol, algorithm="ecfp6").ToBase64()
             if mol is not None
             else ""
         )
