@@ -451,18 +451,39 @@ def get_mass_range(mass, err_ppm):
     return min_mass, max_mass
 
 
-def write_to_csv_file(file_name, df, mode="w", header=True, columns=None):
+def write_to_csv_file(
+    file_name,
+    info,
+    mode="w",
+    header=True,
+    columns=None,
+    string_format=None,
+):
     # Make an output directory if it doesn't yet
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
 
-    df.to_csv(
-        file_name,
-        mode=mode,
-        header=header,
-        columns=columns,
-        index=False,
-        compression="gzip" if str(file_name).endswith(".gz") else None,
-    )
+    # See if the provided information is a dataframe
+    if isinstance(info, pd.DataFrame):
+        info.to_csv(
+            file_name,
+            mode=mode,
+            header=header,
+            columns=columns,
+            index=False,
+            compression="gzip" if str(file_name).endswith(".gz") else None,
+        )
+    else:
+        with open(file_name, mode=mode) as f:
+            for row in info:
+                formatted_row = string_format % row
+                f.write(formatted_row)
+
+    # with open(file_name, mode=mode, newline=newline) as csvfile:
+    #         csv_writer = csv.writer(csvfile, lineterminator="\n")
+    #
+    #         for row in info:
+    #             formatted_row = string_format % row
+    #             csv_writer.writerow(formatted_row.split(delimiter))
 
 
 def read_csv_file(

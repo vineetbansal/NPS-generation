@@ -57,7 +57,7 @@ def write_nn_Tc(query_file, reference_file, output_file):
         query = query.assign(nn=[i[1] for i in results])
 
         write_to_csv_file(
-            output_file, df=query, mode="a+", header=not os.path.exists(output_file)
+            output_file, info=query, mode="a+", header=not os.path.exists(output_file)
         )
         n_processed += len(query)
         logger.info(f"Processed {n_processed}/{total_lines}")
