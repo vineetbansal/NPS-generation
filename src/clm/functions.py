@@ -478,13 +478,6 @@ def write_to_csv_file(
                 formatted_row = string_format % row
                 f.write(formatted_row)
 
-    # with open(file_name, mode=mode, newline=newline) as csvfile:
-    #         csv_writer = csv.writer(csvfile, lineterminator="\n")
-    #
-    #         for row in info:
-    #             formatted_row = string_format % row
-    #             csv_writer.writerow(formatted_row.split(delimiter))
-
 
 def read_csv_file(
     file_name,
