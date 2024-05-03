@@ -12,6 +12,7 @@ from clm.functions import (
     clean_mol,
     write_to_csv_file,
     compute_fingerprint,
+    read_csv_file,
 )
 
 
@@ -54,8 +55,8 @@ def calculate_fingerprint(smile):
 def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
     set_seed(seed)
 
-    train_smiles = pd.read_csv(train_file)
-    sample_smiles = pd.read_csv(sample_file)
+    train_smiles = read_csv_file(train_file)
+    sample_smiles = read_csv_file(sample_file)
 
     sample_smiles = sample_smiles[
         ~sample_smiles["inchikey"].isin(train_smiles["inchikey"])

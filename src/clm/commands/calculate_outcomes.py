@@ -32,6 +32,7 @@ from clm.functions import (
     external_nn,
     pct_rotatable_bonds,
     pct_stereocenters,
+    read_csv_file,
 )
 
 rdBase.DisableLog("rdApp.error")
@@ -150,7 +151,7 @@ def get_dataframes(train_file, sampled_file):
     logger.info(f"{n_novel_smiles} novel SMILES out of {len(sample_smiles_df)}")
 
     logger.info("Re-reading sample file to obtain bin/other information")
-    sample_bin_df = pd.read_csv(sampled_file)
+    sample_bin_df = read_csv_file(sampled_file)
     logger.info("Merging bin information")
     sample_df = sample_smiles_df.merge(
         sample_bin_df, left_on="smile", right_on="smiles"

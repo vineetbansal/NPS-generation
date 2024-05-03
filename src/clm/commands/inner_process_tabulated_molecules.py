@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
 import numpy as np
-from clm.functions import write_to_csv_file
+from clm.functions import write_to_csv_file, read_csv_file
 
 
 def add_args(parser):
@@ -24,7 +24,7 @@ def add_args(parser):
 def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
     meta = pd.concat(
         [
-            pd.read_csv(file, dtype={"smiles": str, "inchikey": str}).assign(fold=idx)
+            read_csv_file(file, dtype={"smiles": str, "inchikey": str}).assign(fold=idx)
             for idx, file in enumerate(input_file)
         ]
     )
@@ -36,7 +36,7 @@ def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
     uniq_inchikeys = data.index.to_numpy()
 
     for fold_idx, cv_file in enumerate(cv_files):
-        cv_dat = pd.read_csv(cv_file, usecols=["inchikey"])
+        cv_dat = read_csv_file(cv_file, usecols=["inchikey"])
         cv_dat = cv_dat[cv_dat["inchikey"].isin(uniq_inchikeys)]
 
         if not cv_dat.empty:

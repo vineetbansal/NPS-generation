@@ -28,6 +28,7 @@ from clm.functions import (
     pct_stereocenters,
     set_seed,
     write_to_csv_file,
+    read_csv_file,
 )
 
 # suppress Chem.MolFromSmiles error output
@@ -49,7 +50,7 @@ def calculate_outcome_distr(input_file, output_file, seed=None):
     res = []
 
     # read SMILES and convert to molecules
-    df = pd.read_csv(input_file)
+    df = read_csv_file(input_file)
     smiles = df["smiles"].tolist()
     mols = [clean_mol(smile, raise_error=False) for smile in smiles]
     idxs = [idx for idx, mol in enumerate(mols) if mol]

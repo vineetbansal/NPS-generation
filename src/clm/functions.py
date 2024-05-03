@@ -414,7 +414,7 @@ def pct_stereocenters(mol):
 
 
 def generate_df(smiles_file, chunk_size):
-    smiles_df = pd.read_csv(smiles_file)
+    smiles_df = read_csv_file(smiles_file)
     smiles = smiles_df["smiles"].to_list()
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
@@ -463,6 +463,40 @@ def write_to_csv_file(file_name, df, mode="w", header=True, columns=None):
         index=False,
         compression="gzip" if str(file_name).endswith(".gz") else None,
     )
+
+
+def read_csv_file(
+    file_name,
+    delimiter=",",
+    header="infer",
+    names=None,
+    usecols=None,
+    dtype=None,
+    chunksize=None,
+    iterator=False,
+    keep_default_na=True,
+):
+    if str(file_name).endswith(".gz"):
+        compression = "gzip"
+    elif str(file_name).endswith("zip"):
+        compression = "zip"
+    else:
+        compression = None
+
+    df = pd.read_csv(
+        file_name,
+        compression=compression,
+        delimiter=delimiter,
+        header=header,
+        names=names,
+        usecols=usecols,
+        dtype=dtype,
+        chunksize=chunksize,
+        iterator=iterator,
+        keep_default_na=keep_default_na,
+    )
+
+    return df
 
 
 def assert_checksum_equals(generated_file, oracle):

@@ -1,6 +1,6 @@
 import argparse
 import pandas as pd
-from clm.functions import set_seed, seed_type, write_to_csv_file
+from clm.functions import set_seed, seed_type, write_to_csv_file, read_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
 
@@ -30,12 +30,12 @@ def add_args(parser):
 
 def prep_nn_tc(sample_file, max_molecules, pubchem_file, output_file, seed=None):
     set_seed(seed)
-    sample = pd.read_csv(sample_file, delimiter=",")
+    sample = read_csv_file(sample_file, delimiter=",")
     if len(sample) > max_molecules:
         sample = sample.sample(
             n=max_molecules, replace=True, weights=sample["size"], ignore_index=True
         )
-    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+    pubchem = read_csv_file(pubchem_file, delimiter="\t", header=None)
 
     # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
     match len(pubchem.columns):
