@@ -6,7 +6,14 @@ from rdkit import DataStructs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from clm.functions import set_seed, seed_type, clean_mol, compute_fingerprint
+from clm.functions import (
+    set_seed,
+    seed_type,
+    clean_mol,
+    write_to_csv_file,
+    compute_fingerprint,
+    read_csv_file,
+)
 
 
 def add_args(parser):
@@ -48,8 +55,8 @@ def calculate_fingerprint(smile):
 def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
     set_seed(seed)
 
-    train_smiles = pd.read_csv(train_file)
-    sample_smiles = pd.read_csv(sample_file)
+    train_smiles = read_csv_file(train_file)
+    sample_smiles = read_csv_file(sample_file)
 
     sample_smiles = sample_smiles[
         ~sample_smiles["inchikey"].isin(train_smiles["inchikey"])
@@ -104,8 +111,8 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
 
     # Create an output directory if it doesn't exist already
     create_output_dir(output_file)
-    output_df.to_csv(output_file, index=False)
 
+    write_to_csv_file(output_file, output_df)
     return output_df
 
 

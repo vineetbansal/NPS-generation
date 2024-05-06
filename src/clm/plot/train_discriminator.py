@@ -8,6 +8,7 @@ import os
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import confusion_matrix
+from clm.functions import read_csv_file
 
 
 def add_args(parser):
@@ -88,7 +89,7 @@ def plot(outcome_dir, output_dir):
 
     outcome_files = glob.glob(f"{outcome_dir}/*train_discriminator.csv")
     outcome = pd.concat(
-        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
+        [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
 
     # Metrics for outcomes (from `sklearn.metrics`)

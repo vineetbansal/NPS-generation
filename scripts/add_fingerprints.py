@@ -7,10 +7,9 @@ import os
 import sys
 import logging
 import numpy as np
-import pandas as pd
 from rdkit import rdBase
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from clm.functions import clean_mol, compute_fingerprint
+from clm.functions import clean_mol, compute_fingerprint, read_csv_file
 
 
 rdBase.DisableLog("rdApp.error")
@@ -39,7 +38,7 @@ if __name__ == "__main__":
     input_tsv, output_tsv = sys.argv[1:]
 
     logger.info("Reading PubChem file")
-    df = pd.read_csv(
+    df = read_csv_file(
         input_tsv, delimiter="\t", header=None, names=["smile", "mass", "formula"]
     )
 

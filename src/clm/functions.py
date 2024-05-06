@@ -414,7 +414,7 @@ def pct_stereocenters(mol):
 
 
 def generate_df(smiles_file, chunk_size):
-    smiles_df = pd.read_csv(smiles_file)
+    smiles_df = read_csv_file(smiles_file)
     smiles = smiles_df["smiles"].to_list()
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
@@ -451,15 +451,46 @@ def get_mass_range(mass, err_ppm):
     return min_mass, max_mass
 
 
-def write_to_csv_file(file_name, df):
-    dirname = os.path.dirname(file_name)
-    if dirname:
-        os.makedirs(dirname, exist_ok=True)
-    df.to_csv(
-        file_name,
-        index=False,
-        compression="gzip" if str(file_name).endswith(".gz") else None,
-    )
+def write_to_csv_file(
+    filepath,
+    info,
+    mode="w",
+    header=True,
+    columns=None,
+    string_format="{}",
+):
+    # os.path.dirname(filepath) returns '' if filepath is just a filename.
+    if not (dir := os.path.dirname(filepath)) == "":
+        # Make an output directory if it doesn't yet
+        os.makedirs(dir, exist_ok=True)
+    else:
+        raise ValueError(
+            "Incomplete file path provided. Ensure the path includes both the directory and the file name with its extension, e.g., '/home/user/documents/example.txt'."
+        )
+
+    # See if the provided information is a dataframe
+    if isinstance(info, pd.DataFrame):
+        info.to_csv(
+            filepath,
+            mode=mode,
+            header=header,
+            columns=columns,
+            index=False,
+            compression="gzip" if str(filepath).endswith(".gz") else None,
+        )
+    else:
+        with open(filepath, mode=mode) as f:
+            for row in info:
+                formatted_row = string_format.format(row)
+                f.write(formatted_row)
+
+
+def read_csv_file(filename, **kwargs):
+    compression = "gzip" if str(filename).endswith(".gz") else None
+
+    df = pd.read_csv(filename, compression=compression, **kwargs)
+
+    return df
 
 
 def assert_checksum_equals(generated_file, oracle):

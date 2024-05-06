@@ -6,6 +6,7 @@ from pathlib import Path
 import os
 from matplotlib import pyplot as plt
 import seaborn as sns
+from clm.functions import read_csv_file
 
 
 def add_args(parser):
@@ -29,7 +30,7 @@ def plot(outcome_dir, output_dir):
 
     outcome_files = glob.glob(f"{outcome_dir}/*calculate_outcomes.csv")
     outcome = pd.concat(
-        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
+        [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
 
     # Plot every figure possible

@@ -1,8 +1,13 @@
 import argparse
 import numpy as np
-import pandas as pd
 from rdkit.DataStructs import FingerprintSimilarity
-from clm.functions import clean_mol, read_file, compute_fingerprint
+from clm.functions import (
+    clean_mol,
+    read_file,
+    write_to_csv_file,
+    compute_fingerprint,
+    read_csv_file,
+)
 import os
 import logging
 
@@ -44,21 +49,16 @@ def write_nn_Tc(query_file, reference_file, output_file):
 
     total_lines = sum(1 for _ in open(query_file, "r"))
     n_processed = 0
-    for query in pd.read_csv(query_file, chunksize=10000):
+    for query in read_csv_file(query_file, chunksize=10000):
         results = query["smiles"].apply(
             lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref_fps)
         )
         query = query.assign(nn_tc=[i[0] for i in results])
         query = query.assign(nn=[i[1] for i in results])
 
-        query.to_csv(
-            output_file,
-            mode="a+",
-            index=False,
-            header=not os.path.exists(output_file),
-            compression="gzip" if str(output_file).endswith(".gz") else None,
+        write_to_csv_file(
+            output_file, info=query, mode="a+", header=not os.path.exists(output_file)
         )
-
         n_processed += len(query)
         logger.info(f"Processed {n_processed}/{total_lines}")
 

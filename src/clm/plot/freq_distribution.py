@@ -9,7 +9,7 @@ import os
 import logging
 import numpy as np
 import matplotlib.cbook as cbook
-
+from clm.functions import read_csv_file
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def plot(outcome_dir, output_dir):
 
     for outcome_file in outcome_files:
         logger.info(f"Reading outcome file {outcome_file}")
-        data = pd.read_csv(outcome_file, delimiter=",", usecols=("is_novel", "size"))
+        data = read_csv_file(outcome_file, delimiter=",", usecols=("is_novel", "size"))
         logger.info(f"Read outcome dataframe of shape {data.shape}")
         columns = data.columns.values.tolist()
         data = data.values.tolist()

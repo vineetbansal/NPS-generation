@@ -14,7 +14,7 @@ from clm.commands import (
     inner_write_structural_prior_CV,
     inner_write_formula_prior_CV,
 )
-from clm.functions import assert_checksum_equals
+from clm.functions import assert_checksum_equals, read_csv_file
 
 base_dir = Path(__file__).parent.parent
 
@@ -71,8 +71,8 @@ def test_01_create_training_sets():
         # Check that the same InChI key does not appear in both the training and test set in any CV split
         test0_all = []
         for fold in range(folds):
-            train0 = pd.read_csv(temp_dir / f"train0_file_{fold}")
-            test0 = pd.read_csv(temp_dir / f"test0_file_{fold}")
+            train0 = read_csv_file(temp_dir / f"train0_file_{fold}")
+            test0 = read_csv_file(temp_dir / f"test0_file_{fold}")
 
             train0_inchi, test0_inchi = set(train0.inchikey), set(test0.inchikey)
             assert train0_inchi.isdisjoint(test0_inchi)
@@ -155,8 +155,8 @@ def test_04_tabulate_molecules():
             test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
         )
-        train = pd.read_csv(train_file)
-        result = pd.read_csv(output_file)
+        train = read_csv_file(train_file)
+        result = read_csv_file(output_file)
 
         # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
@@ -184,7 +184,7 @@ def test_05_collect_tabulated_molecules():
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
 
-        result = pd.read_csv(output_file)
+        result = read_csv_file(output_file)
 
         # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
@@ -215,7 +215,7 @@ def test_06_process_tabulated_molecules():
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
         )
 
-        result = pd.read_csv(output_file)
+        result = read_csv_file(output_file)
         # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
 
