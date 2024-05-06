@@ -115,7 +115,7 @@ def sample_molecules_RNN(
             write_to_csv_file(
                 output_file,
                 info=zip(losses, sampled_smiles),
-                string_format="%.4f, %s \n",
+                string_format="{0[0]:.4f}, {0[1]} \n",
             )
 
             pbar.update(batch_size)

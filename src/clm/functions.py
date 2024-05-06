@@ -452,63 +452,43 @@ def get_mass_range(mass, err_ppm):
 
 
 def write_to_csv_file(
-    file_name,
+    filepath,
     info,
     mode="w",
     header=True,
     columns=None,
-    string_format=None,
+    string_format="{}",
 ):
-    # Make an output directory if it doesn't yet
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    # os.path.dirname(filepath) returns '' if filepath is just a filename.
+    if not (dir := os.path.dirname(filepath)) == "":
+        # Make an output directory if it doesn't yet
+        os.makedirs(dir, exist_ok=True)
+    else:
+        raise ValueError(
+            "Incomplete file path provided. Ensure the path includes both the directory and the file name with its extension, e.g., '/home/user/documents/example.txt'."
+        )
 
     # See if the provided information is a dataframe
     if isinstance(info, pd.DataFrame):
         info.to_csv(
-            file_name,
+            filepath,
             mode=mode,
             header=header,
             columns=columns,
             index=False,
-            compression="gzip" if str(file_name).endswith(".gz") else None,
+            compression="gzip" if str(filepath).endswith(".gz") else None,
         )
     else:
-        with open(file_name, mode=mode) as f:
+        with open(filepath, mode=mode) as f:
             for row in info:
-                formatted_row = string_format % row
+                formatted_row = string_format.format(row)
                 f.write(formatted_row)
 
 
-def read_csv_file(
-    file_name,
-    delimiter=",",
-    header="infer",
-    names=None,
-    usecols=None,
-    dtype=None,
-    chunksize=None,
-    iterator=False,
-    keep_default_na=True,
-):
-    if str(file_name).endswith(".gz"):
-        compression = "gzip"
-    elif str(file_name).endswith("zip"):
-        compression = "zip"
-    else:
-        compression = None
+def read_csv_file(filename, **kwargs):
+    compression = "gzip" if str(filename).endswith(".gz") else None
 
-    df = pd.read_csv(
-        file_name,
-        compression=compression,
-        delimiter=delimiter,
-        header=header,
-        names=names,
-        usecols=usecols,
-        dtype=dtype,
-        chunksize=chunksize,
-        iterator=iterator,
-        keep_default_na=keep_default_na,
-    )
+    df = pd.read_csv(filename, compression=compression, **kwargs)
 
     return df
 
