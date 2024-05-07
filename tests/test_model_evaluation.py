@@ -96,7 +96,8 @@ def test_write_nn_tc():
         output_file = Path(temp_dir) / "write_nn_tc.csv"
         write_nn_Tc(
             query_file=test_dir / "prep_nn_tc_PubChem.csv",
-            reference_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
+            reference_file=test_dir
+            / "snakemake_output/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
             output_file=output_file,
         )
 

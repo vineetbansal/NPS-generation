@@ -282,7 +282,7 @@ def test_08_write_structural_prior_CV():
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
             carbon_file=test_dir
-            / "0/prior/inputs/train0_LOTUS_truncated_SMILES_carbon_all.csv",
+            / "0/prior/inputs/train_LOTUS_truncated_SMILES_carbon_all.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,
