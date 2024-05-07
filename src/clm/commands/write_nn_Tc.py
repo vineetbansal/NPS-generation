@@ -8,7 +8,6 @@ from clm.functions import (
     compute_fingerprint,
     read_csv_file,
 )
-import os
 import logging
 
 
@@ -57,7 +56,7 @@ def write_nn_Tc(query_file, reference_file, output_file):
         query = query.assign(nn=[i[1] for i in results])
 
         write_to_csv_file(
-            output_file, info=query, mode="a+", header=not os.path.exists(output_file)
+            output_file, info=query, mode="w" if n_processed == 0 else "a+"
         )
         n_processed += len(query)
         logger.info(f"Processed {n_processed}/{total_lines}")
