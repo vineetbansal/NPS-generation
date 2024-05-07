@@ -45,7 +45,7 @@ def test_snakemake():
     assert success, "Snakemake did not complete successfully"
 
     output_dir = os.path.join(os.path.join(snakefile), temp_dir)
-    ranks_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv.gz"
+    ranks_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv"
     checksum = hashlib.md5(
         "".join(
             [
@@ -54,9 +54,9 @@ def test_snakemake():
             ]
         ).encode("utf8")
     ).hexdigest()
-    assert checksum == "09a6376e5427ab5ffe23b1a432a42c0f"
+    assert checksum == "7d6689e0e01419d3dc7c104648b4abc9"
 
-    tc_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv.gz"
+    tc_file_overall = f"{output_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv"
     checksum = hashlib.md5(
         "".join(
             [
@@ -65,4 +65,4 @@ def test_snakemake():
             ]
         ).encode("utf8")
     ).hexdigest()
-    assert checksum == "f70b7d22ce8110c50d832d431c4693d7"
+    assert checksum == "72ff5cc72f7c90c1147c0ca42748ec7e"

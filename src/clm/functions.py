@@ -289,6 +289,8 @@ def seed_type(value):
 
 
 def continuous_JSD(generated_dist, original_dist, tol=1e-10):
+    if len(generated_dist) < 2:  # not enough points?
+        return np.nan
     try:
         gen_kde = gaussian_kde(generated_dist)
     except np.linalg.LinAlgError:
@@ -322,8 +324,8 @@ def internal_diversity(fps, sample_size=1e4, summarise=True):
     tcs = []
     counter = 0
     while counter < sample_size:
-        idx1 = np.random.randint(0, len(fps) - 1)
-        idx2 = np.random.randint(0, len(fps) - 1)
+        idx1 = np.random.randint(0, len(fps))
+        idx2 = np.random.randint(0, len(fps))
         fp1 = fps[idx1]
         fp2 = fps[idx2]
         tcs.append(FingerprintSimilarity(fp1, fp2))
@@ -343,8 +345,8 @@ def external_diversity(fps1, fps2, sample_size=1e4, summarise=True):
     tcs = []
     counter = 0
     while counter < sample_size:
-        idx1 = np.random.randint(0, len(fps1) - 1)
-        idx2 = np.random.randint(0, len(fps2) - 1)
+        idx1 = np.random.randint(0, len(fps1))
+        idx2 = np.random.randint(0, len(fps2))
         fp1 = fps1[idx1]
         fp2 = fps2[idx2]
         tcs.append(FingerprintSimilarity(fp1, fp2))
@@ -366,13 +368,17 @@ def internal_nn(fps, sample_size=1e3, summarise=True):
     counter = 0
     nns = []
     while counter < sample_size:
-        idx1 = np.random.randint(0, len(fps) - 1)
+        idx1 = np.random.randint(0, len(fps))
         fp1 = fps[idx1]
         tcs = []
         for idx2 in range(len(fps)):
             if idx1 != idx2:
                 fp2 = fps[idx2]
                 tcs.append(FingerprintSimilarity(fp1, fp2))
+
+        if len(tcs) == 0:  # not enough fingerprints?
+            return np.nan
+
         nn = np.max(tcs)
         nns.append(nn)
         counter += 1
@@ -393,12 +399,16 @@ def external_nn(fps1, fps2, sample_size=1e3, summarise=True):
     counter = 0
     nns = []
     while counter < sample_size:
-        idx1 = np.random.randint(0, len(fps1) - 1)
+        idx1 = np.random.randint(0, len(fps1))
         fp1 = fps1[idx1]
         tcs = []
         for idx2 in range(len(fps2)):
             fp2 = fps2[idx2]
             tcs.append(FingerprintSimilarity(fp1, fp2))
+
+        if len(tcs) == 0:  # not enough fingerprints?
+            return np.nan
+
         nn = np.max(tcs)
         nns.append(nn)
         counter += 1

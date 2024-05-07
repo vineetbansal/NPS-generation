@@ -1,9 +1,8 @@
 import argparse
-import numpy as np
+import pandas as pd
 from rdkit.DataStructs import FingerprintSimilarity
 from clm.functions import (
     clean_mol,
-    read_file,
     write_to_csv_file,
     compute_fingerprint,
     read_csv_file,
@@ -28,31 +27,56 @@ def calculate_fingerprint(smile):
     return None
 
 
-def find_max_similarity_fingerprint(target_smile, ref_smiles, ref_fps):
-    target_fps = calculate_fingerprint(target_smile)
+def find_max_similarity_fingerprint(
+    target_smiles, target_inchikey, ref_smiles, ref_fps, ref_inchikeys
+):
+    target_fps = calculate_fingerprint(target_smiles)
 
     if target_fps is None:
         return None, None
 
-    tcs = [FingerprintSimilarity(target_fps, ref_fp) for ref_fp in ref_fps]
+    max_tc, max_tc_ref_smile = -1, ""
+    for ref_smile, ref_fp, ref_inchikey in zip(ref_smiles, ref_fps, ref_inchikeys):
+        # Avoid comparing tcs of exactly same molecule
+        if not (target_inchikey == ref_inchikey):
+            if max_tc < (fps := FingerprintSimilarity(target_fps, ref_fp)):
+                max_tc = fps
+                max_tc_ref_smile = ref_smile
 
-    return np.max(tcs), ref_smiles[np.argmax(tcs)]
+    return max_tc, max_tc_ref_smile
 
 
-def write_nn_Tc(query_file, reference_file, output_file):
-    ref_fps, ref_smiles = [], []
-    for smile in read_file(reference_file, stream=True, smile_only=True):
-        if (fps := calculate_fingerprint(smile)) is not None:
+def write_nn_Tc(query_file, reference_file, output_file, query_type="model"):
+    ref_fps, ref_smiles, ref_inchikeys = [], [], []
+
+    # Processing the reference_file in chunks of one row at a time to optimize memory efficiency.
+    for df in pd.read_csv(reference_file, chunksize=1, iterator=True):
+        row = df.iloc[0]
+        # If a particular smiles is invalid, calculate_fingerprint will return None
+        if (fps := calculate_fingerprint(row.smiles)) is not None:
             ref_fps.append(fps)
-            ref_smiles.append(smile)
+            ref_smiles.append(row.smiles)
+            # TODO: Reference file will always be a training set, hence will always use inchikey keyword
+            # TODO: need to change test file to use training file as a reference
+            try:
+                ref_inchikeys.append(row.inchikey)
+            except AttributeError:
+                ref_inchikeys.append(row.target_inchikey)
 
     # A relatively quick and low-memory way to determine the number of lines in the file
     total_lines = len(read_csv_file(query_file, usecols=["size"]))
 
     n_processed = 0
     for query in read_csv_file(query_file, chunksize=10000):
-        results = query["smiles"].apply(
-            lambda x: find_max_similarity_fingerprint(x, ref_smiles, ref_fps)
+        results = query.apply(
+            lambda x: find_max_similarity_fingerprint(
+                x.smiles,
+                x.inchikey,
+                ref_smiles,
+                ref_fps,
+                ref_inchikeys,
+            ),
+            axis=1,
         )
         query = query.assign(nn_tc=[i[0] for i in results])
         query = query.assign(nn=[i[1] for i in results])
