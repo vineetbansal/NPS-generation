@@ -46,20 +46,27 @@ def plot_continuous(outcomes, output_dir, value_map):
 
 
 def plot_discrete(split_outcomes, output_dir, value_map, sources):
-    results = defaultdict(list)
-    category_names = [i.split(" ")[-1] for i in split_outcomes.keys()]
+    # Each element in the list mapped to a source represents number of a particular atom present in that source
+    # The ordering of the atom is the same as that of the list 'atoms'
+    n_atoms_in_source = defaultdict(list)
+    atoms = [i.split(" ")[-1] for i in split_outcomes.keys()]
 
     for outcome, df in split_outcomes.items():
         for source in sources:
             if df[df["source"] == source].shape[0] == 0:
-                results[value_map[source]].append(0)
+                n_atoms_in_source[value_map[source]].append(0)
             else:
-                results[value_map[source]].append(
+                n_atoms_in_source[value_map[source]].append(
                     sum(df[df["source"] == source]["value"].values)
                 )
 
-    labels = list(results.keys())
-    data = np.array(list(results.values()))
+    # Percentage of atoms present in each particular source
+    p_atoms_in_source = defaultdict(list)
+    for k, v in n_atoms_in_source.items():
+        p_atoms_in_source[k] = (v / sum(v)) * 100
+
+    labels = list(p_atoms_in_source.keys())
+    data = np.array(list(p_atoms_in_source.values()))
     data_cum = data.cumsum(axis=1)
     category_colors = plt.get_cmap("RdYlGn")(np.linspace(0.15, 0.85, data.shape[1]))
 
@@ -68,14 +75,14 @@ def plot_discrete(split_outcomes, output_dir, value_map, sources):
     ax.xaxis.set_visible(True)
     ax.set_xlim(0, np.sum(data, axis=1).max())
 
-    for i, (colname, color) in enumerate(zip(category_names, category_colors)):
+    for i, (colname, color) in enumerate(zip(atoms, category_colors)):
         widths = data[:, i]
         starts = data_cum[:, i] - widths
         ax.barh(labels, widths, left=starts, height=0.5, label=colname, color=color)
 
         r, g, b, _ = color
     ax.legend(
-        ncol=len(category_names),
+        ncol=len(atoms),
         bbox_to_anchor=(0, 1),
         loc="lower left",
         fontsize="small",
@@ -104,16 +111,18 @@ def plot(outcome_dir, output_dir):
         "train": "Known NPSs",
         "pubchem": "Pubchem",
     }
-    # sources = set(list(outcome.source))
+
     continuous, discrete_atoms, discrete_types = {}, {}, {}
-    for outcome, df in outcome.groupby("outcome"):
-        if str(outcome).startswith("# atoms"):
-            discrete_atoms[outcome] = df
-        elif str(outcome).startswith("# of"):
-            discrete_types[outcome] = df
+    for outcome_type, df in outcome.groupby("outcome"):
+        if str(outcome_type).startswith("# atoms"):
+            discrete_atoms[outcome_type] = df
+        elif str(outcome_type).startswith("# of"):
+            discrete_types[outcome_type] = df
         else:
-            continuous[outcome] = df
+            continuous[outcome_type] = df
+
     plot_continuous(continuous, output_dir, value_map)
+    plot_discrete(discrete_atoms, output_dir, value_map, set(list(outcome.source)))
 
 
 def main(args):
