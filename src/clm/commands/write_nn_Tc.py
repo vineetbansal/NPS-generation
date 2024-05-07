@@ -46,7 +46,9 @@ def write_nn_Tc(query_file, reference_file, output_file):
             ref_fps.append(fps)
             ref_smiles.append(smile)
 
-    total_lines = sum(1 for _ in open(query_file, "r"))
+    # A relatively quick and low-memory way to determine the number of lines in the file
+    total_lines = len(read_csv_file(query_file, usecols=["size"]))
+
     n_processed = 0
     for query in read_csv_file(query_file, chunksize=10000):
         results = query["smiles"].apply(
