@@ -35,18 +35,18 @@ bin,outcome,value,input_file
 1,"Jensen-Shannon distance, TPSA",0.2771490850624588,prep_outcomes_freq.csv
 2,"Jensen-Shannon distance, TPSA",0.1462992021448038,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, TPSA",0.1279191122686102,prep_outcomes_freq.csv
-1,Internal diversity,0.2879894093253645,prep_outcomes_freq.csv
-2,Internal diversity,0.2255781665992752,prep_outcomes_freq.csv
-3-10,Internal diversity,0.20839264432920532,prep_outcomes_freq.csv
-1,External diversity,0.2128125319900384,prep_outcomes_freq.csv
-2,External diversity,0.18947032891137294,prep_outcomes_freq.csv
-3-10,External diversity,0.17213497943924977,prep_outcomes_freq.csv
-1,Internal nearest-neighbor Tc,0.6002677865985644,prep_outcomes_freq.csv
-2,Internal nearest-neighbor Tc,0.6617378808658038,prep_outcomes_freq.csv
-3-10,Internal nearest-neighbor Tc,0.7388470263507588,prep_outcomes_freq.csv
-1,External nearest-neighbor Tc,0.5645213046329248,prep_outcomes_freq.csv
-2,External nearest-neighbor Tc,0.5312329173696364,prep_outcomes_freq.csv
-3-10,External nearest-neighbor Tc,0.500084860827164,prep_outcomes_freq.csv
+1,Internal diversity,0.2891086541457372,prep_outcomes_freq.csv
+2,Internal diversity,0.2271869740189818,prep_outcomes_freq.csv
+3-10,Internal diversity,0.20821541437816285,prep_outcomes_freq.csv
+1,External diversity,0.21386784412699153,prep_outcomes_freq.csv
+2,External diversity,0.1893080626530349,prep_outcomes_freq.csv
+3-10,External diversity,0.1731253171847298,prep_outcomes_freq.csv
+1,Internal nearest-neighbor Tc,0.5999185739011003,prep_outcomes_freq.csv
+2,Internal nearest-neighbor Tc,0.6658689572437837,prep_outcomes_freq.csv
+3-10,Internal nearest-neighbor Tc,0.745816333085296,prep_outcomes_freq.csv
+1,External nearest-neighbor Tc,0.5674728488532578,prep_outcomes_freq.csv
+2,External nearest-neighbor Tc,0.5333919122267488,prep_outcomes_freq.csv
+3-10,External nearest-neighbor Tc,0.501662584740084,prep_outcomes_freq.csv
 1,"Jensen-Shannon distance, # of rings",0.31278203464411025,prep_outcomes_freq.csv
 2,"Jensen-Shannon distance, # of rings",0.28783113998700494,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, # of rings",0.2890607751893959,prep_outcomes_freq.csv

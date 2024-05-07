@@ -4,13 +4,12 @@ Apply the Renz et al. 'AddCarbon' model to the training set.
 import argparse
 import os
 import numpy as np
-import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
 # import functions
-from clm.functions import clean_mol, write_smiles, set_seed, read_file
+from clm.functions import clean_mol, write_smiles, set_seed, read_file, read_csv_file
 
 
 def add_args(parser):
@@ -101,7 +100,7 @@ def add_carbon(input_file, output_file, seed=None):
         #     break
 
     # write unique SMILES
-    uniq_smiles = pd.read_csv(output_file, sep="\t").mutated_smiles.unique()
+    uniq_smiles = read_csv_file(output_file, delimiter="\t").mutated_smiles.unique()
     filename, ext = os.path.splitext(output_file)
     uniq_file = filename + "-unique.smi"
     write_smiles(uniq_smiles, uniq_file)

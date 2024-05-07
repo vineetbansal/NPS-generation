@@ -15,6 +15,7 @@ from clm.functions import (
     generate_df,
     get_mass_range,
     write_to_csv_file,
+    read_csv_file,
 )
 
 # suppress rdkit errors
@@ -215,7 +216,7 @@ def write_structural_prior_CV(
     test = test.assign(formula_known=test["formula"].isin(train["formula"]))
 
     logger.info("Reading PubChem file")
-    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+    pubchem = read_csv_file(pubchem_file, delimiter="\t", header=None)
 
     # PubChem tsv can have 3, 4 or 5 columns
     match len(pubchem.columns):
@@ -233,7 +234,7 @@ def write_structural_prior_CV(
     pubchem = pubchem.assign(size=np.nan)
 
     logger.info("Reading sample file from generative model")
-    gen = pd.read_csv(sample_file)
+    gen = read_csv_file(sample_file)
 
     inputs = {
         "model": gen.assign(source="model"),
@@ -245,7 +246,7 @@ def write_structural_prior_CV(
         inputs["train"] = train.assign(source="train")
 
     if carbon_file:
-        addcarbon = pd.read_csv(carbon_file, delimiter=r"\s")
+        addcarbon = read_csv_file(carbon_file, delimiter=r"\s")
 
         # Rename carbon's column names to coincide with other inputs and drop input smiles
         addcarbon.rename(columns={"mutated_smiles": "smiles"}, inplace=True)
@@ -276,7 +277,7 @@ def write_structural_prior_CV(
     # Since the test sets across all folds and the train set across all fold contain exactly the same unique elements,
     # we aggregate results from all folds to assess test SMILES against training SMILES across all folds
     if cv_ranks_files is not None:
-        cv_data = pd.concat([pd.read_csv(f) for f in cv_ranks_files])
+        cv_data = pd.concat([read_csv_file(f) for f in cv_ranks_files])
         train_cv_data = cv_data[cv_data["target_source"] == "train"]
         rank_df = pd.concat([rank_df, train_cv_data])
 

@@ -1,7 +1,6 @@
 import argparse
 import logging
-import pandas as pd
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, write_to_csv_file, read_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
 logger = logging.getLogger(__name__)
@@ -28,7 +27,7 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
     set_seed(seed)
 
     # Samples can be a csv file or a dataframe
-    data = pd.read_csv(samples) if isinstance(samples, str) else samples
+    data = read_csv_file(samples) if isinstance(samples, str) else samples
 
     # TODO: make this process dynamic later
     frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
@@ -55,7 +54,7 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
     data = data[data["bin"] != ""].reset_index(drop=True)
 
     if output_file is not None:
-        data.to_csv(output_file, index=False)
+        write_to_csv_file(output_file, data)
 
     return data
 

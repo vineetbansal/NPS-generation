@@ -14,7 +14,7 @@ from clm.commands.write_freq_distribution import write_freq_distribution
 from clm.commands.calculate_outcome_distrs import calculate_outcome_distr
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
-from clm.functions import assert_checksum_equals
+from clm.functions import assert_checksum_equals, read_csv_file
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
@@ -49,7 +49,7 @@ def test_calculate_outcomes():
             seed=12,
         )
 
-        true_outcomes = pd.read_csv(
+        true_outcomes = read_csv_file(
             test_dir / "calculate_outcome.csv", keep_default_na=False
         )
         # https://stackoverflow.com/questions/14224172
@@ -80,7 +80,7 @@ def test_prep_nn_tc():
             seed=0,
         )
 
-        true_outcomes = pd.read_csv(test_dir / "prep_nn_tc_output.csv")
+        true_outcomes = read_csv_file(test_dir / "prep_nn_tc_output.csv")
         pd.testing.assert_frame_equal(
             outcomes.sort_index(axis=1)
             .sort_values(["smiles", "formula"])
@@ -115,7 +115,7 @@ def test_write_freq_distribution():
             output_file=output_file,
         )
 
-        true_outcomes = pd.read_csv(test_dir / "write_freq_distribution.csv")
+        true_outcomes = read_csv_file(test_dir / "write_freq_distribution.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
         plot(
@@ -139,7 +139,7 @@ def test_train_discriminator():
             seed=0,
         )
 
-        true_outcomes = pd.read_csv(test_dir / "train_discriminator.csv")
+        true_outcomes = read_csv_file(test_dir / "train_discriminator.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
         plot(
@@ -158,7 +158,7 @@ def test_outcome_distr():
             seed=0,
         )
 
-        true_outcomes = pd.read_csv(test_dir / "outcome_distr.csv")
+        true_outcomes = read_csv_file(test_dir / "outcome_distr.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
 

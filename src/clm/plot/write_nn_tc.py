@@ -6,6 +6,7 @@ import os
 from matplotlib import pyplot as plt
 import seaborn as sns
 from clm.commands.inner_prep_outcomes_freq import prep_outcomes_freq
+from clm.functions import read_csv_file
 
 
 def add_args(parser):
@@ -99,7 +100,7 @@ def plot(outcome_dir, output_dir):
 
     outcome_files = glob.glob(f"{outcome_dir}/*write_nn_tc.csv")
     outcome = pd.concat(
-        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
+        [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
 
     plot_generated_v_ref(outcome, output_dir)

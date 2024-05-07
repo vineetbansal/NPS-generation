@@ -1,11 +1,10 @@
 import argparse
-import os
 import pandas as pd
 from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-from clm.functions import read_file, clean_mol
+from clm.functions import read_file, clean_mol, write_to_csv_file, read_csv_file
 
 # suppress rdkit errors
 from rdkit import rdBase
@@ -39,9 +38,7 @@ def add_args(parser):
 
 
 def tabulate_molecules(input_file, train_file, representation, output_file):
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-
-    train_data = pd.read_csv(train_file)
+    train_data = read_csv_file(train_file)
     # create a dictionary from inchikey to smiles
     train_data = train_data.set_index("inchikey")["smiles"].to_dict()
     sampled_smiles = read_file(input_file, stream=True)
@@ -77,7 +74,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     )
     unique = unique.sort_values("size", ascending=False).reset_index(drop=True)
 
-    unique.to_csv(output_file, index=False)
+    write_to_csv_file(output_file, unique)
 
 
 def main(args):

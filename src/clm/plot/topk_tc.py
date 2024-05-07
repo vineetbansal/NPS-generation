@@ -4,6 +4,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 import glob
 import os
+from clm.functions import read_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
 
@@ -39,7 +40,7 @@ def topk_tc(outcome_dir, output_dir):
 
     outcome_files = glob.glob(f"{outcome_dir}/*CV_tc.csv")
     outcome = pd.concat(
-        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
+        [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
     outcome = outcome[outcome["target_source"] == "model"]
     outcome = outcome.dropna(subset=["Tc"])
