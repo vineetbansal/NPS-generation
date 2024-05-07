@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from clm.datasets import Vocabulary, SelfiesVocabulary
 from clm.models import RNN
-from clm.functions import set_seed, seed_type
+from clm.functions import set_seed, seed_type, write_to_csv_file
 
 logger = logging.getLogger(__name__)
 
@@ -112,9 +112,11 @@ def sample_molecules_RNN(
         for _ in range(0, sample_mols, batch_size):
             sampled_smiles, losses = model.sample(batch_size, return_losses=True)
 
-            with open(output_file, "a+") as f:
-                for loss, sm in zip(losses, sampled_smiles):
-                    f.write(f"{loss:0.4f}, {sm} \n")
+            write_to_csv_file(
+                output_file,
+                info=zip(losses, sampled_smiles),
+                string_format="{0[0]:.4f}, {0[1]} \n",
+            )
 
             pbar.update(batch_size)
 

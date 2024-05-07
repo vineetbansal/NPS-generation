@@ -2,11 +2,18 @@ import argparse
 import numpy as np
 import os
 import pandas as pd
-from rdkit import Chem, DataStructs
+from rdkit import DataStructs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from clm.functions import set_seed, seed_type, clean_mol
+from clm.functions import (
+    set_seed,
+    seed_type,
+    clean_mol,
+    write_to_csv_file,
+    compute_fingerprint,
+    read_csv_file,
+)
 
 
 def add_args(parser):
@@ -42,14 +49,14 @@ def create_output_dir(output_file):
 
 def calculate_fingerprint(smile):
     if (mol := clean_mol(smile, raise_error=False)) is not None:
-        return Chem.RDKFingerprint(mol)
+        return compute_fingerprint(mol)
 
 
 def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
     set_seed(seed)
 
-    train_smiles = pd.read_csv(train_file)
-    sample_smiles = pd.read_csv(sample_file)
+    train_smiles = read_csv_file(train_file)
+    sample_smiles = read_csv_file(sample_file)
 
     sample_smiles = sample_smiles[
         ~sample_smiles["inchikey"].isin(train_smiles["inchikey"])
@@ -104,8 +111,8 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
 
     # Create an output directory if it doesn't exist already
     create_output_dir(output_file)
-    output_df.to_csv(output_file, index=False)
 
+    write_to_csv_file(output_file, output_df)
     return output_df
 
 

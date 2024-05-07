@@ -14,7 +14,7 @@ from clm.commands import (
     inner_write_structural_prior_CV,
     inner_write_formula_prior_CV,
 )
-from clm.functions import assert_checksum_equals
+from clm.functions import assert_checksum_equals, read_csv_file
 
 base_dir = Path(__file__).parent.parent
 
@@ -47,7 +47,6 @@ def test_01_create_training_sets():
                 train_file=temp_dir / "train_file_{fold}",
                 vocab_file=temp_dir / "vocabulary_file_{fold}",
                 test0_file=temp_dir / "test0_file_{fold}",
-                test_file=temp_dir / "test_file_{fold}",
                 enum_factor=0,
                 folds=folds,
                 which_fold=fold,
@@ -68,20 +67,12 @@ def test_01_create_training_sets():
             temp_dir / "vocabulary_file_0",
             test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
         )
-        # `test0_file_0` denotes the test smiles without augmentation for fold
-        # 0; Since we're running with enum_factor=0, this should be identical
-        # to `test_file_0` (test smiles with augmentation for fold 0)
-        assert_checksum_equals(temp_dir / "test0_file_0", temp_dir / "test_file_0")
-        assert_checksum_equals(
-            temp_dir / "test_file_0",
-            test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
-        )
 
         # Check that the same InChI key does not appear in both the training and test set in any CV split
         test0_all = []
         for fold in range(folds):
-            train0 = pd.read_csv(temp_dir / f"train0_file_{fold}")
-            test0 = pd.read_csv(temp_dir / f"test0_file_{fold}")
+            train0 = read_csv_file(temp_dir / f"train0_file_{fold}")
+            test0 = read_csv_file(temp_dir / f"test0_file_{fold}")
 
             train0_inchi, test0_inchi = set(train0.inchikey), set(test0.inchikey)
             assert train0_inchi.isdisjoint(test0_inchi)
@@ -164,8 +155,8 @@ def test_04_tabulate_molecules():
             test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
         )
-        train = pd.read_csv(train_file)
-        result = pd.read_csv(output_file)
+        train = read_csv_file(train_file)
+        result = read_csv_file(output_file)
 
         # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
@@ -193,7 +184,7 @@ def test_05_collect_tabulated_molecules():
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
         )
 
-        result = pd.read_csv(output_file)
+        result = read_csv_file(output_file)
 
         # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
@@ -224,7 +215,7 @@ def test_06_process_tabulated_molecules():
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
         )
 
-        result = pd.read_csv(output_file)
+        result = read_csv_file(output_file)
         # Check that same InChI key does not appear in more than one row
         assert len(result.inchikey) == len(result.inchikey.unique())
 
@@ -236,7 +227,7 @@ def test_07_write_structural_prior_CV():
             ranks_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
             tc_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_tc.csv",
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
-            test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
+            test_file=test_dir / "0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi",
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
@@ -263,7 +254,7 @@ def test_08_write_formula_prior_CV():
         inner_write_formula_prior_CV.write_formula_prior_CV(
             ranks_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
             train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
-            test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_0.smi",
+            test_file=test_dir / "0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi",
             pubchem_file=pubchem_tsv_file,
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
@@ -291,7 +282,7 @@ def test_08_write_structural_prior_CV():
             sample_file=test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
             carbon_file=test_dir
-            / "0/prior/inputs/train0_LOTUS_truncated_SMILES_carbon_all.csv",
+            / "0/prior/inputs/train_LOTUS_truncated_SMILES_carbon_all.csv",
             err_ppm=10,
             seed=5831,
             chunk_size=100000,

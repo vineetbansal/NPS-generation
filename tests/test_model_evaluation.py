@@ -14,7 +14,7 @@ from clm.commands.write_freq_distribution import write_freq_distribution
 from clm.commands.calculate_outcome_distrs import calculate_outcome_distr
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
-from clm.functions import assert_checksum_equals
+from clm.functions import assert_checksum_equals, read_csv_file
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
@@ -49,7 +49,7 @@ def test_calculate_outcomes():
             seed=12,
         )
 
-        true_outcomes = pd.read_csv(
+        true_outcomes = read_csv_file(
             test_dir / "calculate_outcome.csv", keep_default_na=False
         )
         # https://stackoverflow.com/questions/14224172
@@ -72,15 +72,23 @@ def test_calculate_outcomes():
 def test_prep_nn_tc():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_file = Path(temp_dir) / "prep_nn_tc_PubChem.csv"
-        prep_nn_tc(
+        outcomes = prep_nn_tc(
             sample_file=test_dir / "prep_nn_tc_input.csv",
-            sample_no=100,
+            max_molecules=100,
             pubchem_file=test_dir / "PubChem_truncated.tsv",
             output_file=output_file,
             seed=0,
         )
 
-        assert_checksum_equals(output_file, test_dir / "prep_nn_tc_output.csv")
+        true_outcomes = read_csv_file(test_dir / "prep_nn_tc_output.csv")
+        pd.testing.assert_frame_equal(
+            outcomes.sort_index(axis=1)
+            .sort_values(["smiles", "formula"])
+            .reset_index(drop=True),
+            true_outcomes.sort_index(axis=1)
+            .sort_values(["smiles", "formula"])
+            .reset_index(drop=True),
+        )
 
 
 def test_write_nn_tc():
@@ -88,7 +96,8 @@ def test_write_nn_tc():
         output_file = Path(temp_dir) / "write_nn_tc.csv"
         write_nn_Tc(
             query_file=test_dir / "prep_nn_tc_PubChem.csv",
-            reference_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
+            reference_file=test_dir
+            / "snakemake_output/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
             output_file=output_file,
         )
 
@@ -106,7 +115,7 @@ def test_write_freq_distribution():
             output_file=output_file,
         )
 
-        true_outcomes = pd.read_csv(test_dir / "write_freq_distribution.csv")
+        true_outcomes = read_csv_file(test_dir / "write_freq_distribution.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
         plot(
@@ -130,7 +139,7 @@ def test_train_discriminator():
             seed=0,
         )
 
-        true_outcomes = pd.read_csv(test_dir / "train_discriminator.csv")
+        true_outcomes = read_csv_file(test_dir / "train_discriminator.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
         plot(
@@ -149,7 +158,7 @@ def test_outcome_distr():
             seed=0,
         )
 
-        true_outcomes = pd.read_csv(test_dir / "outcome_distr.csv")
+        true_outcomes = read_csv_file(test_dir / "outcome_distr.csv")
         pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
 

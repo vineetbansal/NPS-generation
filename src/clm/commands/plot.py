@@ -3,6 +3,9 @@ from clm.plot.calculate_outcomes import plot as calculate_outcomes
 from clm.plot.write_nn_tc import plot as write_nn_tc
 from clm.plot.train_discriminator import plot as train_discriminator
 from clm.plot.freq_distribution import plot as freq_distribution
+from clm.plot.nn_tc_ever_v_never import plot as nn_tc_ever_v_never
+from clm.plot.calculate_outcome_distrs import plot as calculate_outcome_distrs
+from clm.plot.topk_tc import topk_tc
 
 
 def add_args(parser):
@@ -10,13 +13,19 @@ def add_args(parser):
         "evaluation_type",
         type=str,
         help="Type of evaluation you want figures of. Valid options are:  \n"
-        " calculate_outcomes, write_nn_tc, train_discriminator, freq_distribution \n",
+        " calculate_outcomes, write_nn_tc, train_discriminator, freq_distribution, topk_tc \n",
     )
     parser.add_argument(
         "--outcome_dir",
         type=str,
         required=True,
         help="Path to directory where all the model evaluation files are saved ",
+    )
+    parser.add_argument(
+        "--ranks_file",
+        type=str,
+        required=False,
+        help="Path to the rank file ",
     )
     parser.add_argument(
         "--output_dir",
@@ -27,7 +36,7 @@ def add_args(parser):
     return parser
 
 
-def plot(evaluation_type, outcome_dir, output_dir):
+def plot(evaluation_type, outcome_dir, output_dir, ranks_file=None):
     if evaluation_type == "calculate_outcomes":
         calculate_outcomes(outcome_dir, output_dir)
     elif evaluation_type == "write_nn_tc":
@@ -36,6 +45,12 @@ def plot(evaluation_type, outcome_dir, output_dir):
         train_discriminator(outcome_dir, output_dir)
     elif evaluation_type == "freq_distribution":
         freq_distribution(outcome_dir, output_dir)
+    elif evaluation_type == "nn_tc_ever_v_never":
+        nn_tc_ever_v_never(outcome_dir, ranks_file, output_dir)
+    elif evaluation_type == "calculate_outcome_distrs":
+        calculate_outcome_distrs(outcome_dir, output_dir)
+    elif evaluation_type == "topk_tc":
+        topk_tc(outcome_dir, output_dir)
 
 
 def main(args):
@@ -43,6 +58,7 @@ def main(args):
         evaluation_type=args.evaluation_type,
         outcome_dir=args.outcome_dir,
         output_dir=args.output_dir,
+        ranks_file=args.ranks_file,
     )
 
 

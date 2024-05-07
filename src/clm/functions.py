@@ -104,10 +104,10 @@ def remove_salts_solvents(mol, hac=3):
         return fragments[0]
 
 
-def get_ecfp6_fingerprints(mols, include_none=False):
+def compute_fingerprints(mols, algorithm="rdkit", include_none=False):
     """
-    Get ECFP6 fingerprints for a list of molecules. Optionally,
-    handle `None` values by returning a `None` value in that
+    Get ECFP6/ RDKIT fingerprints for a list of molecules. Optionally,
+    handle `None` values by including a `None` value in that
     position.
     """
     fps = []
@@ -115,25 +115,18 @@ def get_ecfp6_fingerprints(mols, include_none=False):
         if mol is None and include_none:
             fps.append(None)
         else:
-            fp = AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024)
+            fp = compute_fingerprint(mol, algorithm=algorithm)
             fps.append(fp)
     return fps
 
 
-def get_rdkit_fingerprints(mols, include_none=False):
-    """
-    Get RDKIT fingerprints for a list of molecules. Optionally,
-    handle `None` values by returning a `None` value in that
-    position.
-    """
-    fps = []
-    for mol in mols:
-        if mol is None and include_none:
-            fps.append(None)
-        else:
-            fp = Chem.RDKFingerprint(mol)
-            fps.append(fp)
-    return fps
+def compute_fingerprint(mol, algorithm="rdkit"):
+    if algorithm == "rdkit":
+        return Chem.RDKFingerprint(mol)
+    elif algorithm == "ecfp6":
+        return AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024)
+    else:
+        raise ValueError("Unsupported fingerprint algorithm specified")
 
 
 def get_column_idx(input_file, column_name):
@@ -282,6 +275,8 @@ def seed_type(value):
 
 
 def continuous_JSD(generated_dist, original_dist, tol=1e-10):
+    if len(generated_dist) < 2:  # not enough points?
+        return np.nan
     try:
         gen_kde = gaussian_kde(generated_dist)
     except np.linalg.LinAlgError:
@@ -315,8 +310,8 @@ def internal_diversity(fps, sample_size=1e4, summarise=True):
     tcs = []
     counter = 0
     while counter < sample_size:
-        idx1 = np.random.randint(0, len(fps) - 1)
-        idx2 = np.random.randint(0, len(fps) - 1)
+        idx1 = np.random.randint(0, len(fps))
+        idx2 = np.random.randint(0, len(fps))
         fp1 = fps[idx1]
         fp2 = fps[idx2]
         tcs.append(FingerprintSimilarity(fp1, fp2))
@@ -336,8 +331,8 @@ def external_diversity(fps1, fps2, sample_size=1e4, summarise=True):
     tcs = []
     counter = 0
     while counter < sample_size:
-        idx1 = np.random.randint(0, len(fps1) - 1)
-        idx2 = np.random.randint(0, len(fps2) - 1)
+        idx1 = np.random.randint(0, len(fps1))
+        idx2 = np.random.randint(0, len(fps2))
         fp1 = fps1[idx1]
         fp2 = fps2[idx2]
         tcs.append(FingerprintSimilarity(fp1, fp2))
@@ -359,13 +354,17 @@ def internal_nn(fps, sample_size=1e3, summarise=True):
     counter = 0
     nns = []
     while counter < sample_size:
-        idx1 = np.random.randint(0, len(fps) - 1)
+        idx1 = np.random.randint(0, len(fps))
         fp1 = fps[idx1]
         tcs = []
         for idx2 in range(len(fps)):
             if idx1 != idx2:
                 fp2 = fps[idx2]
                 tcs.append(FingerprintSimilarity(fp1, fp2))
+
+        if len(tcs) == 0:  # not enough fingerprints?
+            return np.nan
+
         nn = np.max(tcs)
         nns.append(nn)
         counter += 1
@@ -386,12 +385,16 @@ def external_nn(fps1, fps2, sample_size=1e3, summarise=True):
     counter = 0
     nns = []
     while counter < sample_size:
-        idx1 = np.random.randint(0, len(fps1) - 1)
+        idx1 = np.random.randint(0, len(fps1))
         fp1 = fps1[idx1]
         tcs = []
         for idx2 in range(len(fps2)):
             fp2 = fps2[idx2]
             tcs.append(FingerprintSimilarity(fp1, fp2))
+
+        if len(tcs) == 0:  # not enough fingerprints?
+            return np.nan
+
         nn = np.max(tcs)
         nns.append(nn)
         counter += 1
@@ -421,7 +424,7 @@ def pct_stereocenters(mol):
 
 
 def generate_df(smiles_file, chunk_size):
-    smiles_df = pd.read_csv(smiles_file)
+    smiles_df = read_csv_file(smiles_file)
     smiles = smiles_df["smiles"].to_list()
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
@@ -458,15 +461,46 @@ def get_mass_range(mass, err_ppm):
     return min_mass, max_mass
 
 
-def write_to_csv_file(file_name, df):
-    dirname = os.path.dirname(file_name)
-    if dirname:
-        os.makedirs(dirname, exist_ok=True)
-    df.to_csv(
-        file_name,
-        index=False,
-        compression="gzip" if str(file_name).endswith(".gz") else None,
-    )
+def write_to_csv_file(
+    filepath,
+    info,
+    mode="w",
+    header=True,
+    columns=None,
+    string_format="{}",
+):
+    # os.path.dirname(filepath) returns '' if filepath is just a filename.
+    if not (dir := os.path.dirname(filepath)) == "":
+        # Make an output directory if it doesn't yet
+        os.makedirs(dir, exist_ok=True)
+    else:
+        raise ValueError(
+            "Incomplete file path provided. Ensure the path includes both the directory and the file name with its extension, e.g., '/home/user/documents/example.txt'."
+        )
+
+    # See if the provided information is a dataframe
+    if isinstance(info, pd.DataFrame):
+        info.to_csv(
+            filepath,
+            mode=mode,
+            header=header,
+            columns=columns,
+            index=False,
+            compression="gzip" if str(filepath).endswith(".gz") else None,
+        )
+    else:
+        with open(filepath, mode=mode) as f:
+            for row in info:
+                formatted_row = string_format.format(row)
+                f.write(formatted_row)
+
+
+def read_csv_file(filename, **kwargs):
+    compression = "gzip" if str(filename).endswith(".gz") else None
+
+    df = pd.read_csv(filename, compression=compression, **kwargs)
+
+    return df
 
 
 def assert_checksum_equals(generated_file, oracle):
