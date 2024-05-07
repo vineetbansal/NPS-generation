@@ -31,16 +31,16 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        output_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv", enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, metric=METRICS),
-        ranks_file_formula=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv",
+        output_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv.gz", enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, metric=METRICS),
+        ranks_file_formula=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv.gz",
                        enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        ranks_file_structure=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv",
+        ranks_file_structure=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz",
                    enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv",
+        tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv.gz",
                    enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        ranks_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
+        ranks_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv.gz",
             enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, metric=METRICS),
-        tc_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv",
+        tc_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv.gz",
             enum_factor=ENUM_FACTORS,dataset=DATASET,repr=REPRESENTATIONS,metric=METRICS)
 
 
@@ -156,7 +156,7 @@ rule train_models_RNN:
         vocab_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary"
     output:
         model_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_model.pt",
-        loss_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_loss.csv"
+        loss_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_loss.csv.gz"
     resources:
         mem_mb=32000,
         runtime=15+MODEL_PARAMS["max_epochs"]*15,
@@ -192,7 +192,7 @@ rule sample_molecules_RNN:
         vocab_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary",
         model_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_model.pt"
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv"
+        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv.gz"
     resources:
         mem_mb=1000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
@@ -220,10 +220,10 @@ rule tabulate_molecules:
     comparison of InchiKeys.
     """
     input:
-        input_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv",
+        input_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv.gz",
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples_masses.csv",
+        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples_masses.csv.gz",
     resources:
         mem_mb=32000,
         runtime=lambda wildcards: 15+MODEL_PARAMS["sample_mols"]*(int(wildcards["enum_factor"])+1)//100000,
@@ -241,9 +241,9 @@ rule collect_tabulated_molecules:
     sampling frequency in the process.
     """
     input:
-        input_files=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples_masses.csv", train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True)
+        input_files=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples_masses.csv.gz", train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True)
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
+        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
     resources:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//1000000,
@@ -266,10 +266,10 @@ rule process_tabulated_molecules:
     of occurrence.
     """
     input:
-        input_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{DATASET}_{{repr}}_{{fold}}_unique_masses.csv", fold=range(FOLDS), allow_missing=True),
+        input_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{DATASET}_{{repr}}_{{fold}}_unique_masses.csv.gz", fold=range(FOLDS), allow_missing=True),
         cv_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True)
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv",
+        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv.gz",
     resources:
         mem_mb=128000,
         runtime=15+MODEL_PARAMS["sample_mols"]//100000,
@@ -309,11 +309,11 @@ rule write_structural_prior_CV:
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
         test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
         pubchem_file=config['pubchem_tsv_file'],
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv",
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
         carbon_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv"
     output:
-         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv",
-         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv"
+         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz",
+         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv.gz"
     resources:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
@@ -351,9 +351,9 @@ rule write_formula_prior_CV:
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
         test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
         pubchem_file=config['pubchem_tsv_file'],
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv"
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz"
     output:
-         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv"
+         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv.gz"
     resources:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
@@ -391,12 +391,12 @@ rule write_structural_prior_CV_overall:
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
         test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
         pubchem_file=config['pubchem_tsv_file'],
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv",
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv.gz",
         carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_carbon_all.csv",
-        cv_ranks_files=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv", fold=range(FOLDS), allow_missing=True)
+        cv_ranks_files=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz", fold=range(FOLDS), allow_missing=True)
     output:
-        ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv",
-        tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv"
+        ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv.gz",
+        tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv.gz"
     resources:
         cpus_per_task=8,
         mem_mb=128000,

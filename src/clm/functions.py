@@ -14,6 +14,7 @@ from scipy import histogram
 from scipy.stats import gaussian_kde
 from scipy.spatial.distance import jensenshannon
 import hashlib
+import gzip
 
 converter = deepsmiles.Converter(rings=True, branches=True)
 
@@ -161,10 +162,21 @@ def read_file(
         max_lines=None,
         smile_only=False,
     ):
+        compressed = str(input_file).endswith(".gz")
+        if compressed:
+            open_fn = gzip.open
+            mode = "rb"
+        else:
+            open_fn = open
+            mode = "r"
+
         count = 0
-        with open(input_file, "r") as f:
+        with open_fn(input_file, mode) as f:
             # Detect if we're dealing with a csv file with "smiles" in the header
-            first_line = f.readline().strip()
+            first_line = f.readline()
+            if compressed:
+                first_line = first_line.decode("utf8").strip()
+            first_line = first_line.strip()
             is_csv = "smiles" in first_line
 
             if is_csv:
@@ -174,6 +186,8 @@ def read_file(
                 f.seek(0)  # go to beginning of file
 
             for line in f:
+                if compressed:
+                    line = line.decode("utf8")
                 if is_csv and smile_only:
                     yield line.split(",")[smile_idx].strip()
                 else:
@@ -469,38 +483,43 @@ def write_to_csv_file(
     columns=None,
     string_format="{}",
 ):
+    assert mode in ("w", "a+"), "Invalid mode specified"
+
     # os.path.dirname(filepath) returns '' if filepath is just a filename.
-    if not (dir := os.path.dirname(filepath)) == "":
-        # Make an output directory if it doesn't yet
-        os.makedirs(dir, exist_ok=True)
-    else:
-        raise ValueError(
-            "Incomplete file path provided. Ensure the path includes both the directory and the file name with its extension, e.g., '/home/user/documents/example.txt'."
-        )
+    if (basedir := os.path.dirname(filepath)) != "":
+        os.makedirs(basedir, exist_ok=True)
+
+    compression = "gzip" if str(filepath).endswith(".gz") else None
 
     # See if the provided information is a dataframe
     if isinstance(info, pd.DataFrame):
         info.to_csv(
             filepath,
             mode=mode,
-            header=header,
+            header=header if mode == "w" else False,
             columns=columns,
             index=False,
-            compression="gzip" if str(filepath).endswith(".gz") else None,
+            compression=compression,
         )
     else:
-        with open(filepath, mode=mode) as f:
+        assert compression in (None, "gzip"), "Invalid compression type"
+        if compression == "gzip":
+            mode = "wb" if mode == "w" else "ab"  # binary mode for gzip
+            open_fn = gzip.open
+        else:
+            open_fn = open
+
+        with open_fn(filepath, mode=mode) as f:
             for row in info:
-                formatted_row = string_format.format(row)
-                f.write(formatted_row)
+                row = string_format.format(row)
+                if compression == "gzip":
+                    row = row.encode("utf8")
+                f.write(row)
 
 
 def read_csv_file(filename, **kwargs):
     compression = "gzip" if str(filename).endswith(".gz") else None
-
-    df = pd.read_csv(filename, compression=compression, **kwargs)
-
-    return df
+    return pd.read_csv(filename, compression=compression, **kwargs)
 
 
 def assert_checksum_equals(generated_file, oracle):
