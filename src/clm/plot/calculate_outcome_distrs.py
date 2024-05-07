@@ -29,11 +29,7 @@ def plot_continuous(outcomes, output_dir, value_map):
             value_map[source]: value["value"].reset_index(drop=True)
             for source, value in df.groupby("source")
         }
-        sns.kdeplot(
-            data=data,
-            palette=sns.color_palette("pastel"),
-            common_norm=False
-        )
+        sns.kdeplot(data=data, palette=sns.color_palette("pastel"), common_norm=False)
 
         plt.title(outcome)
         plt.ylabel("Density")
