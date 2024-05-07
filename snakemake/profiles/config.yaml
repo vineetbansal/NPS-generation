@@ -1,0 +1,25 @@
+---
+# basic configuration
+use-conda: true
+conda-frontend: conda
+printshellcmds: true
+
+# cluster specific settings
+cluster:
+  sbatch
+    --cpus-per-task={threads}
+    --mem={resources.mem_mb}M
+    --time={resources.runtime} --output=slurm_out/%x-%A
+    --job-name={rule} --parsable
+    --partition={resources.partition}
+cluster-status: "slurm-status.py"
+cluster-cancel: scancel
+cluster-cancel-nargs: 50
+latency-wait: 120  # wait 2 minutes for missing files before raising exception
+# important for NFS
+jobs: 250  # maximum jobs to run at once
+max-jobs-per-second: 1
+max-status-checks-per-second: 10
+local-cores: 4  # maximum local jobs to run
+default-resources:
+  partition=main,hoppertest,skinniderlab
