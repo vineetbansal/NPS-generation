@@ -1,7 +1,7 @@
 import argparse
-import os
 import pandas as pd
 import numpy as np
+from clm.functions import write_to_csv_file, read_csv_file
 
 
 def add_args(parser):
@@ -24,23 +24,23 @@ def add_args(parser):
 def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
     meta = pd.concat(
         [
-            pd.read_csv(file, dtype={"smiles": str}).assign(fold=idx)
+            read_csv_file(file, dtype={"smiles": str, "inchikey": str}).assign(fold=idx)
             for idx, file in enumerate(input_file)
         ]
     )
 
     data = meta.pivot_table(
-        index="smiles", columns="fold", values="size", aggfunc="first", fill_value=0
+        index="inchikey", columns="fold", values="size", aggfunc="first", fill_value=0
     )
 
-    uniq_smiles = data.index.to_numpy()
+    uniq_inchikeys = data.index.to_numpy()
 
     for fold_idx, cv_file in enumerate(cv_files):
-        cv_dat = pd.read_csv(cv_file, names=["smiles"])
-        cv_dat = cv_dat[cv_dat["smiles"].isin(uniq_smiles)]
+        cv_dat = read_csv_file(cv_file, usecols=["inchikey"])
+        cv_dat = cv_dat[cv_dat["inchikey"].isin(uniq_inchikeys)]
 
         if not cv_dat.empty:
-            data.loc[cv_dat["smiles"], fold_idx] = np.nan
+            data.loc[cv_dat["inchikey"], fold_idx] = np.nan
 
     # Optionally normalize by total sampling frequency
     if summary_fn == "fp10k":
@@ -51,13 +51,13 @@ def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
         # With what frequency (across all folds)
         # were valid molecules produced by our models?
         data = pd.DataFrame(
-            {"smiles": list(uniq_smiles), "size": np.nansum(data, axis=1)}
+            {"inchikey": list(uniq_inchikeys), "size": np.nansum(data, axis=1)}
         )
     else:
         # With what average frequency (across all folds)
         # were valid molecules produced by our models?
         data = pd.DataFrame(
-            {"smiles": list(uniq_smiles), "size": np.nanmean(data, axis=1)}
+            {"inchikey": list(uniq_inchikeys), "size": np.nanmean(data, axis=1)}
         )
 
     data = data.sort_values(by="size", ascending=False).query("size > 0")
@@ -65,13 +65,12 @@ def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
     if not data.empty:
         # Add metadata (mass and formula)
         data = data.merge(
-            meta.drop_duplicates("smiles")[["smiles", "mass", "formula"]],
+            meta.drop_duplicates("inchikey")[["inchikey", "smiles", "mass", "formula"]],
             how="left",
-            on="smiles",
+            on="inchikey",
         )
 
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    data.to_csv(output_file, index=False)
+    write_to_csv_file(output_file, data)
 
 
 def main(args):

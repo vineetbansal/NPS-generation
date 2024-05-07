@@ -1,6 +1,7 @@
 import glob
 import pandas as pd
 from matplotlib import pyplot as plt
+from clm.functions import read_csv_file
 
 # Location of *_all_freq-avg_CV_ranks_structure.csv file
 ranks_dir = "/scratch/gpfs/vineetb/clm/out/lotus/0/prior/structural_prior"
@@ -9,13 +10,13 @@ if __name__ == "__main__":
 
     ranks_files = glob.glob(f"{ranks_dir}/*freq-avg_CV_ranks_structure.csv")
     df = pd.concat(
-        [pd.read_csv(ranks_file, delimiter=",") for ranks_file in ranks_files]
+        [read_csv_file(ranks_file, delimiter=",") for ranks_file in ranks_files]
     )
 
     print(df.columns)
     print(df.shape)
 
-    models = ("model", "PubChem")
+    models = ("model", "PubChem", "addcarbon", "train")
     ys = {model: [] for model in models}
 
     ks = range(0, 30)

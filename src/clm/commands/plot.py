@@ -4,6 +4,7 @@ from clm.plot.write_nn_tc import plot as write_nn_tc
 from clm.plot.train_discriminator import plot as train_discriminator
 from clm.plot.freq_distribution import plot as freq_distribution
 from clm.plot.calculate_outcome_distrs import plot as calculate_outcome_distrs
+from clm.plot.topk_tc import topk_tc
 
 
 def add_args(parser):
@@ -11,7 +12,7 @@ def add_args(parser):
         "evaluation_type",
         type=str,
         help="Type of evaluation you want figures of. Valid options are:  \n"
-        " calculate_outcomes, write_nn_tc, train_discriminator, freq_distribution \n",
+        " calculate_outcomes, write_nn_tc, train_discriminator, freq_distribution, topk_tc \n",
     )
     parser.add_argument(
         "--outcome_dir",
@@ -39,6 +40,8 @@ def plot(evaluation_type, outcome_dir, output_dir):
         freq_distribution(outcome_dir, output_dir)
     elif evaluation_type == "calculate_outcome_distrs":
         calculate_outcome_distrs(outcome_dir, output_dir)
+    elif evaluation_type == "topk_tc":
+        topk_tc(outcome_dir, output_dir)
 
 
 def main(args):

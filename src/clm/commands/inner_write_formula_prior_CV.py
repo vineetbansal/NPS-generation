@@ -10,6 +10,7 @@ from clm.functions import (
     generate_df,
     get_mass_range,
     write_to_csv_file,
+    read_csv_file,
 )
 
 # suppress rdkit errors
@@ -120,14 +121,17 @@ def write_formula_prior_CV(
     test = test.assign(formula_known=test["formula"].isin(train["formula"]))
 
     print("Reading PubChem file")
-    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+    pubchem = read_csv_file(pubchem_file, delimiter="\t", header=None)
 
-    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    # PubChem tsv can have 3, 4 or 5 columns
     match len(pubchem.columns):
         case 3:
             pubchem.columns = ["smiles", "mass", "formula"]
         case 4:
             pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+        case 5:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint", "inchikey"]
             pubchem = pubchem.dropna(subset="fingerprint")
         case _:
             raise RuntimeError("Unexpected column count for PubChem")
@@ -135,7 +139,7 @@ def write_formula_prior_CV(
     pubchem = pubchem.assign(size=np.nan)
 
     print("Reading sample file from generative model")
-    gen = pd.read_csv(sample_file)
+    gen = read_csv_file(sample_file)
 
     # iterate through PubChem vs. generative model
     inputs = {

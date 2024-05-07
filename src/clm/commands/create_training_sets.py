@@ -44,12 +44,6 @@ def add_args(parser):
         help="Output test smiles file path with no augmentation ({fold} in path is populated automatically)",
     )
     parser.add_argument(
-        "--test-file",
-        type=str,
-        required=True,
-        help="Output test smiles file path ({fold} in path is populated automatically)",
-    )
-    parser.add_argument(
         "--enum-factor",
         type=int,
         default=0,
@@ -162,7 +156,6 @@ def create_training_sets(
     train0_file=None,
     train_file=None,
     test0_file=None,
-    test_file=None,
     vocab_file=None,
     folds=10,
     which_fold=0,
@@ -175,7 +168,9 @@ def create_training_sets(
     max_input_smiles=None,
 ):
     logger.info("reading input SMILES ...")
-    smiles = read_file(smiles_file=input_file, max_lines=max_input_smiles)
+    smiles = read_file(
+        smiles_file=input_file, smile_only=True, max_lines=max_input_smiles
+    )
 
     if min_tc > 0:
         logger.info(f"picking {n_molecules} molecules with min_tc={min_tc} ...")
@@ -272,15 +267,13 @@ def create_training_sets(
                     pass
             test = test_out
 
-    write_smiles(train0, str(train0_file).format(fold=which_fold))
-    write_smiles(train, str(train_file).format(fold=which_fold))
+    write_smiles(train0, str(train0_file).format(fold=which_fold), add_inchikeys=True)
+    write_smiles(train, str(train_file).format(fold=which_fold), add_inchikeys=True)
     vocabulary = vocabulary_from_representation(representation, train)
     logger.info("vocabulary of {} characters".format(len(vocabulary)))
     vocabulary.write(output_file=str(vocab_file).format(fold=which_fold))
     if test0 is not None:
-        write_smiles(test0, str(test0_file).format(fold=which_fold))
-    if test is not None:
-        write_smiles(test, str(test_file).format(fold=which_fold))
+        write_smiles(test0, str(test0_file).format(fold=which_fold), add_inchikeys=True)
 
 
 def main(args):
@@ -289,7 +282,6 @@ def main(args):
         train0_file=args.train0_file,
         train_file=args.train_file,
         test0_file=args.test0_file,
-        test_file=args.test_file,
         vocab_file=args.vocab_file,
         folds=args.folds,
         which_fold=args.which_fold,

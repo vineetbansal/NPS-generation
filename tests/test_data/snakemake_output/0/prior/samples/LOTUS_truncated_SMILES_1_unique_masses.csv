@@ -1,4 +1,3 @@
-smiles,mass,formula,size
-C,16.0313,CH4,2
-OBr,95.921077,HBrO,1
-[N+],14.002525,N+,2
+inchikey,mass,formula,smiles,size
+DELRCXTYJVVNEW-UHFFFAOYSA-N,14.002525,N+,[N+],2
+VNWKTOKETHGBQD-UHFFFAOYSA-N,16.0313,CH4,C,2

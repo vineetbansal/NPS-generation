@@ -104,10 +104,10 @@ def remove_salts_solvents(mol, hac=3):
         return fragments[0]
 
 
-def get_ecfp6_fingerprints(mols, include_none=False):
+def compute_fingerprints(mols, algorithm="rdkit", include_none=False):
     """
-    Get ECFP6 fingerprints for a list of molecules. Optionally,
-    handle `None` values by returning a `None` value in that
+    Get ECFP6/ RDKIT fingerprints for a list of molecules. Optionally,
+    handle `None` values by including a `None` value in that
     position.
     """
     fps = []
@@ -115,25 +115,18 @@ def get_ecfp6_fingerprints(mols, include_none=False):
         if mol is None and include_none:
             fps.append(None)
         else:
-            fp = AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024)
+            fp = compute_fingerprint(mol, algorithm=algorithm)
             fps.append(fp)
     return fps
 
 
-def get_rdkit_fingerprints(mols, include_none=False):
-    """
-    Get RDKIT fingerprints for a list of molecules. Optionally,
-    handle `None` values by returning a `None` value in that
-    position.
-    """
-    fps = []
-    for mol in mols:
-        if mol is None and include_none:
-            fps.append(None)
-        else:
-            fp = Chem.RDKFingerprint(mol)
-            fps.append(fp)
-    return fps
+def compute_fingerprint(mol, algorithm="rdkit"):
+    if algorithm == "rdkit":
+        return Chem.RDKFingerprint(mol)
+    elif algorithm == "ecfp6":
+        return AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024)
+    else:
+        raise ValueError("Unsupported fingerprint algorithm specified")
 
 
 def get_column_idx(input_file, column_name):
@@ -201,14 +194,23 @@ def read_file(
         return gen if stream else np.array(list(gen))
 
 
-def write_smiles(smiles, smiles_file, mode="w"):
+def write_smiles(smiles, smiles_file, mode="w", add_inchikeys=False):
     """
     Write a list of SMILES to a line-delimited file.
     """
     os.makedirs(os.path.dirname(smiles_file), exist_ok=True)
     with open(smiles_file, mode) as f:
+        if add_inchikeys:
+            f.write("smiles,inchikey\n")
         for sm in smiles:
-            _ = f.write(sm + "\n")
+            f.write(sm)
+            if add_inchikeys:
+                if mol := clean_mol(sm, raise_error=False):
+                    inchikey = Chem.inchi.MolToInchiKey(mol)
+                else:
+                    inchikey = ""
+                f.write(f",{inchikey}")
+            f.write("\n")
 
 
 """
@@ -412,7 +414,8 @@ def pct_stereocenters(mol):
 
 
 def generate_df(smiles_file, chunk_size):
-    smiles = read_file(smiles_file)
+    smiles_df = read_csv_file(smiles_file)
+    smiles = smiles_df["smiles"].to_list()
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
     for i in tqdm(range(0, len(smiles), chunk_size)):
@@ -436,6 +439,8 @@ def generate_df(smiles_file, chunk_size):
         if chunk_data:
             df = pd.concat([df, pd.DataFrame(chunk_data)], ignore_index=True)
 
+    # Add any additional columns from the input file
+    df = df.merge(smiles_df, how="left", on="smiles")
     return df
 
 
@@ -446,15 +451,46 @@ def get_mass_range(mass, err_ppm):
     return min_mass, max_mass
 
 
-def write_to_csv_file(file_name, df):
-    dirname = os.path.dirname(file_name)
-    if dirname:
-        os.makedirs(dirname, exist_ok=True)
-    df.to_csv(
-        file_name,
-        index=False,
-        compression="gzip" if str(file_name).endswith(".gz") else None,
-    )
+def write_to_csv_file(
+    filepath,
+    info,
+    mode="w",
+    header=True,
+    columns=None,
+    string_format="{}",
+):
+    # os.path.dirname(filepath) returns '' if filepath is just a filename.
+    if not (dir := os.path.dirname(filepath)) == "":
+        # Make an output directory if it doesn't yet
+        os.makedirs(dir, exist_ok=True)
+    else:
+        raise ValueError(
+            "Incomplete file path provided. Ensure the path includes both the directory and the file name with its extension, e.g., '/home/user/documents/example.txt'."
+        )
+
+    # See if the provided information is a dataframe
+    if isinstance(info, pd.DataFrame):
+        info.to_csv(
+            filepath,
+            mode=mode,
+            header=header,
+            columns=columns,
+            index=False,
+            compression="gzip" if str(filepath).endswith(".gz") else None,
+        )
+    else:
+        with open(filepath, mode=mode) as f:
+            for row in info:
+                formatted_row = string_format.format(row)
+                f.write(formatted_row)
+
+
+def read_csv_file(filename, **kwargs):
+    compression = "gzip" if str(filename).endswith(".gz") else None
+
+    df = pd.read_csv(filename, compression=compression, **kwargs)
+
+    return df
 
 
 def assert_checksum_equals(generated_file, oracle):

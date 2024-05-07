@@ -2,6 +2,8 @@ import argparse
 import os
 import pandas as pd
 
+from clm.functions import write_to_csv_file, read_csv_file
+
 parser = argparse.ArgumentParser()
 
 
@@ -22,10 +24,19 @@ def collect_tabulated_molecules(input_files, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     df = pd.concat(
-        [pd.read_csv(file, sep=",") for file in input_files], ignore_index=True
+        [read_csv_file(file, delimiter=",") for file in input_files], ignore_index=True
     )
-    df = df.groupby(["smiles", "mass", "formula"], as_index=False).agg({"size": "sum"})
-    df.to_csv(output_file, index=False)
+    # Find unique combinations of inchikey, mass, and formula, and add a
+    # `size` column denoting the frequency of occurrence of each combination.
+    # For each unique combination, select the first canonical smile.
+    unique = df.groupby(["inchikey", "mass", "formula"]).first().reset_index()
+    unique["size"] = (
+        df.groupby(["inchikey", "mass", "formula"])
+        .agg({"size": "sum"})
+        .reset_index(drop=True)
+    )
+
+    write_to_csv_file(output_file, unique)
 
 
 def main(args):

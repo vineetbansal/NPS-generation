@@ -1,6 +1,6 @@
 import argparse
 import pandas as pd
-from clm.functions import read_file
+from clm.functions import read_file, write_to_csv_file, read_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
 
@@ -19,12 +19,12 @@ def add_args(parser):
 
 def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file, output_file):
 
-    sample_file = pd.read_csv(sample_file, delimiter=",")
+    sample_file = read_csv_file(sample_file, delimiter=",")
     sample = sample_file.sample(
         n=max_mols, replace=True, weights=sample_file["size"], ignore_index=True
     )
 
-    pubchem = pd.read_csv(
+    pubchem = read_csv_file(
         pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
     )
     pubchem = pubchem[pubchem["formula"].isin(set(sample.formula))]
@@ -38,7 +38,7 @@ def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file, output_
             train.assign(source="train"),
         ]
     )
-    combination.to_csv(output_file, index=False, columns=["smiles", "source"])
+    write_to_csv_file(output_file, combination, columns=["smiles", "source"])
 
 
 def main(args):

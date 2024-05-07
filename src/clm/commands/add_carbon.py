@@ -4,13 +4,12 @@ Apply the Renz et al. 'AddCarbon' model to the training set.
 import argparse
 import os
 import numpy as np
-import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
 # import functions
-from clm.functions import clean_mol, write_smiles, set_seed, read_file
+from clm.functions import clean_mol, write_smiles, set_seed, read_file, read_csv_file
 
 
 def add_args(parser):
@@ -32,16 +31,25 @@ def add_carbon(input_file, output_file, seed=None):
     # open buffer
     f = open(output_file, "a+")
     # write header
-    row = "\t".join(["input_smiles", "mutated_smiles", "mass", "formula"])
+    row = "\t".join(["input_smiles", "mutated_smiles", "mass", "formula", "inchikey"])
     _ = f.write(row + "\n")
     f.flush()
 
     # read the input SMILES
-    smiles = read_file(input_file, smile_only=True)
+    smiles = read_file(input_file, smile_only=False)
 
-    # calculate inchikeys
-    train_mols = [clean_mol(smile, raise_error=False) for smile in smiles]
-    train_inchi = [Chem.inchi.MolToInchiKey(mol) for mol in train_mols if mol]
+    smiles_parts = [sm.split(",") for sm in smiles]
+    if all([len(part) == 1 for part in smiles_parts]):
+        smiles = [part[0] for part in smiles_parts]
+        train_mols = [clean_mol(smile, raise_error=False) for smile in smiles]
+        train_inchi = set([Chem.inchi.MolToInchiKey(mol) for mol in train_mols if mol])
+    elif all([len(part) == 2 for part in smiles_parts]):
+        smiles = [part[0] for part in smiles_parts]
+        train_inchi = set([part[1] for part in smiles_parts])
+    else:
+        raise RuntimeError(
+            "The input file should have either 1 column (smile) or 2 columns (smiles, inchikey"
+        )
 
     # loop over the input SMILES
     # output_smiles = list()
@@ -83,7 +91,7 @@ def add_carbon(input_file, output_file, seed=None):
             formula = rdMolDescriptors.CalcMolFormula(mut_mol)
 
             # append to file
-            row = "\t".join([input_smiles, mut_can, str(mass), formula])
+            row = "\t".join([input_smiles, mut_can, str(mass), formula, mut_inchi])
             _ = f.write(row + "\n")
             f.flush()
 
@@ -92,7 +100,7 @@ def add_carbon(input_file, output_file, seed=None):
         #     break
 
     # write unique SMILES
-    uniq_smiles = pd.read_csv(output_file, sep="\t").mutated_smiles.unique()
+    uniq_smiles = read_csv_file(output_file, delimiter="\t").mutated_smiles.unique()
     filename, ext = os.path.splitext(output_file)
     uniq_file = filename + "-unique.smi"
     write_smiles(uniq_smiles, uniq_file)

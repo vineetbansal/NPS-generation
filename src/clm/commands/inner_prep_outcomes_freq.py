@@ -1,8 +1,9 @@
 import argparse
-import pandas as pd
-from clm.functions import set_seed, seed_type
+import logging
+from clm.functions import set_seed, seed_type, write_to_csv_file, read_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -26,7 +27,7 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
     set_seed(seed)
 
     # Samples can be a csv file or a dataframe
-    data = pd.read_csv(samples) if isinstance(samples, str) else samples
+    data = read_csv_file(samples) if isinstance(samples, str) else samples
 
     # TODO: make this process dynamic later
     frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
@@ -38,10 +39,14 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
         else:
             selected_rows = data[data["size"] > f_min]
 
+        bin_name = f"{f_min}-{f_max}" if f_max is not None else f"{f_min}-"
+
         if max_molecules is not None and len(selected_rows) > max_molecules:
             selected_rows = selected_rows.sample(n=max_molecules)
-
-        bin_name = f"{f_min}-{f_max}" if f_max is not None else f"{f_min}-"
+        elif max_molecules is not None and len(selected_rows) < max_molecules:
+            logger.warning(
+                f"Not enough molecules for frequency bin '{bin_name}'. Using {len(selected_rows)} molecules."
+            )
 
         data.loc[selected_rows.index, "bin"] = bin_name
 
@@ -49,7 +54,7 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
     data = data[data["bin"] != ""].reset_index(drop=True)
 
     if output_file is not None:
-        data.to_csv(output_file, index=False)
+        write_to_csv_file(output_file, data)
 
     return data
 

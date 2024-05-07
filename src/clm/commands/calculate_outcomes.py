@@ -6,7 +6,7 @@ import scipy.stats
 from fcd_torch import FCD
 import logging
 from rdkit import Chem
-from rdkit.Chem import Descriptors, Lipinski, RDKFingerprint
+from rdkit.Chem import Descriptors, Lipinski
 from rdkit.Chem.GraphDescriptors import BertzCT
 from rdkit.Chem.MolSurf import TPSA
 from rdkit.Chem.QED import qed
@@ -21,6 +21,8 @@ from clm.functions import (
     seed_type,
     set_seed,
     clean_mol,
+    write_to_csv_file,
+    compute_fingerprint,
     # Functions for calculating metrics
     continuous_JSD,
     discrete_JSD,
@@ -30,6 +32,7 @@ from clm.functions import (
     external_nn,
     pct_rotatable_bonds,
     pct_stereocenters,
+    read_csv_file,
 )
 
 rdBase.DisableLog("rdApp.error")
@@ -47,12 +50,6 @@ def add_args(parser):
         help="Sampled csv file with smiles as a column, or a text file with one SMILES per line.",
     )
     parser.add_argument("--output_file", type=str)
-    parser.add_argument(
-        "--max_orig_mols",
-        type=int,
-        default=None,
-        help="Max number of sampled smiles to process from each frequency bin.",
-    )
     parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
     )
@@ -92,7 +89,7 @@ molecular_properties = {
     "murcko": lambda mol: MurckoScaffoldSmiles(mol=mol),
     "donors": Lipinski.NumHDonors,
     "acceptors": Lipinski.NumHAcceptors,
-    "fps": RDKFingerprint,
+    "fps": compute_fingerprint,
 }
 
 
@@ -134,14 +131,12 @@ def calculate_probabilities(*dicts):
     return return_values
 
 
-def get_dataframes(train_file, sampled_file, max_orig_mols=None):
+def get_dataframes(train_file, sampled_file):
     logger.info(f"Reading training smiles from {train_file}")
     train_df = smile_properties_dataframe(train_file)
 
     logger.info(f"Reading sample smiles from {sampled_file}")
-    sample_smiles_df = smile_properties_dataframe(
-        sampled_file, max_smiles=max_orig_mols
-    )
+    sample_smiles_df = smile_properties_dataframe(sampled_file)
 
     sample_smiles_df["is_valid"] = sample_smiles_df.apply(
         lambda row: row["canonical_smile"] is not None, axis=1
@@ -156,7 +151,7 @@ def get_dataframes(train_file, sampled_file, max_orig_mols=None):
     logger.info(f"{n_novel_smiles} novel SMILES out of {len(sample_smiles_df)}")
 
     logger.info("Re-reading sample file to obtain bin/other information")
-    sample_bin_df = pd.read_csv(sampled_file)
+    sample_bin_df = read_csv_file(sampled_file)
     logger.info("Merging bin information")
     sample_df = sample_smiles_df.merge(
         sample_bin_df, left_on="smile", right_on="smiles"
@@ -274,19 +269,17 @@ def calculate_outcomes_dataframe(sample_df, train_df):
     return out
 
 
-def calculate_outcomes(
-    sampled_file, train_file, output_file, max_orig_mols=None, seed=None
-):
+def calculate_outcomes(sampled_file, train_file, output_file, seed=None):
     set_seed(seed)
-    train_df, sample_df = get_dataframes(train_file, sampled_file, max_orig_mols)
+    train_df, sample_df = get_dataframes(train_file, sampled_file)
 
     logger.info("Calculating outcomes")
     out = calculate_outcomes_dataframe(sample_df, train_df)
 
     # `input_file` column added for legacy reasons
     out["input_file"] = os.path.basename(sampled_file)
-    out.to_csv(output_file, index=False)
 
+    write_to_csv_file(output_file, out)
     return out
 
 
@@ -295,7 +288,6 @@ def main(args):
         train_file=args.train_file,
         sampled_file=args.sampled_file,
         output_file=args.output_file,
-        max_orig_mols=args.max_orig_mols,
         seed=args.seed,
     )
 

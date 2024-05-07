@@ -2,18 +2,20 @@ import argparse
 import numpy as np
 import logging
 import pandas as pd
+from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
 
 from clm.functions import (
-    get_ecfp6_fingerprints,
+    compute_fingerprints,
     set_seed,
     seed_type,
     clean_mol,
     generate_df,
     get_mass_range,
     write_to_csv_file,
+    read_csv_file,
 )
 
 # suppress rdkit errors
@@ -39,6 +41,12 @@ def add_args(parser):
         type=str,
         default=None,
         help="Path to the training dataset altered by the add carbon step.",
+    )
+    parser.add_argument(
+        "--cv_ranks_files",
+        type=str,
+        nargs="+",
+        help="Rank files for individual CV folds.",
     )
     parser.add_argument(
         "--sample_file", type=str, help="Path to the file containing sample molecules."
@@ -79,6 +87,11 @@ def get_fp_obj(fp_string, bits=1024):
     return fp
 
 
+def get_inchikey(smile):
+    # Get Inchikey for a valid smile
+    return Chem.inchi.MolToInchiKey(clean_mol(smile, raise_error=True))
+
+
 def match_molecules(row, dataset, data_type):
     match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
@@ -103,7 +116,13 @@ def match_molecules(row, dataset, data_type):
     # source (model/train/PubChem)
     match.columns = "target_" + match.columns
 
-    rank = match[match["target_smiles"] == row["smiles"]][
+    # For Pubchem, Inchi keys may not have been pre-calculated
+    if data_type == "PubChem" and "target_inchikey" not in match.columns:
+        match["target_inchikey"] = match["target_smiles"].apply(
+            lambda x: get_inchikey(x)
+        )
+
+    rank = match[match["target_inchikey"] == row["inchikey"]][
         ["target_size", "target_rank", "target_source"]
     ]
 
@@ -137,7 +156,7 @@ def match_molecules(row, dataset, data_type):
             target_mols = [
                 clean_mol(smile, selfies=False) for smile in tc["target_smiles"].values
             ]
-            target_fps = get_ecfp6_fingerprints(target_mols)
+            target_fps = compute_fingerprints(target_mols, algorithm="ecfp6")
         tc["Tc"] = [
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
@@ -173,6 +192,7 @@ def write_structural_prior_CV(
     chunk_size,
     seed,
     carbon_file=None,
+    cv_ranks_files=None,
 ):
     set_seed(seed)
 
@@ -193,14 +213,17 @@ def write_structural_prior_CV(
     test = test.assign(formula_known=test["formula"].isin(train["formula"]))
 
     logger.info("Reading PubChem file")
-    pubchem = pd.read_csv(pubchem_file, delimiter="\t", header=None)
+    pubchem = read_csv_file(pubchem_file, delimiter="\t", header=None)
 
-    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    # PubChem tsv can have 3, 4 or 5 columns
     match len(pubchem.columns):
         case 3:
             pubchem.columns = ["smiles", "mass", "formula"]
         case 4:
             pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+        case 5:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint", "inchikey"]
             pubchem = pubchem.dropna(subset="fingerprint")
         case _:
             raise RuntimeError("Unexpected column count for PubChem")
@@ -208,16 +231,19 @@ def write_structural_prior_CV(
     pubchem = pubchem.assign(size=np.nan)
 
     logger.info("Reading sample file from generative model")
-    gen = pd.read_csv(sample_file)
+    gen = read_csv_file(sample_file)
 
     inputs = {
         "model": gen.assign(source="model"),
         "PubChem": pubchem.assign(source="PubChem"),
-        "train": train.assign(source="train"),
     }
 
+    # We are only comparing training set with test set for individual cv fold
+    if cv_ranks_files is None:
+        inputs["train"] = train.assign(source="train")
+
     if carbon_file:
-        addcarbon = pd.read_csv(carbon_file, delimiter=r"\s")
+        addcarbon = read_csv_file(carbon_file, delimiter=r"\s")
 
         # Rename carbon's column names to coincide with other inputs and drop input smiles
         addcarbon.rename(columns={"mutated_smiles": "smiles"}, inplace=True)
@@ -244,6 +270,14 @@ def write_structural_prior_CV(
         rank_df = pd.concat([rank_df, rank])
         tc_df = pd.concat([tc_df, tc])
 
+    # The cv_rank_files contain statistics evaluated from individual cross-validation folds
+    # Since the test sets across all folds and the train set across all fold contain exactly the same unique elements,
+    # we aggregate results from all folds to assess test SMILES against training SMILES across all folds
+    if cv_ranks_files is not None:
+        cv_data = pd.concat([read_csv_file(f) for f in cv_ranks_files])
+        train_cv_data = cv_data[cv_data["target_source"] == "train"]
+        rank_df = pd.concat([rank_df, train_cv_data])
+
     write_to_csv_file(ranks_file, rank_df)
     write_to_csv_file(
         tc_file, tc_df.drop("target_fingerprint", axis=1, errors="ignore")
@@ -262,6 +296,7 @@ def main(args):
         chunk_size=args.chunk_size,
         seed=args.seed,
         carbon_file=args.carbon_file,
+        cv_ranks_files=args.cv_ranks_files,
     )
 
 
