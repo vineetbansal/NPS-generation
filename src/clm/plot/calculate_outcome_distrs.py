@@ -32,6 +32,7 @@ def plot_continuous(outcomes, output_dir, value_map):
         sns.kdeplot(
             data=data,
             palette=sns.color_palette("pastel"),
+            common_norm=False
         )
 
         plt.title(outcome)
