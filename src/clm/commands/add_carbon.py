@@ -9,13 +9,20 @@ from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
 
 # import functions
-from clm.functions import clean_mol, write_smiles, set_seed, read_file, read_csv_file
+from clm.functions import (
+    clean_mol,
+    write_smiles,
+    set_seed,
+    seed_type,
+    read_file,
+    read_csv_file,
+)
 
 
 def add_args(parser):
     parser.add_argument("--input_file", type=str)
     parser.add_argument("--output_file", type=str)
-    parser.add_argument("--seed", type=int)
+    parser.add_argument("--seed", type=seed_type)
     return parser
 
 
