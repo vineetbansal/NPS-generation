@@ -1,10 +1,8 @@
 import argparse
-import numpy as np
 import pandas as pd
 from rdkit.DataStructs import FingerprintSimilarity
 from clm.functions import (
     clean_mol,
-    read_file,
     write_to_csv_file,
     compute_fingerprint,
     read_csv_file,
