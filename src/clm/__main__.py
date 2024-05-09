@@ -73,6 +73,8 @@ def main():
     args = parser.parse_args()
     if args.verbose:
         logger.setLevel(logging.DEBUG)
+
+    logger.info(f"CLM v{clm.__version__}")
     args.func(args)
 
 
