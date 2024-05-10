@@ -91,19 +91,18 @@ def test_prep_nn_tc():
         )
 
 
-def test_write_nn_tc():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_file = Path(temp_dir) / "write_nn_tc.csv"
-        write_nn_Tc(
-            query_file=test_dir / "prep_nn_tc_PubChem.csv",
-            reference_file=test_dir
-            / "snakemake_output/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
-            output_file=output_file,
-        )
+def test_write_nn_tc(tmp_path):
+    query_file = test_dir / "input_write_nn_tc_query_file.csv"
+    reference_file = test_dir / "input_write_nn_tc_reference_file.csv"
+    output_file = tmp_path / "output_write_nn_tc.csv"
+    write_nn_Tc(
+        query_file=query_file,
+        reference_file=reference_file,
+        output_file=output_file,
+    )
+    assert_checksum_equals(output_file, test_dir / "output_write_nn_tc.csv")
 
-        assert_checksum_equals(output_file, test_dir / "write_nn_tc.csv")
-
-        plot(evaluation_type="write_nn_tc", outcome_dir=temp_dir, output_dir=temp_dir)
+    plot(evaluation_type="write_nn_tc", outcome_dir=tmp_path, output_dir=tmp_path)
 
 
 def test_write_freq_distribution():
