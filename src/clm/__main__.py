@@ -21,6 +21,7 @@ from clm.commands import (
     write_outcome_distr,
     calculate_outcome_distrs,
     add_carbon,
+    forecast,
     plot,
 )
 
@@ -51,6 +52,7 @@ def main():
         write_outcome_distr,
         calculate_outcome_distrs,
         add_carbon,
+        forecast,
         plot,
     )
 
