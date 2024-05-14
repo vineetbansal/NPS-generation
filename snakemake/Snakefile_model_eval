@@ -3,6 +3,7 @@ threads: 1
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
+PATHS=config['paths']
 DATASET = os.path.splitext(os.path.basename(config["dataset"]))[0]
 REPRESENTATIONS = config["representations"]
 FOLDS = config["folds"]

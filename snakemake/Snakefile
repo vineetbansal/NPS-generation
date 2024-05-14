@@ -154,8 +154,8 @@ rule train_models_RNN:
     smiles and write them out to `smiles_file`.
     """
     input:
-        unpack(lambda wildcards: format_paths(["input_file","vocab_file"],
-            [PATHS['train_file'], PATHS['vocab_file']],))
+        input_file = PATHS['train_file'],
+        vocab_file = PATHS['vocab_file']
     output:
         model_file=PATHS['model_file'],
         loss_file=PATHS['loss_file']
