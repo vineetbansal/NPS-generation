@@ -1,8 +1,4 @@
 {
-  "output_dir": "data",
-  "dataset": "/path/to/<dataset>.txt",
-  "pubchem_tsv_file": "/path/to/PubChem.tsv",
-
   "representations": ["SMILES"],
   "folds": 2,
   "train_seeds": [0, 1],
@@ -33,8 +29,10 @@
   "random_seed": null,
 
   "paths": {
-    "dataset": "/Users/aa9078/Documents/Projects/SkinniderLab/CLM/tests/test_data/LOTUS_truncated.txt",
-    "pubchem_tsv_file": "/Users/aa9078/Documents/Projects/SkinniderLab/CLM/tests/test_data/PubChem_truncated.tsv",
+    "output_dir": "data",
+    "dataset": "/path/to/dataset.txt",
+    "pubchem_tsv_file": "/path/to/PubChem.tsv",
+
     "preprocess_output": "{output_dir}/prior/raw/{dataset}.txt",
     "train_file": "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_{fold}.smi",
     "vocab_file": "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_{fold}.vocabulary",

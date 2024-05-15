@@ -4,7 +4,7 @@ threads: 1
 # Setup
 # -----------------------------------------------------------------------------
 PATHS = config['paths']
-DATASET = os.path.splitext(os.path.basename(config["dataset"]))[0]
+DATASET = os.path.splitext(os.path.basename(config["paths"]["dataset"]))[0]
 REPRESENTATIONS = config["representations"]
 REPRESENTATIONS_NO_SELFIES = [r for r in REPRESENTATIONS if r!="SELFIES"]
 TRAIN_SEEDS = config["train_seeds"]
@@ -12,7 +12,7 @@ SAMPLE_SEEDS = config["sample_seeds"]
 FOLDS = config["folds"]
 ENUM_FACTORS = config["enum_factors"]
 METRICS = config["metrics"]
-OUTPUT_DIR = config['output_dir']
+OUTPUT_DIR = config['paths']['output_dir']
 MODEL_PARAMS = config['model_params']
 ERR_PPM = config['err_ppm']
 
@@ -54,7 +54,7 @@ rule preprocess:
     removing rare tokens in the smiles vocabulary.
     """
     input:
-        f"{config['dataset']}"
+        PATHS["dataset"]
     output:
         PATHS['preprocess_output']
     resources:

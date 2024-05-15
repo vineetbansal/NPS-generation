@@ -28,13 +28,15 @@ def test_snakemake():
         configfiles=[config_file],
         config={
             "random_seed": 5831,
-            "dataset": dataset,
-            "pubchem_tsv_file": pubchem_tsv_file,
+            "paths": {
+                "dataset": dataset,
+                "pubchem_tsv_file": pubchem_tsv_file,
+                "output_dir": temp_dir,
+            },
             "representations": ["SMILES"],
             "enum_factors": [0],
             "folds": 3,
             "sample_seeds": [0],
-            "output_dir": temp_dir,
         },
         dryrun=False,
         latency_wait=60,
