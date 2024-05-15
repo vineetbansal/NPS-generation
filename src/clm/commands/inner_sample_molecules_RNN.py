@@ -65,18 +65,18 @@ def add_args(parser):
 
 
 def sample_molecules_RNN(
-    representation,
-    seed,
-    rnn_type,
-    embedding_size,
-    hidden_size,
-    n_layers,
-    dropout,
-    batch_size,
-    sample_mols,
-    vocab_file,
-    model_file,
-    output_file,
+        representation,
+        seed,
+        rnn_type,
+        embedding_size,
+        hidden_size,
+        n_layers,
+        dropout,
+        batch_size,
+        sample_mols,
+        vocab_file,
+        model_file,
+        output_file,
 ):
     set_seed(seed)
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
@@ -109,11 +109,12 @@ def sample_molecules_RNN(
     open(output_file, "w").close()
 
     with tqdm(total=sample_mols) as pbar:
-        for _ in range(0, sample_mols, batch_size):
+        for i, _ in enumerate(range(0, sample_mols, batch_size)):
             sampled_smiles, losses = model.sample(batch_size, return_losses=True)
 
             write_to_csv_file(
                 output_file,
+                mode='w' if i == 0 else 'a+',
                 info=zip(losses, sampled_smiles),
                 string_format="{0[0]:.4f}, {0[1]} \n",
             )
