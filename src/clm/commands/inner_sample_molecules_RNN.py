@@ -109,11 +109,12 @@ def sample_molecules_RNN(
     open(output_file, "w").close()
 
     with tqdm(total=sample_mols) as pbar:
-        for _ in range(0, sample_mols, batch_size):
+        for i in range(0, sample_mols, batch_size):
             sampled_smiles, losses = model.sample(batch_size, return_losses=True)
 
             write_to_csv_file(
                 output_file,
+                mode="w" if i == 0 else "a+",
                 info=zip(losses, sampled_smiles),
                 string_format="{0[0]:.4f}, {0[1]} \n",
             )
