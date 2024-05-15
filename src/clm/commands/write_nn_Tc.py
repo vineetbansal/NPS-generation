@@ -46,7 +46,23 @@ def find_max_similarity_fingerprint(
     return max_tc, max_tc_ref_smile
 
 
-def write_nn_Tc(query_file, reference_file, output_file, query_type="model"):
+def write_nn_Tc(query_file, reference_file, output_file):
+    """
+    Find nearest neighbor Tanimoto coefficient for each molecule in the query file
+    compared to the molecules in the reference file.
+    On return, `output_file` is generated with all the rows of `query_file` and two additional columns:
+    "nn_tc" and "nn" which are the nearest neighbor Tanimoto coefficient and the corresponding
+    nearest neighbor molecule in the reference file respectively.
+    Args:
+        query_file: Query csv file containing the molecules to be compared, with
+        columns "smiles" and "inchikey" (including others)
+        reference_file: Reference csv file containing the molecules to be compared against,
+        with columns "smiles" and "inchikey" (including others)
+        output_file: Output file to save the results
+
+    Returns:
+        None
+    """
     ref_fps, ref_smiles, ref_inchikeys = [], [], []
 
     # Processing the reference_file in chunks of one row at a time to optimize memory efficiency.
@@ -56,15 +72,10 @@ def write_nn_Tc(query_file, reference_file, output_file, query_type="model"):
         if (fps := calculate_fingerprint(row.smiles)) is not None:
             ref_fps.append(fps)
             ref_smiles.append(row.smiles)
-            # TODO: Reference file will always be a training set, hence will always use inchikey keyword
-            # TODO: need to change test file to use training file as a reference
-            try:
-                ref_inchikeys.append(row.inchikey)
-            except AttributeError:
-                ref_inchikeys.append(row.target_inchikey)
+            ref_inchikeys.append(row.inchikey)
 
     # A relatively quick and low-memory way to determine the number of lines in the file
-    total_lines = len(read_csv_file(query_file, usecols=["size"]))
+    total_lines = len(read_csv_file(query_file, usecols=["smiles"]))
 
     n_processed = 0
     for query in read_csv_file(query_file, chunksize=10000):

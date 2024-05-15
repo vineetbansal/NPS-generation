@@ -198,3 +198,19 @@ rule nn_tc_ever_v_never:
         '--query_file {input.query_file} '
         '--reference_file {input.reference_file} '
         '--output_file {output.output_file} '
+
+
+rule forecast:
+    input:
+        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
+    output:
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_forecast.csv",
+    resources:
+        mem_mb=64000,
+        runtime=30,
+    shell:
+        'clm forecast '
+        '--test_file {input.test_file} '
+        '--sample_file {input.sample_file} '
+        '--output_file {output.output_file} '
