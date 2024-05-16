@@ -1,5 +1,4 @@
 from pathlib import Path
-import tempfile
 import pandas as pd
 import pytest
 from clm.commands.calculate_outcomes import (
@@ -38,57 +37,55 @@ def test_generate_outcome_dicts():
     )
 
 
-def test_calculate_outcomes():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_file = Path(temp_dir) / "calculate_outcomes.csv"
-        outcomes = calculate_outcomes(
-            sampled_file=test_dir / "prep_outcomes_freq.csv",
-            # For LOTUS, train/test "_all.smi" files are the same
-            train_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
-            output_file=output_file,
-            seed=12,
-        )
+def test_calculate_outcomes(tmp_path):
+    output_file = tmp_path / "calculate_outcomes.csv"
+    outcomes = calculate_outcomes(
+        sampled_file=test_dir / "prep_outcomes_freq.csv",
+        # For LOTUS, train/test "_all.smi" files are the same
+        train_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
+        output_file=output_file,
+        seed=12,
+    )
 
-        true_outcomes = read_csv_file(
-            test_dir / "calculate_outcome.csv", keep_default_na=False
-        )
-        # https://stackoverflow.com/questions/14224172
-        pd.testing.assert_frame_equal(
-            outcomes.sort_index(axis=1)
-            .sort_values(["outcome", "bin"])
-            .reset_index(drop=True),
-            true_outcomes.sort_index(axis=1)
-            .sort_values(["outcome", "bin"])
-            .reset_index(drop=True),
-        )
+    true_outcomes = read_csv_file(
+        test_dir / "calculate_outcome.csv", keep_default_na=False
+    )
+    # https://stackoverflow.com/questions/14224172
+    pd.testing.assert_frame_equal(
+        outcomes.sort_index(axis=1)
+        .sort_values(["outcome", "bin"])
+        .reset_index(drop=True),
+        true_outcomes.sort_index(axis=1)
+        .sort_values(["outcome", "bin"])
+        .reset_index(drop=True),
+    )
 
-        plot(
-            evaluation_type="calculate_outcomes",
-            outcome_dir=temp_dir,
-            output_dir=temp_dir,
-        )
+    plot(
+        evaluation_type="calculate_outcomes",
+        outcome_dir=tmp_path,
+        output_dir=tmp_path,
+    )
 
 
-def test_prep_nn_tc():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_file = Path(temp_dir) / "prep_nn_tc_PubChem.csv"
-        outcomes = prep_nn_tc(
-            sample_file=test_dir / "prep_nn_tc_input.csv",
-            max_molecules=100,
-            pubchem_file=test_dir / "PubChem_truncated.tsv",
-            output_file=output_file,
-            seed=0,
-        )
+def test_prep_nn_tc(tmp_path):
+    output_file = tmp_path / "prep_nn_tc_PubChem.csv"
+    outcomes = prep_nn_tc(
+        sample_file=test_dir / "prep_nn_tc_input.csv",
+        max_molecules=100,
+        pubchem_file=test_dir / "PubChem_truncated.tsv",
+        output_file=output_file,
+        seed=0,
+    )
 
-        true_outcomes = read_csv_file(test_dir / "prep_nn_tc_output.csv")
-        pd.testing.assert_frame_equal(
-            outcomes.sort_index(axis=1)
-            .sort_values(["smiles", "formula"])
-            .reset_index(drop=True),
-            true_outcomes.sort_index(axis=1)
-            .sort_values(["smiles", "formula"])
-            .reset_index(drop=True),
-        )
+    true_outcomes = read_csv_file(test_dir / "prep_nn_tc_output.csv")
+    pd.testing.assert_frame_equal(
+        outcomes.sort_index(axis=1)
+        .sort_values(["smiles", "formula"])
+        .reset_index(drop=True),
+        true_outcomes.sort_index(axis=1)
+        .sort_values(["smiles", "formula"])
+        .reset_index(drop=True),
+    )
 
 
 def test_write_nn_tc(tmp_path):
@@ -105,75 +102,68 @@ def test_write_nn_tc(tmp_path):
     plot(evaluation_type="write_nn_tc", outcome_dir=tmp_path, output_dir=tmp_path)
 
 
-def test_write_freq_distribution():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_file = Path(temp_dir) / "write_freq_distribution.csv"
-        outcomes = write_freq_distribution(
-            sampled_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
-            test_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
-            output_file=output_file,
-        )
+def test_write_freq_distribution(tmp_path):
+    output_file = tmp_path / "write_freq_distribution.csv"
+    outcomes = write_freq_distribution(
+        sampled_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
+        test_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
+        output_file=output_file,
+    )
 
-        true_outcomes = read_csv_file(test_dir / "write_freq_distribution.csv")
-        pd.testing.assert_frame_equal(outcomes, true_outcomes)
+    true_outcomes = read_csv_file(test_dir / "write_freq_distribution.csv")
+    pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
-        plot(
-            evaluation_type="freq_distribution",
-            outcome_dir=temp_dir,
-            output_dir=temp_dir,
-        )
+    plot(
+        evaluation_type="freq_distribution",
+        outcome_dir=tmp_path,
+        output_dir=tmp_path,
+    )
 
 
 @pytest.mark.xfail
-def test_train_discriminator():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_file = Path(temp_dir) / "train_discriminator.csv"
-        outcomes = train_discriminator(
-            train_file=test_dir
-            / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
-            sample_file=test_dir
-            / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
-            max_mols=50000,
-            output_file=output_file,
-            seed=0,
-        )
+def test_train_discriminator(tmp_path):
+    output_file = tmp_path / "train_discriminator.csv"
+    outcomes = train_discriminator(
+        train_file=test_dir
+        / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
+        sample_file=test_dir
+        / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv",
+        max_mols=50000,
+        output_file=output_file,
+        seed=0,
+    )
 
-        true_outcomes = read_csv_file(test_dir / "train_discriminator.csv")
-        pd.testing.assert_frame_equal(outcomes, true_outcomes)
+    true_outcomes = read_csv_file(test_dir / "train_discriminator.csv")
+    pd.testing.assert_frame_equal(outcomes, true_outcomes)
 
-        plot(
-            evaluation_type="train_discriminator",
-            outcome_dir=temp_dir,
-            output_dir=temp_dir,
-        )
-
-
-def test_outcome_distr():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_file = Path(temp_dir) / "outcome_distr.csv"
-        outcomes = calculate_outcome_distr(
-            input_file=test_dir / "write_outcome_distr.csv",
-            output_file=output_file,
-            seed=0,
-        )
-
-        true_outcomes = read_csv_file(test_dir / "outcome_distr.csv")
-        pd.testing.assert_frame_equal(outcomes, true_outcomes)
+    plot(
+        evaluation_type="train_discriminator",
+        outcome_dir=tmp_path,
+        output_dir=tmp_path,
+    )
 
 
-def test_add_carbon():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_dir = Path(temp_dir)
-        add_carbon(
-            input_file=test_dir
-            / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
-            output_file=output_dir / "add_carbon.csv",
-            seed=0,
-        )
+def test_outcome_distr(tmp_path):
+    output_file = tmp_path / "outcome_distr.csv"
+    outcomes = calculate_outcome_distr(
+        input_file=test_dir / "write_outcome_distr.csv",
+        output_file=output_file,
+        seed=0,
+    )
 
-        assert_checksum_equals(
-            output_dir / "add_carbon.csv", test_dir / "add_carbon.csv"
-        )
-        assert_checksum_equals(
-            output_dir / "add_carbon-unique.smi", test_dir / "add_carbon-unique.smi"
-        )
+    true_outcomes = read_csv_file(test_dir / "outcome_distr.csv")
+    pd.testing.assert_frame_equal(outcomes, true_outcomes)
+
+
+def test_add_carbon(tmp_path):
+    add_carbon(
+        input_file=test_dir
+        / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
+        output_file=tmp_path / "add_carbon.csv",
+        seed=0,
+    )
+
+    assert_checksum_equals(tmp_path / "add_carbon.csv", test_dir / "add_carbon.csv")
+    assert_checksum_equals(
+        tmp_path / "add_carbon-unique.smi", test_dir / "add_carbon-unique.smi"
+    )

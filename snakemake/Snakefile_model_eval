@@ -3,11 +3,12 @@ threads: 1
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-DATASET = os.path.splitext(os.path.basename(config["dataset"]))[0]
+PATHS=config['paths']
+DATASET = os.path.splitext(os.path.basename(PATHS["dataset"]))[0]
 REPRESENTATIONS = config["representations"]
 FOLDS = config["folds"]
 ENUM_FACTORS = config["enum_factors"]
-OUTPUT_DIR = config['output_dir']
+OUTPUT_DIR = PATHS['output_dir']
 
 shell.executable("/bin/bash")
 
@@ -35,6 +36,8 @@ rule all:
             repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
         nn_tc_ever_v_never=expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
             repr=REPRESENTATIONS, fold=range(FOLDS), dataset=DATASET, enum_factor=ENUM_FACTORS),
+
+
 rule prep_outcome_freq:
     """
     For sampled smiles in each fold, add a `bin` column denoting what
@@ -87,7 +90,7 @@ rule calculate_outcomes:
 rule prep_nn_tc:
     input:
         sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        pubchem_file=config['pubchem_tsv_file'],
+        pubchem_file=PATHS['pubchem_tsv_file'],
     output:
         output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_prep_nn_tc.csv.gz",
     resources:
@@ -153,7 +156,7 @@ rule write_outcome_distr:
     input:
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        pubchem_file=config['pubchem_tsv_file'],
+        pubchem_file=PATHS['pubchem_tsv_file'],
     output:
         output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_outcome_distr.csv.gz",
     resources:
@@ -187,7 +190,7 @@ rule nn_tc_ever_v_never:
         query_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
         reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv",
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,

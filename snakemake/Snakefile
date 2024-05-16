@@ -3,7 +3,8 @@ threads: 1
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-DATASET = os.path.splitext(os.path.basename(config["dataset"]))[0]
+PATHS = config['paths']
+DATASET = os.path.splitext(os.path.basename(config["paths"]["dataset"]))[0]
 REPRESENTATIONS = config["representations"]
 REPRESENTATIONS_NO_SELFIES = [r for r in REPRESENTATIONS if r!="SELFIES"]
 TRAIN_SEEDS = config["train_seeds"]
@@ -11,8 +12,9 @@ SAMPLE_SEEDS = config["sample_seeds"]
 FOLDS = config["folds"]
 ENUM_FACTORS = config["enum_factors"]
 METRICS = config["metrics"]
-OUTPUT_DIR = config['output_dir']
+OUTPUT_DIR = config['paths']['output_dir']
 MODEL_PARAMS = config['model_params']
+MIN_FREQS = config['structural_prior_min_freq']
 ERR_PPM = config['err_ppm']
 
 shell.executable("/bin/bash")
@@ -31,17 +33,16 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        output_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv.gz", enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, metric=METRICS),
-        ranks_file_formula=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv.gz",
-                       enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        ranks_file_structure=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz",
-                   enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv.gz",
-                   enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        ranks_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv.gz",
-            enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, metric=METRICS),
-        tc_file_overall = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv.gz",
-            enum_factor=ENUM_FACTORS,dataset=DATASET,repr=REPRESENTATIONS,metric=METRICS)
+        ranks_file_formula=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_formula.csv.gz",
+            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
+        ranks_file_structure=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_structure.csv.gz",
+            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
+        tc_file=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_tc.csv.gz",
+            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
+        ranks_file_overall = expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_min{min_freq}_all_{metric}_CV_ranks_structure.csv.gz",
+            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, min_freq=MIN_FREQS, metric=METRICS),
+        tc_file_overall = expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_min{min_freq}_all_{metric}_CV_tc.csv.gz",
+            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS,dataset=DATASET,repr=REPRESENTATIONS,min_freq=MIN_FREQS,metric=METRICS)
 
 
 rule preprocess:
@@ -52,9 +53,9 @@ rule preprocess:
     removing rare tokens in the smiles vocabulary.
     """
     input:
-        f"{config['dataset']}"
+        PATHS["dataset"]
     output:
-        f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
+        PATHS['preprocess_output']
     resources:
         mem_mb=12000,
         runtime=30,
@@ -73,12 +74,12 @@ rule create_training_sets:
     are similar to a randomly selected seed smile.
     """
     input:
-        f"{OUTPUT_DIR}/prior/raw/{{dataset}}.txt"
+        "{output_dir}/prior/raw/{dataset}.txt"
     output:
-        train_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
-        vocab_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary",
-        train0_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        test0_file= f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi"
+        train_file = PATHS['train_file'],
+        vocab_file = PATHS['vocab_file'],
+        train0_file = PATHS['train0_file'],
+        test0_file = PATHS['test0_file']
     resources:
         mem_mb=20000,
         runtime=10,
@@ -104,9 +105,9 @@ rule add_carbon:
     training set SMILES.
     """
     input:
-        train0_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi"
+        train0_file = PATHS['train0_file']
     output:
-        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv"
+        carbon_file = PATHS['carbon_file']
     resources:
         mem_mb=20000,
         runtime=10,
@@ -125,13 +126,13 @@ rule collapse_train_test_data:
     file from `preprocess` in both cases.
     """
     input:
-        train_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True),
-        test_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True),
-        carbon_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv", fold=range(FOLDS), allow_missing=True)
+        train_file = expand(PATHS['train0_file'], fold=range(FOLDS), allow_missing=True),
+        test_file = expand(PATHS['test0_file'], fold=range(FOLDS), allow_missing=True),
+        carbon_file = expand(PATHS['carbon_file'], fold=range(FOLDS), allow_missing=True)
     output:
-        train_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
-        test_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
-        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_carbon_all.csv"
+        train_file = PATHS['train_all_file'],
+        test_file = PATHS['test_all_file'],
+        carbon_file = PATHS['carbon_all_file']
     resources:
         mem_mb=20000,
         runtime=10,
@@ -152,35 +153,35 @@ rule train_models_RNN:
     smiles and write them out to `smiles_file`.
     """
     input:
-        input_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
-        vocab_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary"
+        input_file = PATHS['train_file'],
+        vocab_file = PATHS['vocab_file']
     output:
-        model_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_model.pt",
-        loss_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_loss.csv.gz"
+        model_file=PATHS['model_file'],
+        loss_file=PATHS['loss_file']
     resources:
         mem_mb=32000,
         runtime=15+MODEL_PARAMS["max_epochs"]*15,
         slurm_extra="--gres=gpu:1"
     shell:
-            'clm inner_train_models_RNN '
-            '--representation {wildcards.repr} '
-            '--seed {wildcards.train_seed} '
-            '--rnn_type {MODEL_PARAMS[rnn_type]} '
-            '--embedding_size {MODEL_PARAMS[embedding_size]} '
-            '--hidden_size {MODEL_PARAMS[hidden_size]} '
-            '--n_layers {MODEL_PARAMS[n_layers]} '
-            '--dropout {MODEL_PARAMS[dropout]} '
-            '--batch_size {MODEL_PARAMS[batch_size]} '
-            '--learning_rate {MODEL_PARAMS[learning_rate]} '
-            '--max_epochs {MODEL_PARAMS[max_epochs]} '
-            '--patience {MODEL_PARAMS[patience]} '
-            '--log_every_steps {MODEL_PARAMS[log_every_steps]} '
-            '--log_every_epochs {MODEL_PARAMS[log_every_epochs]} '
-            '--sample_mols {MODEL_PARAMS[sample_mols]} '
-            '--input_file {input.input_file} '
-            '--vocab_file {input.vocab_file} '
-            '--model_file {output.model_file} '
-            '--loss_file {output.loss_file} '
+        'clm inner_train_models_RNN '
+        '--representation {wildcards.repr} '
+        '--seed {wildcards.train_seed} '
+        '--rnn_type {MODEL_PARAMS[rnn_type]} '
+        '--embedding_size {MODEL_PARAMS[embedding_size]} '
+        '--hidden_size {MODEL_PARAMS[hidden_size]} '
+        '--n_layers {MODEL_PARAMS[n_layers]} '
+        '--dropout {MODEL_PARAMS[dropout]} '
+        '--batch_size {MODEL_PARAMS[batch_size]} '
+        '--learning_rate {MODEL_PARAMS[learning_rate]} '
+        '--max_epochs {MODEL_PARAMS[max_epochs]} '
+        '--patience {MODEL_PARAMS[patience]} '
+        '--log_every_steps {MODEL_PARAMS[log_every_steps]} '
+        '--log_every_epochs {MODEL_PARAMS[log_every_epochs]} '
+        '--sample_mols {MODEL_PARAMS[sample_mols]} '
+        '--input_file {input.input_file} '
+        '--vocab_file {input.vocab_file} '
+        '--model_file {output.model_file} '
+        '--loss_file {output.loss_file} '
 
 
 rule sample_molecules_RNN:
@@ -189,10 +190,10 @@ rule sample_molecules_RNN:
     `output_file`. Each line of `output_file` is (<mass>, <smile>).
     """
     input:
-        vocab_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.vocabulary",
-        model_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/models/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_model.pt"
+        model_file = PATHS['model_file'],
+        vocab_file = PATHS['vocab_file']
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv.gz"
+        output_file = PATHS['input_file']
     resources:
         mem_mb=1000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
@@ -220,10 +221,10 @@ rule tabulate_molecules:
     comparison of InchiKeys.
     """
     input:
-        input_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv.gz",
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_{{fold}}.smi",
+        input_file = PATHS['input_file'],
+        train_file = PATHS['train_file']
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples_masses.csv.gz",
+        output_file=PATHS['tabulate_molecules_output']
     resources:
         mem_mb=32000,
         runtime=lambda wildcards: 15+MODEL_PARAMS["sample_mols"]*(int(wildcards["enum_factor"])+1)//100000,
@@ -241,9 +242,9 @@ rule collect_tabulated_molecules:
     sampling frequency in the process.
     """
     input:
-        input_files=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples_masses.csv.gz", train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True)
+        input_files=expand(PATHS['tabulate_molecules_output'], train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True)
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
+        output_file=PATHS['collect_tabulated_output'],
     resources:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//1000000,
@@ -266,10 +267,10 @@ rule process_tabulated_molecules:
     of occurrence.
     """
     input:
-        input_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{DATASET}_{{repr}}_{{fold}}_unique_masses.csv.gz", fold=range(FOLDS), allow_missing=True),
-        cv_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi", fold=range(FOLDS), allow_missing=True)
+        input_file=expand(PATHS['collect_tabulated_output'], fold=range(FOLDS), allow_missing=True),
+        cv_file=expand(PATHS['train0_file'], fold=range(FOLDS), allow_missing=True)
     output:
-        output_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv.gz",
+        output_file=PATHS['process_tabulated_output']
     resources:
         mem_mb=128000,
         runtime=15+MODEL_PARAMS["sample_mols"]//100000,
@@ -279,6 +280,7 @@ rule process_tabulated_molecules:
         '--cv_file {input.cv_file} '
         '--output_file {output.output_file} '
         '--summary_fn {wildcards.metric} '
+        '--min_freq {wildcards.min_freq}'
 
 
 rule write_structural_prior_CV:
@@ -306,14 +308,14 @@ rule write_structural_prior_CV:
     Fingerprint similarity values are written out to `tc_file`.
     """
     input:
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        pubchem_file=config['pubchem_tsv_file'],
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        carbon_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}_carbon.csv"
+        train_file = PATHS['train0_file'],
+        test_file = PATHS['test0_file'],
+        pubchem_file = PATHS['pubchem_tsv_file'],
+        sample_file = PATHS['collect_tabulated_output'],
+        carbon_file = PATHS['carbon_file']
     output:
-         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz",
-         tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_tc.csv.gz"
+        ranks_file = PATHS['cv_ranks_file'],
+        tc_file = PATHS['cv_tc_file']
     resources:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
@@ -348,12 +350,12 @@ rule write_formula_prior_CV:
     This output is written to `ranks_file`.
     """
     input:
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        pubchem_file=config['pubchem_tsv_file'],
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz"
+        train_file = PATHS['train0_file'],
+        test_file = PATHS['test0_file'],
+        pubchem_file = PATHS['pubchem_tsv_file'],
+        sample_file = PATHS['collect_tabulated_output']
     output:
-         ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_formula.csv.gz"
+        ranks_file = PATHS['formula_ranks_file']
     resources:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
@@ -388,15 +390,15 @@ rule write_structural_prior_CV_overall:
     Fingerprint similarity values are written out to `tc_file`.
     """
     input:
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_all.smi",
-        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
-        pubchem_file=config['pubchem_tsv_file'],
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_{{metric}}.csv.gz",
-        carbon_file = f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train_{{dataset}}_{{repr}}_carbon_all.csv",
-        cv_ranks_files=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz", fold=range(FOLDS), allow_missing=True)
+        train_file = PATHS['train_all_file'],
+        test_file = PATHS['test_all_file'],
+        pubchem_file = PATHS['pubchem_tsv_file'],
+        carbon_file = PATHS['carbon_all_file'],
+        sample_file = PATHS['process_tabulated_output'],
+        cv_ranks_files=expand(PATHS['cv_ranks_file'], fold=range(FOLDS), allow_missing=True)
     output:
-        ranks_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_ranks_structure.csv.gz",
-        tc_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_all_{{metric}}_CV_tc.csv.gz"
+        ranks_file = PATHS['overall_ranks_file'],
+        tc_file = PATHS['overall_tc_file']
     resources:
         cpus_per_task=8,
         mem_mb=128000,
