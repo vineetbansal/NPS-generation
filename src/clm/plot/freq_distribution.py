@@ -53,20 +53,26 @@ def plot_distribution(novel_outcomes, output_dir):
 
 def plot_box_plot(novel_outcomes, output_dir):
     logger.info("Plotting frequency box plot")
-    novel_molecules_count = np.array(novel_outcomes[True])
-    known_molecules_count = np.array(novel_outcomes[False])
+    novel_molecules_count = np.array(novel_outcomes.get(True, []))
+    known_molecules_count = np.array(novel_outcomes.get(False, []))
 
     # The `CategoricalPlotter` object in `sns.boxplot` makes a copy of the
     # entire underlying DataFrame! (see the `comp_data` property). This is
     # extremely slow and memory-intensive. So we follow a manual approach ala
     # https://stackoverflow.com/questions/29895754
     bxpstats = []
-    bxpstats.extend(
-        cbook.boxplot_stats(np.ravel(novel_molecules_count), labels=["Novel molecules"])
-    )
-    bxpstats.extend(
-        cbook.boxplot_stats(np.ravel(known_molecules_count), labels=["Known molecules"])
-    )
+    if len(novel_molecules_count):
+        bxpstats.extend(
+            cbook.boxplot_stats(
+                np.ravel(novel_molecules_count), labels=["Novel molecules"]
+            )
+        )
+    if len(known_molecules_count):
+        bxpstats.extend(
+            cbook.boxplot_stats(
+                np.ravel(known_molecules_count), labels=["Known molecules"]
+            )
+        )
 
     fig, ax = plt.subplots(1, 1)
     ax.bxp(bxpstats)

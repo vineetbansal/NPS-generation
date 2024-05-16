@@ -52,13 +52,16 @@ def plot(outcome_files, output_dir):
     outcome = outcome.assign(min_tc=tc)
 
     tc_count = {min_tc: [] for min_tc in min_tcs}
-    ks = range(0, 30)
-    for k in ks:
+    ks = []
+    for k in range(0, 30):
         for min_tc in min_tcs:
             rows = outcome[outcome["min_tc"] == min_tc]
             n_rows = len(rows)
+            if n_rows == 0:
+                continue
             n_rows_at_least_rank_k = len(rows[rows["target_rank"] <= k])
             top_k_accuracy = (n_rows_at_least_rank_k / n_rows) * 100
+            ks.append(k)
             tc_count[min_tc].append(top_k_accuracy)
 
     for min_tc in min_tcs:
