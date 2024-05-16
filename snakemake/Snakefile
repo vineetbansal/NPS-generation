@@ -14,6 +14,7 @@ ENUM_FACTORS = config["enum_factors"]
 METRICS = config["metrics"]
 OUTPUT_DIR = config['paths']['output_dir']
 MODEL_PARAMS = config['model_params']
+MIN_FREQS = config['structural_prior_min_freq']
 ERR_PPM = config['err_ppm']
 
 shell.executable("/bin/bash")
@@ -32,18 +33,16 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule all:
     input:
-        output_file=expand("{OUTPUT_DIR}/{enum_factor}/prior/samples/{dataset}_{repr}_processed_{metric}.csv.gz",
-            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS, metric=METRICS),
         ranks_file_formula=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_formula.csv.gz",
             OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
         ranks_file_structure=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_structure.csv.gz",
             OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
         tc_file=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_tc.csv.gz",
             OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        ranks_file_overall = expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_all_{metric}_CV_ranks_structure.csv.gz",
-            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, metric=METRICS),
-        tc_file_overall = expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_all_{metric}_CV_tc.csv.gz",
-            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS,dataset=DATASET,repr=REPRESENTATIONS,metric=METRICS)
+        ranks_file_overall = expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_min{min_freq}_all_{metric}_CV_ranks_structure.csv.gz",
+            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, min_freq=MIN_FREQS, metric=METRICS),
+        tc_file_overall = expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_min{min_freq}_all_{metric}_CV_tc.csv.gz",
+            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS,dataset=DATASET,repr=REPRESENTATIONS,min_freq=MIN_FREQS,metric=METRICS)
 
 
 rule preprocess:
@@ -281,6 +280,7 @@ rule process_tabulated_molecules:
         '--cv_file {input.cv_file} '
         '--output_file {output.output_file} '
         '--summary_fn {wildcards.metric} '
+        '--min_freq {wildcards.min_freq}'
 
 
 rule write_structural_prior_CV:
