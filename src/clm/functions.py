@@ -15,7 +15,10 @@ from scipy.stats import gaussian_kde
 from scipy.spatial.distance import jensenshannon
 import hashlib
 import gzip
+import logging
 
+
+logger = logging.getLogger(__name__)
 converter = deepsmiles.Converter(rings=True, branches=True)
 
 
@@ -502,6 +505,7 @@ def write_to_csv_file(
             compression=compression,
         )
     else:
+        logger.warning("Non-DataFrame input support will be removed soon")
         assert compression in (None, "gzip"), "Invalid compression type"
         if compression == "gzip":
             mode = "wb" if mode == "w" else "ab"  # binary mode for gzip
