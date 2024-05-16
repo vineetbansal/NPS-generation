@@ -194,6 +194,7 @@ def test_06_process_tabulated_molecules(tmp_path):
         ],
         output_file=output_file,
         summary_fn="freq-avg",
+        min_freq=1,
     )
     assert_checksum_equals(
         output_file,
