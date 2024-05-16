@@ -34,7 +34,7 @@ def test_snakemake():
             "enum_factors": [0],
             "folds": 3,
             "sample_seeds": [0],
-            "structural_prior_min_freq": [1]
+            "structural_prior_min_freq": [1],
         },
         dryrun=False,
         latency_wait=60,
