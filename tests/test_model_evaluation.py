@@ -64,7 +64,7 @@ def test_calculate_outcomes():
 
         plot(
             evaluation_type="calculate_outcomes",
-            outcome_dir=temp_dir,
+            outcome_files=[output_file],
             output_dir=temp_dir,
         )
 
@@ -102,7 +102,9 @@ def test_write_nn_tc(tmp_path):
     )
     assert_checksum_equals(output_file, test_dir / "output_write_nn_tc.csv")
 
-    plot(evaluation_type="write_nn_tc", outcome_dir=tmp_path, output_dir=tmp_path)
+    plot(
+        evaluation_type="write_nn_tc", outcome_files=[output_file], output_dir=tmp_path
+    )
 
 
 def test_write_freq_distribution():
@@ -119,7 +121,7 @@ def test_write_freq_distribution():
 
         plot(
             evaluation_type="freq_distribution",
-            outcome_dir=temp_dir,
+            outcome_files=[output_file],
             output_dir=temp_dir,
         )
 
@@ -143,7 +145,7 @@ def test_train_discriminator():
 
         plot(
             evaluation_type="train_discriminator",
-            outcome_dir=temp_dir,
+            outcome_files=output_file,
             output_dir=temp_dir,
         )
 

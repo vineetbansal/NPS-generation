@@ -1,5 +1,4 @@
 import argparse
-import glob
 from pathlib import Path
 from collections import Counter
 import pandas as pd
@@ -16,9 +15,10 @@ logger = logging.getLogger(__name__)
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_dir",
+        "--outcome_files",
         type=str,
-        help="Path to directory where all the model evaluation files are saved ",
+        nargs="+",
+        help="Paths of all the model evaluation files relevant to frequency distribution ",
     )
     parser.add_argument(
         "--output_dir",
@@ -85,11 +85,9 @@ def plot_box_plot(novel_outcomes, output_dir):
     plt.clf()
 
 
-def plot(outcome_dir, output_dir):
+def plot(outcome_files, output_dir):
     # Make output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
-
-    outcome_files = glob.glob(f"{outcome_dir}/*freq_distribution.csv")
 
     columns = []
     outcome = []
@@ -119,7 +117,7 @@ def plot(outcome_dir, output_dir):
 
 def main(args):
     plot(
-        outcome_dir=args.outcome_dir,
+        outcome_files=args.outcome_files,
         output_dir=args.output_dir,
     )
 

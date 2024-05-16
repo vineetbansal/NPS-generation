@@ -17,7 +17,11 @@ def add_args(parser):
     parser.add_argument("--query_file", type=str, help="Path to the prep file ")
     parser.add_argument("--reference_file", type=str, help="Path to the PubChem file")
     parser.add_argument("--output_file", type=str, help="Path to save the output file")
-
+    parser.add_argument(
+        "--query_type",
+        type=str,
+        help="The type of file you're using to query: e.g. model or train",
+    )
     return parser
 
 
@@ -46,7 +50,7 @@ def find_max_similarity_fingerprint(
     return max_tc, max_tc_ref_smile
 
 
-def write_nn_Tc(query_file, reference_file, output_file):
+def write_nn_Tc(query_file, reference_file, output_file, query_type="model"):
     """
     Find nearest neighbor Tanimoto coefficient for each molecule in the query file
     compared to the molecules in the reference file.
@@ -75,7 +79,10 @@ def write_nn_Tc(query_file, reference_file, output_file):
             ref_inchikeys.append(row.inchikey)
 
     # A relatively quick and low-memory way to determine the number of lines in the file
-    total_lines = len(read_csv_file(query_file, usecols=["smiles"]))
+    if query_type == "model":
+        total_lines = len(read_csv_file(query_file, usecols=["size"]))
+    else:
+        total_lines = total_lines = len(read_csv_file(query_file, usecols=["smiles"]))
 
     n_processed = 0
     for query in read_csv_file(query_file, chunksize=10000):
@@ -104,6 +111,7 @@ def main(args):
         query_file=args.query_file,
         reference_file=args.reference_file,
         output_file=args.output_file,
+        query_type=args.query_type,
     )
 
 

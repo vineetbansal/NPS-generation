@@ -2,7 +2,6 @@ import argparse
 import pandas as pd
 from pathlib import Path
 from matplotlib import pyplot as plt
-import glob
 import os
 from clm.functions import read_csv_file
 
@@ -11,7 +10,10 @@ parser = argparse.ArgumentParser(description=__doc__)
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_dir", type=str, required=True, help="Path to the sampled file"
+        "--outcome_files",
+        type=str,
+        nargs="+",
+        help="Paths of all the model evaluation files relevant to topk_tc ",
     )
     parser.add_argument(
         "--output_dir",
@@ -34,11 +36,10 @@ def get_tc_range(sample_tc, min_tcs):
     return tc_match
 
 
-def topk_tc(outcome_dir, output_dir):
+def plot(outcome_files, output_dir):
     # Make output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome_files = glob.glob(f"{outcome_dir}/*CV_tc.csv")
     outcome = pd.concat(
         [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
@@ -76,8 +77,8 @@ def topk_tc(outcome_dir, output_dir):
 
 
 def main(args):
-    topk_tc(
-        outcome_dir=args.outcome_dir,
+    plot(
+        outcome_files=args.outcome_files,
         output_dir=args.output_dir,
     )
 

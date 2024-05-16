@@ -1,5 +1,4 @@
 import argparse
-import glob
 import pandas as pd
 from pathlib import Path
 import os
@@ -9,9 +8,10 @@ import seaborn as sns
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_dir",
+        "--outcome_files",
         type=str,
-        help="Path to directory where all the model evaluation files are saved ",
+        nargs="+",
+        help="Paths of all the model evaluation files relevant to nn_tc_ever_v_never ",
     )
     parser.add_argument(
         "--ranks_file",
@@ -80,11 +80,10 @@ def plot_generated_ratio(rank_df, output_dir):
     plt.clf()
 
 
-def plot(outcome_dir, ranks_file, output_dir):
+def plot(outcome_files, ranks_file, output_dir):
     # Make an output directory if it doesn't yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome_files = glob.glob(f"{outcome_dir}/*_nn_tc_ever_v_never.csv")
     outcome = pd.concat(
         [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
@@ -101,7 +100,7 @@ def plot(outcome_dir, ranks_file, output_dir):
 
 def main(args):
     plot(
-        outcome_dir=args.outcome_dir,
+        outcome_files=args.outcome_files,
         ranks_file=args.ranks_file,
         output_dir=args.output_dir,
     )
