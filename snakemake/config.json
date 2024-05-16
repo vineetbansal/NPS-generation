@@ -1,15 +1,31 @@
 {
-  "output_dir": "data",
-  "dataset": "/path/to/<dataset>.txt",
-  "pubchem_tsv_file": "/path/to/PubChem.tsv",
-
-  "representations": ["SMILES"],
+  "representations": [
+    "SMILES"
+  ],
   "folds": 10,
-  "train_seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-  "sample_seeds": [0],
-  "enum_factors": [0, 10, 30, 50, 100],
+  "train_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "sample_seeds": [
+    0
+  ],
+  "enum_factors": [
+    0,
+    10,
+    30,
+    50,
+    100
+  ],
   "max_input_smiles": 0,
-
   "model_params": {
     "rnn_type": "LSTM",
     "embedding_size": 128,
@@ -21,14 +37,44 @@
     "max_epochs": 100,
     "patience": 50000,
     "log_every_steps": 100,
-    "log_every_epochs":  1,
+    "log_every_epochs": 1,
     "sample_mols": 10000000
   },
-
-  "metrics": ["freq-sum", "freq-avg", "fp10k"],
-
+  "metrics": [
+    "freq-sum",
+    "freq-avg",
+    "fp10k"
+  ],
   "min_tc": 0,
   "top_k": 30,
   "err_ppm": 10,
-  "random_seed": null
+  "random_seed": null,
+
+  "paths": {
+    "output_dir": "data",
+    "dataset": "/path/to/dataset.txt",
+    "pubchem_tsv_file": "/path/to/PubChem.tsv",
+
+    "preprocess_output": "{output_dir}/prior/raw/{dataset}.txt",
+    "train_file": "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_{fold}.smi",
+    "vocab_file": "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_{fold}.vocabulary",
+    "model_file": "{output_dir}/{enum_factor}/prior/models/{dataset}_{repr}_{fold}_{train_seed}_model.pt",
+    "input_file": "{output_dir}/{enum_factor}/prior/samples/{dataset}_{repr}_{fold}_{train_seed}_{sample_seed}_samples.csv.gz",
+    "train0_file": "{output_dir}/{enum_factor}/prior/inputs/train0_{dataset}_{repr}_{fold}.smi",
+    "test0_file": "{output_dir}/{enum_factor}/prior/inputs/test0_{dataset}_{repr}_{fold}.smi",
+    "sample_file": "{output_dir}/{enum_factor}/prior/samples/{dataset}_{repr}_{fold}_unique_masses.csv.gz",
+    "carbon_file": "{output_dir}/{enum_factor}/prior/inputs/train0_{dataset}_{repr}_{fold}_carbon.csv",
+    "train_all_file": "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_all.smi",
+    "test_all_file": "{output_dir}/{enum_factor}/prior/inputs/test_{dataset}_{repr}_all.smi",
+    "carbon_all_file": "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_carbon_all.csv",
+    "cv_ranks_file": "{output_dir}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_structure.csv.gz",
+    "cv_tc_file": "{output_dir}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_tc.csv.gz",
+    "formula_ranks_file": "{output_dir}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_formula.csv.gz",
+    "process_tabulated_output": "{output_dir}/{enum_factor}/prior/samples/{dataset}_{repr}_processed_{metric}.csv.gz",
+    "loss_file": "{output_dir}/{enum_factor}/prior/models/{dataset}_{repr}_{fold}_{train_seed}_loss.csv.gz",
+    "tabulate_molecules_output": "{output_dir}/{enum_factor}/prior/samples/{dataset}_{repr}_{fold}_{train_seed}_{sample_seed}_samples_masses.csv.gz",
+    "collect_tabulated_output": "{output_dir}/{enum_factor}/prior/samples/{dataset}_{repr}_{fold}_unique_masses.csv.gz",
+    "overall_ranks_file": "{output_dir}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_all_{metric}_CV_ranks_structure.csv.gz",
+    "overall_tc_file": "{output_dir}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_all_{metric}_CV_tc.csv.gz"
+  }
 }
