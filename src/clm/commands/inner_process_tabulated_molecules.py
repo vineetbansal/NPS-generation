@@ -41,6 +41,9 @@ def process_tabulated_molecules(
         index="inchikey", columns="fold", values="size", aggfunc="first", fill_value=0
     )
 
+    # Filter out molecules with frequency less than min_freq
+    data = data[data.sum(axis=1) >= min_freq]
+
     uniq_inchikeys = data.index.to_numpy()
 
     for fold_idx, cv_file in enumerate(cv_files):
@@ -49,9 +52,6 @@ def process_tabulated_molecules(
 
         if not cv_dat.empty:
             data.loc[cv_dat["inchikey"], fold_idx] = np.nan
-
-    # Filter out molecules with frequency less than min_freq
-    data = data[data.sum(axis=1) >= min_freq]
 
     # Optionally normalize by total sampling frequency
     if summary_fn == "fp10k":

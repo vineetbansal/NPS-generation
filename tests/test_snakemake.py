@@ -34,6 +34,7 @@ def test_snakemake():
             "enum_factors": [0],
             "folds": 3,
             "sample_seeds": [0],
+            "structural_prior_min_freq": [1]
         },
         dryrun=False,
         latency_wait=60,
@@ -43,7 +44,7 @@ def test_snakemake():
     )
     assert success, "Main workflow did not complete successfully"
 
-    ranks_file_overall = f"{temp_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv.gz"
+    ranks_file_overall = f"{temp_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz"
     checksum = hashlib.md5(
         "".join(
             [
@@ -54,7 +55,7 @@ def test_snakemake():
     ).hexdigest()
     assert checksum == "7d6689e0e01419d3dc7c104648b4abc9"
 
-    tc_file_overall = f"{temp_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv.gz"
+    tc_file_overall = f"{temp_dir}/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz"
     checksum = hashlib.md5(
         "".join(
             [
