@@ -26,8 +26,11 @@ def add_args(parser):
 def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
     set_seed(seed)
 
-    # Samples can be a csv file or a dataframe
-    data = read_csv_file(samples) if isinstance(samples, str) else samples
+    # Samples can be a list of csv files or a dataframe
+    if isinstance(samples, list):
+        data = [read_csv_file(sample) for sample in samples]
+    else:
+        data = samples
 
     # TODO: make this process dynamic later
     frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
