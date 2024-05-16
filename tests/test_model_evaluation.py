@@ -118,7 +118,6 @@ def test_write_freq_distribution(tmp_path):
     plot(
         evaluation_type="freq_distribution",
         outcome_files=[output_file],
-      
         output_dir=tmp_path,
     )
 
