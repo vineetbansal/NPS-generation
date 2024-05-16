@@ -18,10 +18,18 @@ def add_args(parser):
         default="freq_avg",
         help="Summary function (fp10k/freq_sum/freq_avg).",
     )
+    parser.add_argument(
+        "--min_freq",
+        type=int,
+        default=1,
+        help="Minimum frequency of molecules to consider.",
+    )
     return parser
 
 
-def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
+def process_tabulated_molecules(
+    input_file, cv_files, output_file, summary_fn, min_freq=1
+):
     meta = pd.concat(
         [
             read_csv_file(file, dtype={"smiles": str, "inchikey": str}).assign(fold=idx)
@@ -32,6 +40,9 @@ def process_tabulated_molecules(input_file, cv_files, output_file, summary_fn):
     data = meta.pivot_table(
         index="inchikey", columns="fold", values="size", aggfunc="first", fill_value=0
     )
+
+    # Filter out molecules with frequency less than min_freq
+    data = data[data.sum(axis=1) >= min_freq]
 
     uniq_inchikeys = data.index.to_numpy()
 
@@ -79,6 +90,7 @@ def main(args):
         cv_files=args.cv_file,
         output_file=args.output_file,
         summary_fn=args.summary_fn,
+        min_freq=args.min_freq,
     )
 
 
