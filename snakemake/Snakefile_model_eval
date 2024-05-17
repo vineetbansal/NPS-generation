@@ -47,8 +47,9 @@ rule prep_outcome_freq:
     frequency bin.
     """
     input:
-        expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_{{train_seed}}_{{sample_seed}}_samples.csv.gz",
-            train_seed=config['train_seeds'], sample_seed=config['sample_seeds'])
+        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
+        known_smiles=PATHS['known_smiles_file'],
+        invalid_smiles=PATHS['known_smiles_file']
     output:
         f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_prep_outcome_freq.csv.gz",
     resources:
@@ -56,9 +57,11 @@ rule prep_outcome_freq:
         runtime=1000,
     shell:
         'clm inner_prep_outcomes_freq '
-        '--sample_file {input} '
+        '--sample_file {input.sample_file} '
         '--output_file {output} '
         '--max_molecules 500000 '
+        '--known_smiles {input.known_smiles} '
+        '--invalid_smiles {input.invalid_smiles} '
 
 
 rule calculate_outcomes:

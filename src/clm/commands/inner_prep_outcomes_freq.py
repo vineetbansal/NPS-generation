@@ -1,5 +1,6 @@
 import argparse
 import logging
+import pandas as pd
 from clm.functions import set_seed, seed_type, write_to_csv_file, read_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -8,6 +9,12 @@ logger = logging.getLogger(__name__)
 
 def add_args(parser):
     parser.add_argument("--sample_file", type=str, help="Path to the sampled file")
+    parser.add_argument(
+        "--invalid_smiles_file", type=str, help="Path to the invalid sampled file"
+    )
+    parser.add_argument(
+        "--known_smiles_file", type=str, help="Path to the known sampled file"
+    )
     parser.add_argument(
         "--max_molecules",
         type=int,
@@ -23,12 +30,24 @@ def add_args(parser):
     return parser
 
 
-def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
+def prep_outcomes_freq(
+    samples,
+    max_molecules,
+    output_file=None,
+    seed=None,
+    known_smiles=None,
+    invalid_smiles=None,
+):
     set_seed(seed)
 
     # Samples can be a list of csv files or a dataframe
-    if isinstance(samples, list):
-        data = [read_csv_file(sample) for sample in samples]
+    if isinstance(samples, str):
+        data = pd.concat(
+            [
+                read_csv_file(sample, usecols=["smiles", "size"])
+                for sample in [samples, known_smiles, invalid_smiles]
+            ]
+        )
     else:
         data = samples
 
@@ -65,6 +84,8 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
 def main(args):
     prep_outcomes_freq(
         samples=args.sample_file,
+        known_smiles=args.known_smiles_file,
+        invalid_smiles=args.invalid_smiles_file,
         max_molecules=args.max_molecules,
         output_file=args.output_file,
         seed=args.seed,

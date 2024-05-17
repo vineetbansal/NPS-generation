@@ -224,7 +224,9 @@ rule tabulate_molecules:
         input_file = PATHS['input_file'],
         train_file = PATHS['train_file']
     output:
-        output_file=PATHS['tabulate_molecules_output']
+        output_file=PATHS['tabulate_molecules_output'],
+        known_smiles_file = PATHS['known_smiles_file'],
+        invalid_smiles_file = PATHS['invalid_smiles_file']
     resources:
         mem_mb=32000,
         runtime=lambda wildcards: 15+MODEL_PARAMS["sample_mols"]*(int(wildcards["enum_factor"])+1)//100000,
