@@ -62,7 +62,7 @@ def test_calculate_outcomes(tmp_path):
 
     plot(
         evaluation_type="calculate_outcomes",
-        outcome_dir=tmp_path,
+        outcome_files=[output_file],
         output_dir=tmp_path,
     )
 
@@ -99,7 +99,9 @@ def test_write_nn_tc(tmp_path):
     )
     assert_checksum_equals(output_file, test_dir / "output_write_nn_tc.csv")
 
-    plot(evaluation_type="write_nn_tc", outcome_dir=tmp_path, output_dir=tmp_path)
+    plot(
+        evaluation_type="write_nn_tc", outcome_files=[output_file], output_dir=tmp_path
+    )
 
 
 def test_write_freq_distribution(tmp_path):
@@ -115,7 +117,7 @@ def test_write_freq_distribution(tmp_path):
 
     plot(
         evaluation_type="freq_distribution",
-        outcome_dir=tmp_path,
+        outcome_files=[output_file],
         output_dir=tmp_path,
     )
 

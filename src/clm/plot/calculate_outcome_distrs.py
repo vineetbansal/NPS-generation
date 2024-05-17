@@ -1,5 +1,4 @@
 import argparse
-import glob
 import os
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -11,9 +10,10 @@ from collections import defaultdict
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_dir",
+        "--outcome_files",
         type=str,
-        help="Path to directory where all the model evaluation files are saved ",
+        nargs="+",
+        help="Paths of all the model evaluation files relevant to calculate outcome distributions ",
     )
     parser.add_argument(
         "--output_dir",
@@ -94,11 +94,10 @@ def plot_discrete(split_outcomes, output_dir, value_map, sources):
     plt.clf()
 
 
-def plot(outcome_dir, output_dir):
+def plot(outcome_files, output_dir):
     # Make output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome_files = glob.glob(f"{outcome_dir}/*calculate_outcome_distrs.csv")
     outcome = pd.concat(
         [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
@@ -123,7 +122,7 @@ def plot(outcome_dir, output_dir):
 
 
 def main(args):
-    plot(outcome_dir=args.outcome_dir, output_dir=args.output_dir)
+    plot(outcome_files=args.outcome_files, output_dir=args.output_dir)
 
 
 if __name__ == "__main__":
