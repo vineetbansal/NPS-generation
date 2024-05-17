@@ -38,16 +38,6 @@ def add_args(parser):
     return parser
 
 
-def save_unfiltered_smiles(output_file, smiles, type):
-    filepath, filename = os.path.dirname(output_file), os.path.basename(output_file)
-    smiles_freq = [[smile, smiles.count(smile)] for smile in smiles]
-
-    write_to_csv_file(
-        filepath + "/" + type + "_" + filename,
-        pd.DataFrame(smiles_freq, columns=["smiles", "size"]),
-    )
-
-
 def tabulate_molecules(input_file, train_file, representation, output_file):
     train_data = read_csv_file(train_file)
     # create a dictionary from inchikey to smiles
@@ -89,8 +79,25 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     unique = unique.sort_values("size", ascending=False).reset_index(drop=True)
 
     write_to_csv_file(output_file, unique)
-    save_unfiltered_smiles(output_file, known_smiles, type="known")
-    save_unfiltered_smiles(output_file, invalid_smiles, type="invalid")
+    # TODO: The following approach will result in multiple lines for each repeated smile
+    write_to_csv_file(
+        os.path.join(
+            os.path.dirname(output_file), "known_" + os.path.basename(output_file)
+        ),
+        pd.DataFrame(
+            [[smile, known_smiles.count(smile)] for smile in known_smiles],
+            columns=["smiles", "size"],
+        ),
+    )
+    write_to_csv_file(
+        os.path.join(
+            os.path.dirname(output_file), "invalid_" + os.path.basename(output_file)
+        ),
+        pd.DataFrame(
+            [[smile, invalid_smiles.count(smile)] for smile in invalid_smiles],
+            columns=["smiles", "size"],
+        ),
+    )
 
 
 def main(args):
