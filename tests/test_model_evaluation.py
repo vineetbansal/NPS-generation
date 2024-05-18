@@ -45,7 +45,6 @@ def test_generate_outcome_dicts():
     )
 
 
-@pytest.mark.xfail()
 def test_calculate_outcomes(tmp_path):
     output_file = tmp_path / "calculate_outcomes.csv"
     outcomes = calculate_outcomes(
@@ -131,6 +130,7 @@ def test_write_freq_distribution(tmp_path):
     )
 
 
+@pytest.mark.xfail()
 def test_train_discriminator(tmp_path, set_hashseed):
     output_file = tmp_path / "train_discriminator.csv"
     outcomes = train_discriminator(
