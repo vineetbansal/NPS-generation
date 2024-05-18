@@ -1,5 +1,4 @@
 import argparse
-import glob
 from pathlib import Path
 import pandas as pd
 import seaborn as sns
@@ -13,9 +12,10 @@ from clm.functions import read_csv_file
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_dir",
+        "--outcome_files",
         type=str,
-        help="Path to directory where all the model evaluation files are saved ",
+        nargs="+",
+        help="Paths of all the model evaluation files relevant to train discriminator",
     )
     parser.add_argument(
         "--output_dir",
@@ -83,11 +83,10 @@ def plot_confusion_matrix(outcome, output_dir):
     plt.clf()
 
 
-def plot(outcome_dir, output_dir):
+def plot(outcome_files, output_dir):
     # Make output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome_files = glob.glob(f"{outcome_dir}/*train_discriminator.csv")
     outcome = pd.concat(
         [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
@@ -103,7 +102,7 @@ def plot(outcome_dir, output_dir):
 
 def main(args):
     plot(
-        outcome_dir=args.outcome_dir,
+        outcome_files=args.outcome_files,
         output_dir=args.output_dir,
     )
 

@@ -1,5 +1,4 @@
 import argparse
-import glob
 import pandas as pd
 from pathlib import Path
 import os
@@ -11,9 +10,10 @@ from clm.functions import read_csv_file
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_dir",
+        "--outcome_files",
         type=str,
-        help="Path to directory where all the model evaluation files are saved ",
+        nargs="+",
+        help="Paths of all the model evaluation files relevant to write_nn_tc",
     )
     parser.add_argument(
         "--output_dir",
@@ -94,21 +94,19 @@ def plot_by_frequency(outcome, output_dir):
     plt.clf()
 
 
-def plot(outcome_dir, output_dir):
+def plot(outcome_files, output_dir):
     # Make an output directory if it doesn't yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome_files = glob.glob(f"{outcome_dir}/*write_nn_tc.csv")
-    outcome = pd.concat(
-        [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
-    )
+    # Concatenate all the outcome files
+    outcome = pd.concat([read_csv_file(file, delimiter=",") for file in outcome_files])
 
     plot_generated_v_ref(outcome, output_dir)
     plot_by_frequency(outcome, output_dir)
 
 
 def main(args):
-    plot(outcome_dir=args.outcome_dir, output_dir=args.output_dir)
+    plot(outcome_files=args.outcome_files, output_dir=args.output_dir)
 
 
 if __name__ == "__main__":

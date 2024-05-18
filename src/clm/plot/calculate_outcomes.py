@@ -1,6 +1,4 @@
 import argparse
-import glob
-
 import pandas as pd
 from pathlib import Path
 import os
@@ -11,9 +9,10 @@ from clm.functions import read_csv_file
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_dir",
+        "--outcome_files",
         type=str,
-        help="Path to directory where all the model evaluation files are saved ",
+        nargs="+",
+        help="Paths of all the model evaluation files relevant to calculate outcomes ",
     )
     parser.add_argument(
         "--output_dir",
@@ -23,18 +22,15 @@ def add_args(parser):
     return parser
 
 
-def plot(outcome_dir, output_dir):
+def plot(outcome_files, output_dir):
 
-    # Make output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome_files = glob.glob(f"{outcome_dir}/*calculate_outcomes.csv")
-    outcome = pd.concat(
-        [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
-    )
+    # Concatenate all the outcome files
+    outcome = pd.concat([read_csv_file(file, delimiter=",") for file in outcome_files])
 
     # Plot every figure possible
-    for outcome_name, _outcome in outcome.groupby("outcome"):
+    for outcome_type, _outcome in outcome.groupby("outcome"):
         _data = {}
         for bin, df in _outcome.groupby("bin"):
             _data[bin] = df["value"].tolist()
@@ -57,12 +53,13 @@ def plot(outcome_dir, output_dir):
             native_scale=True,
         )
 
-        plt.title(outcome_name)
-        plt.ylabel(outcome_name)
+        outcome_type = str(outcome_type)
+        plt.title(outcome_type)
+        plt.ylabel(outcome_type)
         plt.xlabel("Frequency")
         plt.xticks(list(range(len(labels))), labels)
 
-        file_name = Path(output_dir) / outcome_name
+        file_name = Path(output_dir) / outcome_type
         plt.savefig(file_name)
 
         # Clear the previous figure
@@ -71,7 +68,7 @@ def plot(outcome_dir, output_dir):
 
 def main(args):
     plot(
-        outcome_dir=args.outcome_dir,
+        outcome_files=args.outcome_files,
         output_dir=args.output_dir,
     )
 
