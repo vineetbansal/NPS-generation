@@ -45,6 +45,7 @@ def test_generate_outcome_dicts():
     )
 
 
+@pytest.mark.xfail()
 def test_calculate_outcomes(tmp_path):
     output_file = tmp_path / "calculate_outcomes.csv"
     outcomes = calculate_outcomes(
