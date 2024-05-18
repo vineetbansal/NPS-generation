@@ -19,6 +19,14 @@ base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
 
 
+# To ensure deterministic behaviors of sets for testing
+# We care setting a PYTHONHASHSEED of 0 on pytest configuration
+def test_pythonhashseed(set_hashseed):
+    import os
+
+    assert os.environ["PYTHONHASHSEED"] == "0"
+
+
 @pytest.mark.xfail(strict=True)
 def test_generate_outcome_dicts():
     train_df, sample_df = get_dataframes(
@@ -122,8 +130,7 @@ def test_write_freq_distribution(tmp_path):
     )
 
 
-@pytest.mark.xfail
-def test_train_discriminator(tmp_path):
+def test_train_discriminator(tmp_path, set_hashseed):
     output_file = tmp_path / "train_discriminator.csv"
     outcomes = train_discriminator(
         train_file=test_dir
@@ -140,7 +147,7 @@ def test_train_discriminator(tmp_path):
 
     plot(
         evaluation_type="train_discriminator",
-        outcome_dir=tmp_path,
+        outcome_files=[output_file],
         output_dir=tmp_path,
     )
 
