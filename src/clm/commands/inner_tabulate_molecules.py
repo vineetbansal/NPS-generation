@@ -46,9 +46,6 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
 
     new_smiles, invalid_smiles, known_smiles = [], [], []
     for i, line in enumerate(tqdm(sampled_smiles)):
-        # TODO: Remove this later
-        if i > 10000:
-            break
         *_, smile = line.split(",")
 
         # input file may have empty value for smile

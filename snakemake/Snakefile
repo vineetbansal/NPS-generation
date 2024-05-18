@@ -247,6 +247,8 @@ rule collect_tabulated_molecules:
         input_files=expand(PATHS['tabulate_molecules_output'], train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True)
     output:
         output_file=PATHS['collect_tabulated_output'],
+        known_smiles_file=PATHS['collect_known_smiles'],
+        invalid_smiles_file=PATHS['collect_invalid_smiles']
     resources:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//1000000,

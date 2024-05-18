@@ -30,27 +30,7 @@ def add_args(parser):
     return parser
 
 
-def prep_outcomes_freq(
-    samples,
-    max_molecules,
-    output_file=None,
-    seed=None,
-    known_smiles=None,
-    invalid_smiles=None,
-):
-    set_seed(seed)
-
-    # Samples can be a list of csv files or a dataframe
-    if isinstance(samples, str):
-        data = pd.concat(
-            [
-                read_csv_file(sample, usecols=["smiles", "size"])
-                for sample in [samples, known_smiles, invalid_smiles]
-            ]
-        )
-    else:
-        data = samples
-
+def split_frequency_ranges(data, max_molecules=None):
     # TODO: make this process dynamic later
     frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
 
@@ -75,8 +55,28 @@ def prep_outcomes_freq(
     # Save only the rows where we've assigned a bin
     data = data[data["bin"] != ""].reset_index(drop=True)
 
-    if output_file is not None:
-        write_to_csv_file(output_file, data)
+    return data
+
+
+def prep_outcomes_freq(
+    samples,
+    max_molecules,
+    output_file=None,
+    seed=None,
+    known_smiles=None,
+    invalid_smiles=None,
+):
+    set_seed(seed)
+
+    data = pd.concat(
+        [
+            read_csv_file(sample, usecols=["smiles", "size"])
+            for sample in [samples, known_smiles, invalid_smiles]
+        ]
+    )
+
+    data = split_frequency_ranges(data, max_molecules)
+    write_to_csv_file(output_file, data)
 
     return data
 
