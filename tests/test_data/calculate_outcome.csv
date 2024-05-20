@@ -1,85 +1,85 @@
 bin,outcome,value,input_file
-1,n_mols,500.0,prep_outcomes_freq.csv
-2,n_mols,500.0,prep_outcomes_freq.csv
-3-10,n_mols,500.0,prep_outcomes_freq.csv
-1,% valid,1.0,prep_outcomes_freq.csv
-2,% valid,1.0,prep_outcomes_freq.csv
+1-1,n_mols,4000.0,prep_outcomes_freq.csv
+2-2,n_mols,4000.0,prep_outcomes_freq.csv
+3-10,n_mols,4000.0,prep_outcomes_freq.csv
+1-1,% valid,1.0,prep_outcomes_freq.csv
+2-2,% valid,1.0,prep_outcomes_freq.csv
 3-10,% valid,1.0,prep_outcomes_freq.csv
-1,% novel,1.0,prep_outcomes_freq.csv
-2,% novel,1.0,prep_outcomes_freq.csv
+1-1,% novel,1.0,prep_outcomes_freq.csv
+2-2,% novel,1.0,prep_outcomes_freq.csv
 3-10,% novel,1.0,prep_outcomes_freq.csv
-1,% unique,1.0,prep_outcomes_freq.csv
-2,% unique,1.0,prep_outcomes_freq.csv
+1-1,% unique,1.0,prep_outcomes_freq.csv
+2-2,% unique,1.0,prep_outcomes_freq.csv
 3-10,% unique,1.0,prep_outcomes_freq.csv
-1,"KL divergence, atoms",inf,prep_outcomes_freq.csv
-2,"KL divergence, atoms",inf,prep_outcomes_freq.csv
+1-1,"KL divergence, atoms",inf,prep_outcomes_freq.csv
+2-2,"KL divergence, atoms",inf,prep_outcomes_freq.csv
 3-10,"KL divergence, atoms",inf,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, atoms",0.07465253001890859,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, atoms",0.08027668039358404,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, atoms",0.07465253001890863,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, atoms",0.08027668039358403,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, atoms",0.09229615809801409,prep_outcomes_freq.csv
-1,"Wasserstein distance, atoms",0.01668844393228318,prep_outcomes_freq.csv
-2,"Wasserstein distance, atoms",0.012951154441904426,prep_outcomes_freq.csv
+1-1,"Wasserstein distance, atoms",0.01668844393228318,prep_outcomes_freq.csv
+2-2,"Wasserstein distance, atoms",0.012951154441904426,prep_outcomes_freq.csv
 3-10,"Wasserstein distance, atoms",0.016020471104010232,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, MWs",0.17155530345252115,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, MWs",0.10232359970238912,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, MWs",0.11611622445052662,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, logP",0.15622024244546598,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, logP",0.14706690482931364,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, logP",0.14456963011240007,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, Bertz TC",0.2565847946057493,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, Bertz TC",0.18295003559329837,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, Bertz TC",0.20371494186046185,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, QED",0.1023415524840566,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, QED",0.16882241166870807,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, QED",0.22438136037931888,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, TPSA",0.2771490850624588,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, TPSA",0.1462992021448038,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, TPSA",0.1279191122686102,prep_outcomes_freq.csv
-1,Internal diversity,0.2891086541457372,prep_outcomes_freq.csv
-2,Internal diversity,0.2271869740189818,prep_outcomes_freq.csv
-3-10,Internal diversity,0.20821541437816285,prep_outcomes_freq.csv
-1,External diversity,0.21386784412699153,prep_outcomes_freq.csv
-2,External diversity,0.1893080626530349,prep_outcomes_freq.csv
-3-10,External diversity,0.1731253171847298,prep_outcomes_freq.csv
-1,Internal nearest-neighbor Tc,0.5999185739011003,prep_outcomes_freq.csv
-2,Internal nearest-neighbor Tc,0.6658689572437837,prep_outcomes_freq.csv
-3-10,Internal nearest-neighbor Tc,0.745816333085296,prep_outcomes_freq.csv
-1,External nearest-neighbor Tc,0.5674728488532578,prep_outcomes_freq.csv
-2,External nearest-neighbor Tc,0.5333919122267488,prep_outcomes_freq.csv
-3-10,External nearest-neighbor Tc,0.501662584740084,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, # of rings",0.31278203464411025,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, # of rings",0.28783113998700494,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, MWs",0.17155530345252115,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, MWs",0.10232359970238908,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, MWs",0.11611622445052668,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, logP",0.15622024244546598,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, logP",0.14706690482931367,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, logP",0.1445696301124001,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, Bertz TC",0.2565847946057493,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, Bertz TC",0.18295003559329837,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, Bertz TC",0.20371494186046182,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, QED",0.10234155248405664,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, QED",0.16882241166870807,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, QED",0.2243813603793189,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, TPSA",0.2771490850624589,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, TPSA",0.1462992021448039,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, TPSA",0.12791911226861014,prep_outcomes_freq.csv
+1-1,Internal diversity,0.29051476753390304,prep_outcomes_freq.csv
+2-2,Internal diversity,0.2243120532499809,prep_outcomes_freq.csv
+3-10,Internal diversity,0.207071888432229,prep_outcomes_freq.csv
+1-1,External diversity,0.2127613339411125,prep_outcomes_freq.csv
+2-2,External diversity,0.19228904436751332,prep_outcomes_freq.csv
+3-10,External diversity,0.17296968819584882,prep_outcomes_freq.csv
+1-1,Internal nearest-neighbor Tc,0.6024605378631317,prep_outcomes_freq.csv
+2-2,Internal nearest-neighbor Tc,0.652601118044936,prep_outcomes_freq.csv
+3-10,Internal nearest-neighbor Tc,0.7550929795120098,prep_outcomes_freq.csv
+1-1,External nearest-neighbor Tc,0.5660268071668029,prep_outcomes_freq.csv
+2-2,External nearest-neighbor Tc,0.531242422120069,prep_outcomes_freq.csv
+3-10,External nearest-neighbor Tc,0.48553006373397206,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, # of rings",0.31278203464411025,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, # of rings",0.28783113998700494,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, # of rings",0.2890607751893959,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, # of aliphatic rings",0.23897188564644672,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, # of aliphatic rings",0.17016083367767879,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, # of aliphatic rings",0.23897188564644672,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, # of aliphatic rings",0.17016083367767879,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, # of aliphatic rings",0.18076320584904668,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, # of aromatic rings",0.25094728830733376,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, # of aromatic rings",0.2734078873091278,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, # of aromatic rings",0.25094728830733376,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, # of aromatic rings",0.2734078873091278,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, # of aromatic rings",0.35226317342901087,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, SA score",0.13217769495939577,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, SA score",0.17405487504861994,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, SA score",0.278933784000481,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, NP score",0.11417857130875098,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, NP score",0.11944379219620818,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, NP score",0.17095951874137708,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, % sp3 carbons",0.19557486916737057,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, % sp3 carbons",0.25059091268075157,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, % sp3 carbons",0.357490576166973,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, % rotatable bonds",0.14622656331041292,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, % rotatable bonds",0.19773802028622717,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, SA score",0.1321776949593958,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, SA score",0.17405487504861994,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, SA score",0.2789337840004811,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, NP score",0.11417857130875103,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, NP score",0.1194437921962082,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, NP score",0.1709595187413771,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, % sp3 carbons",0.1955748691673706,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, % sp3 carbons",0.2505909126807516,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, % sp3 carbons",0.35749057616697305,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, % rotatable bonds",0.14622656331041287,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, % rotatable bonds",0.1977380202862271,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, % rotatable bonds",0.24586178535786832,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, % stereocenters",0.12388568179044378,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, % stereocenters",0.13690054908096555,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, % stereocenters",0.12388568179044374,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, % stereocenters",0.13690054908096544,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, % stereocenters",0.16563632650919582,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, Murcko scaffolds",0.7459523436018911,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, Murcko scaffolds",0.7201319903067305,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, Murcko scaffolds",0.745952343601891,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, Murcko scaffolds",0.7201319903067305,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, Murcko scaffolds",0.7288927826650033,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, hydrogen donors",0.28249164935602045,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, hydrogen donors",0.17753729393165624,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, hydrogen donors",0.28249164935602045,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, hydrogen donors",0.17753729393165624,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, hydrogen donors",0.17602798981784826,prep_outcomes_freq.csv
-1,"Jensen-Shannon distance, hydrogen acceptors",0.35714072190879564,prep_outcomes_freq.csv
-2,"Jensen-Shannon distance, hydrogen acceptors",0.22064053573918707,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, hydrogen acceptors",0.35714072190879564,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, hydrogen acceptors",0.22064053573918707,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, hydrogen acceptors",0.20572801556857429,prep_outcomes_freq.csv
-1,Frechet ChemNet distance,13.622936523903732,prep_outcomes_freq.csv
-2,Frechet ChemNet distance,14.53267627851885,prep_outcomes_freq.csv
-3-10,Frechet ChemNet distance,18.02370642805371,prep_outcomes_freq.csv
+1-1,Frechet ChemNet distance,13.622936512644308,prep_outcomes_freq.csv
+2-2,Frechet ChemNet distance,14.532676274050687,prep_outcomes_freq.csv
+3-10,Frechet ChemNet distance,18.023705467515292,prep_outcomes_freq.csv

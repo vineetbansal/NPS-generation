@@ -109,20 +109,28 @@ def smile_properties_dataframe(input_file, is_sample=False):
             row = tuple([None] * len(molecular_properties))
 
         if is_sample:
-            data.append((a_row.smiles, a_row.is_valid, a_row.is_novel, a_row.bin) + row)
+            data.append(
+                (a_row.smiles, a_row.is_valid, a_row.is_novel, a_row.size, a_row.bin)
+                + row
+            )
         else:
             data.append((a_row.smiles,) + row)
 
         if i % 1_000 == 0:
             logger.info(f"Processed {i} SMILES")
 
-    # Add more columns if the data is sampled
+    # Unlike training smiles, sampled smiles can be categorized as valid/ novel
+    # So, sampled df have more columns than train df, both of which are parsed in this function
     columns = (
-        ["smile", "is_valid", "is_novel", "bin"] + list(molecular_properties.keys())
+        ["smile", "is_valid", "is_novel", "size", "bin"]
+        + list(molecular_properties.keys())
         if is_sample
         else ["smile"] + list(molecular_properties.keys())
     )
 
+    # Some of the calculations later strictly require specific datatypes
+    # The presence of nan values messes up dtypes of some columns
+    # Using convert_dtypes to convert columns to the best possible dtypes
     df = pd.DataFrame(data, columns=columns).convert_dtypes()
     return df
 
@@ -172,9 +180,10 @@ def calculate_outcomes_dataframe(sample_df, train_df):
         bin_df = bin_df[bin_df["is_valid"]]
 
         # Skip iteration if number of valid smiles in a particular bin is 0
-        if (n_valid_smiles := len(bin_df)) == 0:
+        if len(bin_df) == 0:
             continue
 
+        n_valid_smiles = bin_df[bin_df["is_valid"]]["size"].sum()
         bin_df = bin_df.reset_index(drop=True)
         element_distribution = dict(
             zip(
@@ -198,10 +207,10 @@ def calculate_outcomes_dataframe(sample_df, train_df):
         out.append(
             {
                 "bin": bin,
-                "n_mols": len(bin_df),
-                "% valid": n_valid_smiles / len(bin_df),
-                "% novel": len(bin_df[bin_df["is_novel"]]) / len(bin_df),
-                "% unique": len(bin_df["smile"].unique()) / len(bin_df),
+                "n_mols": bin_df["size"].sum(),
+                "% valid": n_valid_smiles / bin_df["size"].sum(),
+                "% novel": bin_df[bin_df["is_novel"]]["size"].sum() / bin_df["size"].sum(),
+                "% unique": len(bin_df) / len(bin_df),
                 "KL divergence, atoms": scipy.stats.entropy(p2, p1),
                 "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
                 "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
