@@ -244,7 +244,9 @@ rule collect_tabulated_molecules:
     sampling frequency in the process.
     """
     input:
-        input_files=expand(PATHS['tabulate_molecules_output'], train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True)
+        input_files=expand(PATHS['tabulate_molecules_output'], train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True),
+        known_smiles_file = expand(PATHS['known_smiles_file'], train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True),
+        invalid_smiles_file = expand(PATHS['invalid_smiles_file'], train_seed=TRAIN_SEEDS, sample_seed=SAMPLE_SEEDS, allow_missing=True)
     output:
         output_file=PATHS['collect_tabulated_output'],
         known_smiles_file=PATHS['collect_known_smiles'],
@@ -256,6 +258,8 @@ rule collect_tabulated_molecules:
         'clm inner_collect_tabulated_molecules '
         '--input_files {input.input_files} '
         '--output_file {output.output_file} '
+        '--known_smiles {input.known_smiles_file} '
+        '--invalid_smiles {input.invalid_smiles_file} '
 
 
 rule process_tabulated_molecules:

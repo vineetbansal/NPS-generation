@@ -68,14 +68,19 @@ def prep_outcomes_freq(
 ):
     set_seed(seed)
 
-    data = pd.concat(
-        [
-            read_csv_file(sample, usecols=["smiles", "size"])
-            for sample in [samples, known_smiles, invalid_smiles]
-        ]
+    known_df = read_csv_file(known_smiles, usecols=["smiles", "size"]).assign(
+        is_valid=True, is_novel=False
+    )
+    invalid_df = read_csv_file(invalid_smiles, usecols=["smiles", "size"]).assign(
+        is_valid=False, is_novel=True
+    )
+    sample_df = read_csv_file(samples, usecols=["smiles", "size"]).assign(
+        is_valid=True, is_novel=True
     )
 
+    data = pd.concat([known_df, invalid_df, sample_df])
     data = split_frequency_ranges(data, max_molecules)
+
     write_to_csv_file(output_file, data)
 
     return data

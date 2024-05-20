@@ -17,7 +17,6 @@ from rdkit import rdBase
 from rdkit.Contrib.SA_Score import sascorer
 from rdkit.Contrib.NP_Score import npscorer
 from clm.functions import (
-    read_file,
     seed_type,
     set_seed,
     clean_mol,
@@ -93,28 +92,38 @@ molecular_properties = {
 }
 
 
-def smile_properties_dataframe(input_file, max_smiles=None):
+def smile_properties_dataframe(input_file, is_sample=False):
     data = []
-    for i, smile in enumerate(
-        read_file(
+    for i, df in enumerate(
+        read_csv_file(
             input_file,
-            smile_only=True,
-            stream=True,
-            max_lines=max_smiles,
-            randomize=True,
+            iterator=True,
+            chunksize=1,
         ),
         start=1,
     ):
-        if (mol := clean_mol(smile, raise_error=False)) is not None:
+        a_row = df.iloc[0]
+        if (mol := clean_mol(a_row.smiles, raise_error=False)) is not None:
             row = tuple(fun(mol) for fun in molecular_properties.values())
         else:
             row = tuple([None] * len(molecular_properties))
 
-        data.append((smile,) + row)
+        if is_sample:
+            data.append((a_row.smiles, a_row.is_valid, a_row.is_novel, a_row.bin) + row)
+        else:
+            data.append((a_row.smiles,) + row)
+
         if i % 1_000 == 0:
             logger.info(f"Processed {i} SMILES")
 
-    df = pd.DataFrame(data, columns=["smile"] + list(molecular_properties.keys()))
+    # Add more columns if the data is sampled
+    columns = (
+        ["smile", "is_valid", "is_novel", "bin"] + list(molecular_properties.keys())
+        if is_sample
+        else ["smile"] + list(molecular_properties.keys())
+    )
+
+    df = pd.DataFrame(data, columns=columns).convert_dtypes()
     return df
 
 
@@ -136,26 +145,13 @@ def get_dataframes(train_file, sampled_file):
     train_df = smile_properties_dataframe(train_file)
 
     logger.info(f"Reading sample smiles from {sampled_file}")
-    sample_smiles_df = smile_properties_dataframe(sampled_file)
+    sample_df = smile_properties_dataframe(sampled_file, is_sample=True)
 
-    sample_smiles_df["is_valid"] = sample_smiles_df.apply(
-        lambda row: row["canonical_smile"] is not None, axis=1
-    )
-    n_valid_smiles = sample_smiles_df["is_valid"].sum()
-    logger.info(f"{n_valid_smiles} valid SMILES out of {len(sample_smiles_df)}")
+    n_valid_smiles = sample_df["is_valid"].sum()
+    logger.info(f"{n_valid_smiles} valid SMILES out of {len(sample_df)}")
 
-    sample_smiles_df["is_novel"] = sample_smiles_df.apply(
-        lambda row: row["smile"] not in train_df["smile"], axis=1
-    )
-    n_novel_smiles = sample_smiles_df["is_novel"].sum()
-    logger.info(f"{n_novel_smiles} novel SMILES out of {len(sample_smiles_df)}")
-
-    logger.info("Re-reading sample file to obtain bin/other information")
-    sample_bin_df = read_csv_file(sampled_file)
-    logger.info("Merging bin information")
-    sample_df = sample_smiles_df.merge(
-        sample_bin_df, left_on="smile", right_on="smiles"
-    )
+    n_novel_smiles = sample_df["is_novel"].sum()
+    logger.info(f"{n_novel_smiles} novel SMILES out of {len(sample_df)}")
 
     return train_df, sample_df
 
@@ -171,6 +167,14 @@ def calculate_outcomes_dataframe(sample_df, train_df):
     out = []
     for bin, bin_df in sample_df.groupby("bin"):
         logger.info(f"Calculating outcomes for bin {bin}")
+
+        # Filtering out invalid smiles
+        bin_df = bin_df[bin_df["is_valid"]]
+
+        # Skip iteration if number of valid smiles in a particular bin is 0
+        if (n_valid_smiles := len(bin_df)) == 0:
+            continue
+
         bin_df = bin_df.reset_index(drop=True)
         element_distribution = dict(
             zip(
@@ -195,7 +199,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
             {
                 "bin": bin,
                 "n_mols": len(bin_df),
-                "% valid": len(bin_df[bin_df["is_valid"]]) / len(bin_df),
+                "% valid": n_valid_smiles / len(bin_df),
                 "% novel": len(bin_df[bin_df["is_novel"]]) / len(bin_df),
                 "% unique": len(bin_df["smile"].unique()) / len(bin_df),
                 "KL divergence, atoms": scipy.stats.entropy(p2, p1),
