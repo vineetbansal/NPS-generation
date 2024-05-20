@@ -209,7 +209,8 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                 "bin": bin,
                 "n_mols": bin_df["size"].sum(),
                 "% valid": n_valid_smiles / bin_df["size"].sum(),
-                "% novel": bin_df[bin_df["is_novel"]]["size"].sum() / bin_df["size"].sum(),
+                "% novel": bin_df[bin_df["is_novel"]]["size"].sum()
+                / bin_df["size"].sum(),
                 "% unique": len(bin_df) / len(bin_df),
                 "KL divergence, atoms": scipy.stats.entropy(p2, p1),
                 "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
