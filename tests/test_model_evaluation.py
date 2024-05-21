@@ -37,7 +37,7 @@ def test_generate_outcome_dicts():
 
 
 def test_calculate_outcomes(tmp_path):
-    output_file = test_dir / "calculate_outcome.csv"
+    output_file = tmp_path / "calculate_outcome.csv"
     outcomes = calculate_outcomes(
         sampled_file=test_dir / "prep_outcomes_freq.csv",
         # For LOTUS, train/test "_all.smi" files are the same
