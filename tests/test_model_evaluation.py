@@ -24,7 +24,6 @@ def test_generate_outcome_dicts():
     train_df, sample_df = get_dataframes(
         train_file=test_dir / "prep_outcomes_freq.csv",
         sampled_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
-        max_orig_mols=10000,
     )
 
     # Certain fields in train_dict/gen_dict need to be tolerant of Nones
@@ -122,7 +121,6 @@ def test_write_freq_distribution(tmp_path):
     )
 
 
-@pytest.mark.xfail
 def test_train_discriminator(tmp_path):
     output_file = tmp_path / "train_discriminator.csv"
     outcomes = train_discriminator(
@@ -140,7 +138,7 @@ def test_train_discriminator(tmp_path):
 
     plot(
         evaluation_type="train_discriminator",
-        outcome_dir=tmp_path,
+        outcome_files=[output_file],
         output_dir=tmp_path,
     )
 

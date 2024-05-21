@@ -2,7 +2,6 @@ from pathlib import Path
 import gzip
 import pytest
 
-
 base_dir = Path(__file__).parent.parent
 dataset_path = base_dir / "tests/test_data/LOTUS_truncated.txt"
 
