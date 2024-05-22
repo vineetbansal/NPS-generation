@@ -43,7 +43,7 @@ def add_args(parser):
     parser.add_argument(
         "--remove-rare",
         action="store_true",
-        help="Remove molecules with tokens found in <0.01% or <10 molecules",
+        help="Remove molecules with tokens found in <0.01%% or <10 molecules",
     )
     parser.add_argument(
         "--max-input-smiles",

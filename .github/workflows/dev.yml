@@ -42,6 +42,4 @@ jobs:
 
     - name: Pytest
       shell: bash
-      env:
-        PYTHONHASHSEED: 0
       run: pytest

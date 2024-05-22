@@ -14,27 +14,27 @@ bin,outcome,value,input_file
 1-1,"KL divergence, atoms",inf,prep_outcomes_freq.csv
 2-2,"KL divergence, atoms",inf,prep_outcomes_freq.csv
 3-10,"KL divergence, atoms",inf,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, atoms",0.07465253001890863,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, atoms",0.08027668039358403,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, atoms",0.07465253001890862,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, atoms",0.08027668039358377,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, atoms",0.09229615809801409,prep_outcomes_freq.csv
 1-1,"Wasserstein distance, atoms",0.01668844393228318,prep_outcomes_freq.csv
 2-2,"Wasserstein distance, atoms",0.012951154441904426,prep_outcomes_freq.csv
 3-10,"Wasserstein distance, atoms",0.016020471104010232,prep_outcomes_freq.csv
 1-1,"Jensen-Shannon distance, MWs",0.17155530345252115,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, MWs",0.10232359970238908,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, MWs",0.11611622445052668,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, MWs",0.10232359970238909,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, MWs",0.11611622445052662,prep_outcomes_freq.csv
 1-1,"Jensen-Shannon distance, logP",0.15622024244546598,prep_outcomes_freq.csv
 2-2,"Jensen-Shannon distance, logP",0.14706690482931367,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, logP",0.1445696301124001,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, logP",0.14456963011240004,prep_outcomes_freq.csv
 1-1,"Jensen-Shannon distance, Bertz TC",0.2565847946057493,prep_outcomes_freq.csv
 2-2,"Jensen-Shannon distance, Bertz TC",0.18295003559329837,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, Bertz TC",0.20371494186046182,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, Bertz TC",0.20371494186046188,prep_outcomes_freq.csv
 1-1,"Jensen-Shannon distance, QED",0.10234155248405664,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, QED",0.16882241166870807,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, QED",0.2243813603793189,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, TPSA",0.2771490850624589,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, TPSA",0.1462992021448039,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, TPSA",0.12791911226861014,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, QED",0.1688224116687081,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, QED",0.22438136037931888,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, TPSA",0.27714908506245883,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, TPSA",0.14629920214480388,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, TPSA",0.1279191122686101,prep_outcomes_freq.csv
 1-1,Internal diversity,0.29051476753390304,prep_outcomes_freq.csv
 2-2,Internal diversity,0.2243120532499809,prep_outcomes_freq.csv
 3-10,Internal diversity,0.207071888432229,prep_outcomes_freq.csv
@@ -59,27 +59,27 @@ bin,outcome,value,input_file
 1-1,"Jensen-Shannon distance, SA score",0.1321776949593958,prep_outcomes_freq.csv
 2-2,"Jensen-Shannon distance, SA score",0.17405487504861994,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, SA score",0.2789337840004811,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, NP score",0.11417857130875103,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, NP score",0.1194437921962082,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, NP score",0.1709595187413771,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, NP score",0.11417857130875099,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, NP score",0.11944379219620818,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, NP score",0.17095951874137713,prep_outcomes_freq.csv
 1-1,"Jensen-Shannon distance, % sp3 carbons",0.1955748691673706,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, % sp3 carbons",0.2505909126807516,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, % sp3 carbons",0.25059091268075157,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, % sp3 carbons",0.35749057616697305,prep_outcomes_freq.csv
 1-1,"Jensen-Shannon distance, % rotatable bonds",0.14622656331041287,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, % rotatable bonds",0.1977380202862271,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, % rotatable bonds",0.19773802028622708,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, % rotatable bonds",0.24586178535786832,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, % stereocenters",0.12388568179044374,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, % stereocenters",0.13690054908096544,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, % stereocenters",0.16563632650919582,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, Murcko scaffolds",0.745952343601891,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, Murcko scaffolds",0.7201319903067305,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, % stereocenters",0.12388568179044376,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, % stereocenters",0.13690054908096555,prep_outcomes_freq.csv
+3-10,"Jensen-Shannon distance, % stereocenters",0.16563632650919596,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, Murcko scaffolds",0.7459523436018911,prep_outcomes_freq.csv
+2-2,"Jensen-Shannon distance, Murcko scaffolds",0.7201319903067306,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, Murcko scaffolds",0.7288927826650033,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, hydrogen donors",0.28249164935602045,prep_outcomes_freq.csv
+1-1,"Jensen-Shannon distance, hydrogen donors",0.2824916493560205,prep_outcomes_freq.csv
 2-2,"Jensen-Shannon distance, hydrogen donors",0.17753729393165624,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, hydrogen donors",0.17602798981784826,prep_outcomes_freq.csv
 1-1,"Jensen-Shannon distance, hydrogen acceptors",0.35714072190879564,prep_outcomes_freq.csv
 2-2,"Jensen-Shannon distance, hydrogen acceptors",0.22064053573918707,prep_outcomes_freq.csv
 3-10,"Jensen-Shannon distance, hydrogen acceptors",0.20572801556857429,prep_outcomes_freq.csv
-1-1,Frechet ChemNet distance,13.622936512644308,prep_outcomes_freq.csv
-2-2,Frechet ChemNet distance,14.532676274050687,prep_outcomes_freq.csv
-3-10,Frechet ChemNet distance,18.023705467515292,prep_outcomes_freq.csv
+1-1,Frechet ChemNet distance,13.622936221007443,prep_outcomes_freq.csv
+2-2,Frechet ChemNet distance,14.532675380490502,prep_outcomes_freq.csv
+3-10,Frechet ChemNet distance,18.02370384708652,prep_outcomes_freq.csv

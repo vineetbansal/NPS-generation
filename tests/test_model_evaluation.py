@@ -121,7 +121,6 @@ def test_write_freq_distribution(tmp_path):
     )
 
 
-@pytest.mark.xfail
 def test_train_discriminator(tmp_path):
     output_file = tmp_path / "train_discriminator.csv"
     outcomes = train_discriminator(
@@ -139,7 +138,7 @@ def test_train_discriminator(tmp_path):
 
     plot(
         evaluation_type="train_discriminator",
-        outcome_dir=tmp_path,
+        outcome_files=[output_file],
         output_dir=tmp_path,
     )
 

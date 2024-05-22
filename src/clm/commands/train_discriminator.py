@@ -71,7 +71,7 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
 
     # Match the number of novel and train smiles
     if sample_smiles.shape[0] > len(train_smiles):
-        sample_smiles.sample(
+        sample_smiles = sample_smiles.sample(
             n=len(train_smiles), weights="size", random_state=seed, replace=False
         )
 
@@ -80,7 +80,8 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
     np_fps = []
     labels = []
     for idx, smile in tqdm(
-        enumerate(np.concatenate((train_smiles, sample_smiles), axis=0))
+        enumerate(np.concatenate((train_smiles, sample_smiles), axis=0)),
+        total=len(train_smiles) + len(sample_smiles),
     ):
         if (fp := calculate_fingerprint(smile)) is not None:
             arr = np.zeros((1,))
