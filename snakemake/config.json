@@ -49,12 +49,12 @@
   "top_k": 30,
   "err_ppm": 10,
   "structural_prior_min_freq": [1, 2, 3, 4],
-  "random_seed": null,
+  "random_seed": 5831,
 
   "paths": {
     "output_dir": "data",
-    "dataset": "/path/to/dataset.txt",
-    "pubchem_tsv_file": "/path/to/PubChem.tsv",
+    "dataset": "../tests/test_data/LOTUS_truncated.txt",
+    "pubchem_tsv_file": "../tests/test_data/PubChem_truncated.tsv",
 
     "preprocess_output": "{output_dir}/prior/raw/{dataset}.txt",
     "train_file": "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_{fold}.smi",
