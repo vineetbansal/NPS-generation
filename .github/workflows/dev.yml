@@ -30,16 +30,18 @@ jobs:
     - name: Install torch (CPU-only)
       run: pip3 install torch --index-url https://download.pytorch.org/whl/cpu
 
-    - name: Build source
-      run: pip install .
-
-    - name: Install developer dependencies
+    - name: Install package with extras
       run: pip install .[dev]
 
     - name: Pre-commit checks
       run: |
           pre-commit run --all-files
 
-    - name: Pytest
+    - name: Pytest with coverage
       shell: bash
-      run: pytest
+      run: coverage run --source=clm -m pytest
+
+    - name: Upload coverage to Coveralls
+      run: coveralls
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

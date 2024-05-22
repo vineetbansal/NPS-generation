@@ -53,6 +53,7 @@ addopts = "-sv"
 [project.optional-dependencies]
 dev = [
     "build",
+    "coveralls",
     "myst-parser",
     "pre-commit",
     "pytest",
