@@ -4,6 +4,14 @@ clm.plot package
 Submodules
 ----------
 
+clm.plot.calculate\_outcome\_distrs module
+------------------------------------------
+
+.. automodule:: clm.plot.calculate_outcome_distrs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 clm.plot.calculate\_outcomes module
 -----------------------------------
 
@@ -16,6 +24,30 @@ clm.plot.freq\_distribution module
 ----------------------------------
 
 .. automodule:: clm.plot.freq_distribution
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.plot.nn\_tc\_ever\_v\_never module
+--------------------------------------
+
+.. automodule:: clm.plot.nn_tc_ever_v_never
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.plot.topk module
+--------------------
+
+.. automodule:: clm.plot.topk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.plot.topk\_tc module
+------------------------
+
+.. automodule:: clm.plot.topk_tc
    :members:
    :undoc-members:
    :show-inheritance:

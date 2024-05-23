@@ -36,6 +36,14 @@ clm.commands.create\_training\_sets module
    :undoc-members:
    :show-inheritance:
 
+clm.commands.forecast module
+----------------------------
+
+.. automodule:: clm.commands.forecast
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 clm.commands.inner\_collect\_tabulated\_molecules module
 --------------------------------------------------------
 
