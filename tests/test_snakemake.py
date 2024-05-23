@@ -9,7 +9,7 @@ import clm  # noqa: F401 (imported to enable logging configuration)
 
 base_dir = Path(__file__).parent.parent
 
-config_file = base_dir / "snakemake/config_fast.json"
+config_file = base_dir / "snakemake/config_fast.yaml"
 dataset = base_dir / "tests/test_data/LOTUS_truncated.txt"
 pubchem_tsv_file = base_dir / "tests/test_data/PubChem_truncated.tsv"
 
