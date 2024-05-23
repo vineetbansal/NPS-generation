@@ -1,7 +1,7 @@
 bin,outcome,value,input_file
-1-1,n_mols,4000.0,prep_outcomes_freq.csv
-2-2,n_mols,4000.0,prep_outcomes_freq.csv
-3-10,n_mols,4000.0,prep_outcomes_freq.csv
+1-1,n_mols,500.0,prep_outcomes_freq.csv
+2-2,n_mols,1000.0,prep_outcomes_freq.csv
+3-10,n_mols,1557.0,prep_outcomes_freq.csv
 1-1,% valid,1.0,prep_outcomes_freq.csv
 2-2,% valid,1.0,prep_outcomes_freq.csv
 3-10,% valid,1.0,prep_outcomes_freq.csv
@@ -9,8 +9,8 @@ bin,outcome,value,input_file
 2-2,% novel,1.0,prep_outcomes_freq.csv
 3-10,% novel,1.0,prep_outcomes_freq.csv
 1-1,% unique,1.0,prep_outcomes_freq.csv
-2-2,% unique,1.0,prep_outcomes_freq.csv
-3-10,% unique,1.0,prep_outcomes_freq.csv
+2-2,% unique,0.5,prep_outcomes_freq.csv
+3-10,% unique,0.32113,prep_outcomes_freq.csv
 1-1,"KL divergence, atoms",inf,prep_outcomes_freq.csv
 2-2,"KL divergence, atoms",inf,prep_outcomes_freq.csv
 3-10,"KL divergence, atoms",inf,prep_outcomes_freq.csv

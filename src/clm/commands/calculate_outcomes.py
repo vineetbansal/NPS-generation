@@ -109,8 +109,9 @@ def smile_properties_dataframe(input_file, is_sample=False):
             row = tuple([None] * len(molecular_properties))
 
         if is_sample:
+            # note: "size" instead of .size which is a property of Series
             data.append(
-                (a_row.smiles, a_row.is_valid, a_row.is_novel, a_row.size, a_row.bin)
+                (a_row.smiles, a_row.is_valid, a_row.is_novel, a_row["size"], a_row.bin)
                 + row
             )
         else:
@@ -211,7 +212,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                 "% valid": n_valid_smiles / bin_df["size"].sum(),
                 "% novel": bin_df[bin_df["is_novel"]]["size"].sum()
                 / bin_df["size"].sum(),
-                "% unique": len(bin_df) / len(bin_df["size"].sum()),
+                "% unique": len(bin_df) / bin_df["size"].sum(),
                 "KL divergence, atoms": scipy.stats.entropy(p2, p1),
                 "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
                 "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
