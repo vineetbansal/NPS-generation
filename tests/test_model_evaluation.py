@@ -37,7 +37,7 @@ def test_generate_outcome_dicts():
 
 
 def test_calculate_outcomes(tmp_path):
-    output_file = tmp_path / "calculate_outcomes.csv"
+    output_file = tmp_path / "calculate_outcome.csv"
     outcomes = calculate_outcomes(
         sampled_file=test_dir / "prep_outcomes_freq.csv",
         # For LOTUS, train/test "_all.smi" files are the same
@@ -45,6 +45,20 @@ def test_calculate_outcomes(tmp_path):
         output_file=output_file,
         seed=12,
     )
+
+    # % unique for bin "1-1" (if present) should be 1.0 (since all molecules are unique)
+    unique_1 = outcomes[(outcomes.bin == "1-1") & (outcomes.outcome == "% unique")][
+        "value"
+    ].values
+    if len(unique_1) > 0:
+        assert unique_1[0] == 1.0
+
+    # % unique for bin "2-2" (if present) should be 0.5 (since all molecules are generated twice)
+    unique_2 = outcomes[(outcomes.bin == "2-2") & (outcomes.outcome == "% unique")][
+        "value"
+    ].values
+    if len(unique_2) > 0:
+        assert unique_2[0] == 0.5
 
     true_outcomes = read_csv_file(
         test_dir / "calculate_outcome.csv", keep_default_na=False

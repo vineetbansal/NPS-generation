@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 from matplotlib import pyplot as plt
 import seaborn as sns
-from clm.commands.inner_prep_outcomes_freq import prep_outcomes_freq
+from clm.commands.inner_prep_outcomes_freq import split_frequency_ranges
 from clm.functions import read_csv_file
 
 
@@ -58,7 +58,7 @@ def plot_generated_v_ref(outcome, output_dir):
 def plot_by_frequency(outcome, output_dir):
 
     # Split the outcomes by frequency bins
-    outcome_freq = prep_outcomes_freq(outcome, max_molecules=10000000)
+    outcome_freq = split_frequency_ranges(outcome, max_molecules=10000000)
 
     _data = {}
     for bin, df in outcome_freq.groupby("bin"):

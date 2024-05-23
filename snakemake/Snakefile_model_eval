@@ -52,6 +52,8 @@ rule prep_outcome_freq:
     """
     input:
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
+        known_smiles=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/known_{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
+        invalid_smiles=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/invalid_{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
     output:
         f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_prep_outcome_freq.csv.gz",
     resources:
@@ -62,6 +64,8 @@ rule prep_outcome_freq:
         '--sample_file {input.sample_file} '
         '--output_file {output} '
         '--max_molecules 500000 '
+        '--known_smiles {input.known_smiles} '
+        '--invalid_smiles {input.invalid_smiles} '
 
 
 rule calculate_outcomes:
