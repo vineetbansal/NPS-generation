@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+import os
 from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
@@ -43,7 +44,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     train_data = train_data.set_index("inchikey")["smiles"].to_dict()
     sampled_smiles = read_file(input_file, stream=True)
 
-    new_smiles = []
+    new_smiles, invalid_smiles, known_smiles = [], [], []
     for i, line in enumerate(tqdm(sampled_smiles)):
         *_, smile = line.split(",")
 
@@ -54,7 +55,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
         try:
             mol = clean_mol(smile, selfies=representation == "SELFIE")
         except ValueError:
-            continue
+            invalid_smiles.append(smile)
         else:
             mass = round(Descriptors.ExactMolWt(mol), 6)
             formula = rdMolDescriptors.CalcMolFormula(mol)
@@ -63,8 +64,11 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
 
             if inchikey not in train_data:
                 new_smiles.append([canonical_smile, mass, formula, inchikey])
+            else:
+                known_smiles.append(canonical_smile)
 
     freqs = pd.DataFrame(new_smiles, columns=["smiles", "mass", "formula", "inchikey"])
+
     # Find unique combinations of inchikey, mass, and formula, and add a
     # `size` column denoting the frequency of occurrence of each combination.
     # For each unique combination, select the first canonical smile.
@@ -75,6 +79,25 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     unique = unique.sort_values("size", ascending=False).reset_index(drop=True)
 
     write_to_csv_file(output_file, unique)
+    # TODO: The following approach will result in multiple lines for each repeated smile
+    write_to_csv_file(
+        os.path.join(
+            os.path.dirname(output_file), "known_" + os.path.basename(output_file)
+        ),
+        pd.DataFrame(
+            {(smile, known_smiles.count(smile)) for smile in known_smiles},
+            columns=["smiles", "size"],
+        ),
+    )
+    write_to_csv_file(
+        os.path.join(
+            os.path.dirname(output_file), "invalid_" + os.path.basename(output_file)
+        ),
+        pd.DataFrame(
+            {(smile, invalid_smiles.count(smile)) for smile in invalid_smiles},
+            columns=["smiles", "size"],
+        ),
+    )
 
 
 def main(args):

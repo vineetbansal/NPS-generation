@@ -1,5 +1,6 @@
 import argparse
 import logging
+import pandas as pd
 from clm.functions import set_seed, seed_type, write_to_csv_file, read_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -8,6 +9,12 @@ logger = logging.getLogger(__name__)
 
 def add_args(parser):
     parser.add_argument("--sample_file", type=str, help="Path to the sampled file")
+    parser.add_argument(
+        "--invalid_smiles_file", type=str, help="Path to the invalid sampled file"
+    )
+    parser.add_argument(
+        "--known_smiles_file", type=str, help="Path to the known sampled file"
+    )
     parser.add_argument(
         "--max_molecules",
         type=int,
@@ -23,12 +30,7 @@ def add_args(parser):
     return parser
 
 
-def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
-    set_seed(seed)
-
-    # Samples can be a csv file or a dataframe
-    data = read_csv_file(samples) if isinstance(samples, str) else samples
-
+def split_frequency_ranges(data, max_molecules=None):
     # TODO: make this process dynamic later
     frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
 
@@ -53,8 +55,33 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
     # Save only the rows where we've assigned a bin
     data = data[data["bin"] != ""].reset_index(drop=True)
 
-    if output_file is not None:
-        write_to_csv_file(output_file, data)
+    return data
+
+
+def prep_outcomes_freq(
+    samples,
+    max_molecules,
+    output_file=None,
+    seed=None,
+    known_smiles=None,
+    invalid_smiles=None,
+):
+    set_seed(seed)
+
+    known_df = read_csv_file(known_smiles, usecols=["smiles", "size"]).assign(
+        is_valid=True, is_novel=False
+    )
+    invalid_df = read_csv_file(invalid_smiles, usecols=["smiles", "size"]).assign(
+        is_valid=False, is_novel=True
+    )
+    sample_df = read_csv_file(samples, usecols=["smiles", "size"]).assign(
+        is_valid=True, is_novel=True
+    )
+
+    data = pd.concat([known_df, invalid_df, sample_df])
+    data = split_frequency_ranges(data, max_molecules)
+
+    write_to_csv_file(output_file, data)
 
     return data
 
@@ -62,6 +89,8 @@ def prep_outcomes_freq(samples, max_molecules, output_file=None, seed=None):
 def main(args):
     prep_outcomes_freq(
         samples=args.sample_file,
+        known_smiles=args.known_smiles_file,
+        invalid_smiles=args.invalid_smiles_file,
         max_molecules=args.max_molecules,
         output_file=args.output_file,
         seed=args.seed,
