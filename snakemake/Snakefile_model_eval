@@ -1,4 +1,4 @@
-configfile: "config.json"
+configfile: "config.yaml"
 threads: 1
 # -----------------------------------------------------------------------------
 # Setup

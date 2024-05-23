@@ -14,7 +14,7 @@ the number of independent seeds against which to run the models etc.
 
 The following dependency graph illustrates the particular instances of the steps that would be run, when
 running the workflow for a single `enum_factor`, 3 `folds`, 2 `training seeds`, and 1 `sampling seed`.
-(This is the starter configuration provided in the file `config_fast.json`).
+(This is the starter configuration provided in the file `config_fast.yaml`).
 
 ![DAG](dag.png "DAG")
 
@@ -36,12 +36,12 @@ pip install -e ".[dev]"
 
 ```
 cd CLM/snakemake
-snakemake --configfile config_fast.json --jobs 1 --dry-run -p
+snakemake --configfile config_fast.yaml --jobs 1 --dry-run -p
 ```
 
 3. Repeat the command without the `--dry-run -p` to execute the workflow. The end-end workflow should take around 5 minutes on computers where `torch` has access to a gpu, or 20-25 minutes otherwise.
 
-Note that the configuration provided in `config_fast.json`, as well as the truncated datasets that it uses by default, are purely for software testing purposes, and generate results/graphs that are not interpretable. To run the actual workflow on your dataset, read on.
+Note that the configuration provided in `config_fast.yaml`, as well as the truncated datasets that it uses by default, are purely for software testing purposes, and generate results/graphs that are not interpretable. To run the actual workflow on your dataset, read on.
 
 ### Running the "real" workflow
 
@@ -53,9 +53,9 @@ a. Specify the paths to your dataset (a `.txt` file containing SMILES in each li
 
 b. Add the `--slurm` flag to indicate that the steps should be run using `sbatch`.
 
-c. Replace `--configfile config_fast.json` with `--configfile config.json` (or eliminate this flag altogether).
+c. Replace `--configfile config_fast.yaml` with `--configfile config.yaml` (or eliminate this flag altogether).
 
-d. Make any other configuration changes in `config.json` (network architecture, number of epochs, other hyperparameters).
+d. Make any other configuration changes in `config.yaml` (network architecture, number of epochs, other hyperparameters).
 
 e. Increase the value of the `--jobs` flag to specify the maximum number of slurm jobs to run at a time.
 
@@ -66,7 +66,7 @@ snakemake --config dataset=/path/to/dataset.txt pubchem_tsv_file=/path/to/PubChe
 ```
 
 Replace `dataset` and `pubchem_tsv_file` with the paths to your dataset file and PubChem tsv file respectively. These will override the
-values obtained for these flags in `config.json`. Alternately, you can change `config.json` to point to the correct paths.
+values obtained for these flags in `config.yaml`. Alternately, you can change `config.yaml` to point to the correct paths.
 
 Repeat the command without the `--dry-run -p` to execute the workflow. The end-end workflow should take around 24 hours, depending on the cluster workload and the exact configuration in `config.json`.
 
