@@ -211,7 +211,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                 "% valid": n_valid_smiles / bin_df["size"].sum(),
                 "% novel": bin_df[bin_df["is_novel"]]["size"].sum()
                 / bin_df["size"].sum(),
-                "% unique": len(bin_df) / len(bin_df),
+                "% unique": len(bin_df) / len(bin_df["size"].sum()),
                 "KL divergence, atoms": scipy.stats.entropy(p2, p1),
                 "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
                 "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
