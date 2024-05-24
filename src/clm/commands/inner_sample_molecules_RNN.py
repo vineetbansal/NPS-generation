@@ -1,4 +1,3 @@
-import argparse
 import logging
 import os.path
 
@@ -137,9 +136,3 @@ def main(args):
         model_file=args.model_file,
         output_file=args.output_file,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

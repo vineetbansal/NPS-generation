@@ -1,4 +1,3 @@
-import argparse
 import logging
 import itertools
 from tqdm import tqdm
@@ -293,9 +292,3 @@ def main(args):
         seed=args.seed,
         max_input_smiles=args.max_input_smiles,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

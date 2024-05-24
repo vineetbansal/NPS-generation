@@ -1,7 +1,6 @@
 """
 Apply the Renz et al. 'AddCarbon' model to the training set.
 """
-import argparse
 import os
 import numpy as np
 from rdkit import Chem
@@ -115,9 +114,3 @@ def add_carbon(input_file, output_file, seed=None):
 
 def main(args):
     add_carbon(input_file=args.input_file, output_file=args.output_file, seed=args.seed)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

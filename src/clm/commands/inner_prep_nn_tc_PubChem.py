@@ -1,8 +1,5 @@
-import argparse
 import pandas as pd
 from clm.functions import set_seed, seed_type, write_to_csv_file, read_csv_file
-
-parser = argparse.ArgumentParser(description=__doc__)
 
 
 def add_args(parser):
@@ -71,9 +68,3 @@ def main(args):
         output_file=args.output_file,
         seed=args.seed,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

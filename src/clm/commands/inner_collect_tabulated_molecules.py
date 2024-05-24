@@ -1,10 +1,7 @@
-import argparse
 import os
 import pandas as pd
 
 from clm.functions import write_to_csv_file, read_csv_file
-
-parser = argparse.ArgumentParser()
 
 
 def add_args(parser):
@@ -96,9 +93,3 @@ def main(args):
         known_smiles=args.known_smiles,
         invalid_smiles=args.invalid_smiles,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

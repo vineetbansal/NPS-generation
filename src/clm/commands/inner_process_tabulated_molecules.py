@@ -1,4 +1,3 @@
-import argparse
 import pandas as pd
 import numpy as np
 from clm.functions import write_to_csv_file, read_csv_file
@@ -92,9 +91,3 @@ def main(args):
         summary_fn=args.summary_fn,
         min_freq=args.min_freq,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)
