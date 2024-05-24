@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 from matplotlib import pyplot as plt
 import seaborn as sns
+from clm.functions import read_csv_file
 
 
 def add_args(parser):
@@ -28,8 +29,8 @@ def add_args(parser):
 
 def plot_generated_v_never(outcome, output_dir):
     data = []
-    data.append(list(outcome[~(outcome["target_rank"] == 0)]["nn_tc"]))
-    data.append(list(outcome[outcome["target_rank"] == 0]["nn_tc"]))
+    data.append(list(outcome[outcome["target_rank"].notnull]["nn_tc"]))
+    data.append(list(outcome[outcome["target_rank"].isnull]["nn_tc"]))
 
     labels = ["Ever Generated", "Never Generated"]
 
@@ -58,8 +59,8 @@ def plot_generated_v_never(outcome, output_dir):
 
 def plot_generated_ratio(rank_df, output_dir):
     data = {
-        "Ever Generated": len(rank_df[~(rank_df["target_rank"] == 0)]),
-        "Never Generated": len(rank_df[rank_df["target_rank"] == 0]),
+        "Ever Generated": len(rank_df[rank_df["target_rank"].notnull]),
+        "Never Generated": len(rank_df[rank_df["target_rank"].isnull]),
     }
 
     sns.set_style("darkgrid")
@@ -84,16 +85,23 @@ def plot(outcome_files, ranks_file, output_dir):
     # Make an output directory if it doesn't yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome = pd.concat(
-        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
-    )
-    rank_df = pd.read_csv(ranks_file)
-    rank_df = rank_df[rank_df["target_source"] == "model"]
+    merged_df, rank = [], []
+    for outcome_file, rank_file in zip(outcome_files, ranks_file):
+        outcome_df, rank_df = read_csv_file(outcome_file), read_csv_file(rank_file)
+        rank_df = rank_df[rank_df["target_source"] == "model"]
+        merged_df.append(
+            pd.merge(
+                outcome_df,
+                rank_df,
+                how="inner",
+                right_on="inchikey",
+                left_on="target_inchikey",
+            )
+        )
+        rank.append(rank_df)
 
-    # Fill all the empty ranks with 0
-    rank_df["target_rank"].fillna(0, inplace=True)
+    rank_df, merged_df = pd.concat(rank), pd.concat(merged_df)
 
-    merged_df = pd.merge(outcome, rank_df, how="inner", on=["smiles"])
     plot_generated_v_never(merged_df, output_dir)
     plot_generated_ratio(rank_df, output_dir)
 
