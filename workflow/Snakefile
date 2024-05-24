@@ -62,7 +62,7 @@ rule prep_outcome_freq:
         mem_mb=120000,
         runtime=1000,
     shell:
-        'clm inner_prep_outcomes_freq '
+        'clm prep_outcomes_freq '
         '--sample_file {input.sample_file} '
         '--output_file {output} '
         '--max_molecules 500000 '
@@ -121,7 +121,7 @@ rule prep_nn_tc:
         mem_mb=64000,
         runtime=1000,
     shell:
-        'clm inner_prep_nn_tc_PubChem '
+        'clm prep_nn_tc_PubChem '
         '--sample_file {input.sampled_file} '
         '--pubchem_file {input.pubchem_file} '
         '--max_molecules 50000 '

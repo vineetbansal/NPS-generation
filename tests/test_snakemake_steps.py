@@ -4,13 +4,13 @@ import pandas as pd
 from clm.commands import (
     preprocess,
     create_training_sets,
-    inner_train_models_RNN,
-    inner_sample_molecules_RNN,
-    inner_tabulate_molecules,
-    inner_collect_tabulated_molecules,
-    inner_process_tabulated_molecules,
-    inner_write_structural_prior_CV,
-    inner_write_formula_prior_CV,
+    train_models_RNN,
+    sample_molecules_RNN,
+    tabulate_molecules,
+    collect_tabulated_molecules,
+    process_tabulated_molecules,
+    write_structural_prior_CV,
+    write_formula_prior_CV,
 )
 from clm.functions import assert_checksum_equals, read_csv_file
 
@@ -79,7 +79,7 @@ def test_01_create_training_sets(tmp_path):
 
 
 def test_02_train_models_RNN(tmp_path):
-    inner_train_models_RNN.train_models_RNN(
+    train_models_RNN.train_models_RNN(
         representation="SMILES",
         seed=0,
         rnn_type="LSTM",
@@ -107,7 +107,7 @@ def test_02_train_models_RNN(tmp_path):
 
 def test_03_sample_molecules_RNN(tmp_path):
     output_file = tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv"
-    inner_sample_molecules_RNN.sample_molecules_RNN(
+    sample_molecules_RNN.sample_molecules_RNN(
         representation="SMILES",
         seed=0,
         rnn_type="LSTM",
@@ -133,7 +133,7 @@ def test_04_tabulate_molecules(tmp_path):
     output_file = (
         tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv"
     )
-    inner_tabulate_molecules.tabulate_molecules(
+    tabulate_molecules.tabulate_molecules(
         input_file=test_dir
         / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv",
         representation="SMILES",
@@ -157,7 +157,7 @@ def test_05_collect_tabulated_molecules(tmp_path):
     output_file = (
         tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv"
     )
-    inner_collect_tabulated_molecules.collect_tabulated_molecules(
+    collect_tabulated_molecules.collect_tabulated_molecules(
         input_files=[
             test_dir
             / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv",
@@ -181,7 +181,7 @@ def test_06_process_tabulated_molecules(tmp_path):
     output_file = (
         tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_processed_freq-avg.csv"
     )
-    inner_process_tabulated_molecules.process_tabulated_molecules(
+    process_tabulated_molecules.process_tabulated_molecules(
         input_file=[
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
             test_dir / "0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv",
@@ -208,7 +208,7 @@ def test_06_process_tabulated_molecules(tmp_path):
 
 def test_07_write_structural_prior_CV(tmp_path):
     temp_dir = tmp_path / "0/prior/structural_prior"
-    inner_write_structural_prior_CV.write_structural_prior_CV(
+    write_structural_prior_CV.write_structural_prior_CV(
         ranks_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
         tc_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_tc.csv",
         train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
@@ -234,7 +234,7 @@ def test_07_write_structural_prior_CV(tmp_path):
 
 
 def test_08_write_formula_prior_CV(tmp_path):
-    inner_write_formula_prior_CV.write_formula_prior_CV(
+    write_formula_prior_CV.write_formula_prior_CV(
         ranks_file=tmp_path / "LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
         train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         test_file=test_dir / "0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi",
@@ -254,7 +254,7 @@ def test_08_write_formula_prior_CV(tmp_path):
 
 def test_08_write_structural_prior_CV(tmp_path):
     temp_dir = tmp_path / "0/prior/structural_prior/add_carbon"
-    inner_write_structural_prior_CV.write_structural_prior_CV(
+    write_structural_prior_CV.write_structural_prior_CV(
         ranks_file=temp_dir
         / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
         tc_file=temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
