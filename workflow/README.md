@@ -32,10 +32,10 @@ cd CLM
 pip install -e ".[dev]"
 ```
 
-2. `cd` to the `snakemake/` folder and run the following command to see the steps (including the actual commands) that will be run:
+2. `cd` to the `workflow/` folder and run the following command to see the steps (including the actual commands) that will be run:
 
 ```
-cd CLM/snakemake
+cd CLM/workflow
 snakemake --configfile config_fast.yaml --jobs 1 --dry-run -p
 ```
 
