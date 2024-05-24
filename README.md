@@ -1,4 +1,4 @@
-[![CI](https://github.com/skinniderlab/CLM/actions/workflows/dev.yml/badge.svg)](https://github.com/skinniderlab/CLM/actions/workflows/dev.yml)
+[![Tests](https://github.com/skinniderlab/CLM/actions/workflows/tests.yml/badge.svg)](https://github.com/skinniderlab/CLM/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/skinniderlab/CLM/badge.svg?branch=master)](https://coveralls.io/github/skinniderlab/CLM?branch=master)
 
 ## CLM
