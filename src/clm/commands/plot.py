@@ -1,4 +1,3 @@
-import argparse
 from clm.plot.calculate_outcomes import plot as calculate_outcomes
 from clm.plot.write_nn_tc import plot as write_nn_tc
 from clm.plot.train_discriminator import plot as train_discriminator
@@ -63,9 +62,3 @@ def main(args):
         output_dir=args.output_dir,
         ranks_file=args.ranks_file,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

@@ -1,4 +1,3 @@
-import argparse
 import pandas as pd
 import os
 from tqdm import tqdm
@@ -107,9 +106,3 @@ def main(args):
         representation=args.representation,
         output_file=args.output_file,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)
