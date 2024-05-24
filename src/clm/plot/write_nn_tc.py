@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 from matplotlib import pyplot as plt
 import seaborn as sns
-from clm.commands.inner_prep_outcomes_freq import split_frequency_ranges
+from clm.commands.prep_outcomes_freq import split_frequency_ranges
 from clm.functions import read_csv_file
 
 
