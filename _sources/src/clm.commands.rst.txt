@@ -28,6 +28,14 @@ clm.commands.calculate\_outcomes module
    :undoc-members:
    :show-inheritance:
 
+clm.commands.collect\_tabulated\_molecules module
+-------------------------------------------------
+
+.. automodule:: clm.commands.collect_tabulated_molecules
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 clm.commands.create\_training\_sets module
 ------------------------------------------
 
@@ -44,82 +52,26 @@ clm.commands.forecast module
    :undoc-members:
    :show-inheritance:
 
-clm.commands.inner\_collect\_tabulated\_molecules module
---------------------------------------------------------
-
-.. automodule:: clm.commands.inner_collect_tabulated_molecules
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-clm.commands.inner\_prep\_nn\_tc\_PubChem module
-------------------------------------------------
-
-.. automodule:: clm.commands.inner_prep_nn_tc_PubChem
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-clm.commands.inner\_prep\_outcomes\_freq module
------------------------------------------------
-
-.. automodule:: clm.commands.inner_prep_outcomes_freq
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-clm.commands.inner\_process\_tabulated\_molecules module
---------------------------------------------------------
-
-.. automodule:: clm.commands.inner_process_tabulated_molecules
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-clm.commands.inner\_sample\_molecules\_RNN module
--------------------------------------------------
-
-.. automodule:: clm.commands.inner_sample_molecules_RNN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-clm.commands.inner\_tabulate\_molecules module
-----------------------------------------------
-
-.. automodule:: clm.commands.inner_tabulate_molecules
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-clm.commands.inner\_train\_models\_RNN module
----------------------------------------------
-
-.. automodule:: clm.commands.inner_train_models_RNN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-clm.commands.inner\_write\_formula\_prior\_CV module
-----------------------------------------------------
-
-.. automodule:: clm.commands.inner_write_formula_prior_CV
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-clm.commands.inner\_write\_structural\_prior\_CV module
--------------------------------------------------------
-
-.. automodule:: clm.commands.inner_write_structural_prior_CV
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 clm.commands.plot module
 ------------------------
 
 .. automodule:: clm.commands.plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.commands.prep\_nn\_tc\_PubChem module
+-----------------------------------------
+
+.. automodule:: clm.commands.prep_nn_tc_PubChem
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.commands.prep\_outcomes\_freq module
+----------------------------------------
+
+.. automodule:: clm.commands.prep_outcomes_freq
    :members:
    :undoc-members:
    :show-inheritance:
@@ -132,10 +84,50 @@ clm.commands.preprocess module
    :undoc-members:
    :show-inheritance:
 
+clm.commands.process\_tabulated\_molecules module
+-------------------------------------------------
+
+.. automodule:: clm.commands.process_tabulated_molecules
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.commands.sample\_molecules\_RNN module
+------------------------------------------
+
+.. automodule:: clm.commands.sample_molecules_RNN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.commands.tabulate\_molecules module
+---------------------------------------
+
+.. automodule:: clm.commands.tabulate_molecules
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 clm.commands.train\_discriminator module
 ----------------------------------------
 
 .. automodule:: clm.commands.train_discriminator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.commands.train\_models\_RNN module
+--------------------------------------
+
+.. automodule:: clm.commands.train_models_RNN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.commands.write\_formula\_prior\_CV module
+---------------------------------------------
+
+.. automodule:: clm.commands.write_formula_prior_CV
    :members:
    :undoc-members:
    :show-inheritance:
@@ -160,6 +152,14 @@ clm.commands.write\_outcome\_distr module
 -----------------------------------------
 
 .. automodule:: clm.commands.write_outcome_distr
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clm.commands.write\_structural\_prior\_CV module
+------------------------------------------------
+
+.. automodule:: clm.commands.write_structural_prior_CV
    :members:
    :undoc-members:
    :show-inheritance:
