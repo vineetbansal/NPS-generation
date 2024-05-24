@@ -36,7 +36,7 @@ pip install -e ".[dev]"
 
 ```
 cd CLM/workflow
-snakemake --configfile config_fast.yaml --jobs 1 --dry-run -p
+snakemake --configfile config/config_fast.yaml --jobs 1 --dry-run -p
 ```
 
 3. Repeat the command without the `--dry-run -p` to execute the workflow. The end-end workflow should take around 5 minutes on computers where `torch` has access to a gpu, or 20-25 minutes otherwise.
@@ -53,7 +53,7 @@ a. Specify the paths to your dataset (a `.txt` file containing SMILES in each li
 
 b. Add the `--slurm` flag to indicate that the steps should be run using `sbatch`.
 
-c. Replace `--configfile config_fast.yaml` with `--configfile config.yaml` (or eliminate this flag altogether).
+c. Replace `--configfile config/config_fast.yaml` with `--configfile config/config.yaml` (or eliminate this flag altogether).
 
 d. Make any other configuration changes in `config.yaml` (network architecture, number of epochs, other hyperparameters).
 
