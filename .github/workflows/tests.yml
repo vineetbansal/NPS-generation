@@ -1,4 +1,4 @@
-name: Build Package and Test it
+name: Tests
 
 on:
   push:

@@ -1,3 +1,6 @@
+[![CI](https://github.com/skinniderlab/CLM/actions/workflows/dev.yml/badge.svg)](https://github.com/skinniderlab/CLM/actions/workflows/dev.yml)
+[![Coverage Status](https://coveralls.io/repos/github/skinniderlab/CLM/badge.svg?branch=master)](https://coveralls.io/github/skinniderlab/CLM?branch=master)
+
 ## CLM
 
 This repository contains Python source code required to train and evaluate deep generative models of novel psychoactive substances, as used in the manuscript, [A deep generative model enables automated structure elucidation of novel psychoactive substances](https://www.nature.com/articles/s42256-021-00407-x).
