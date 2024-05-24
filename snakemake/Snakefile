@@ -66,7 +66,7 @@ rule preprocess:
         '--max-input-smiles {config[max_input_smiles]} '
 
 
-rule create_training_sets:
+rule generate:
     """
     Split input smiles into separate files for train/test folds,
     while also creating a .vocabulary files for the training smiles.
@@ -117,7 +117,7 @@ rule add_carbon:
         '--output_file {output.carbon_file} '
         '--seed {config[random_seed]} '
 
-rule collapse_train_test_data:
+rule unique:
     """
     Generate single files for training and testing smiles respectively, out
     of all the folds we generated in the `create_training_sets` step. This
@@ -145,7 +145,7 @@ rule collapse_train_test_data:
         'python -c "import sys; lines = [open(sys.argv[1]).readline()] + sorted(set(line for file_path in sorted(sys.argv[1:]) for i, line in enumerate(open(file_path)) if i>0)); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file} && '
         'python -c "import sys; lines = [open(sys.argv[1]).readline()] + sorted(set(line for file_path in sorted(sys.argv[1:]) for i, line in enumerate(open(file_path)) if i>0)); sys.stdout.writelines(lines)" {input.carbon_file} > {output.carbon_file} '
 
-rule train_models_RNN:
+rule train:
     """
     Train |seed| RNN models on an input fold.
     Each training fold is internally split into train/validation split of 0.9.
@@ -184,7 +184,7 @@ rule train_models_RNN:
         '--loss_file {output.loss_file} '
 
 
-rule sample_molecules_RNN:
+rule sample:
     """
     Sample `sample_mols` smiles from a trained model and fole, and save to
     `output_file`. Each line of `output_file` is (<mass>, <smile>).
@@ -214,7 +214,7 @@ rule sample_molecules_RNN:
         '--output_file {output.output_file} '
 
 
-rule tabulate_molecules:
+rule annotate:
     """
     For sampled smiles from a model and a fold, add mass, formula and sampling
     frequency. Filter out smiles that are found in `train_file`, based on a
@@ -238,7 +238,7 @@ rule tabulate_molecules:
         '--output_file {output.output_file} '
 
 
-rule collect_tabulated_molecules:
+rule collect:
     """
     Aggregate sampled smiles from all samples obtained in a fold, adding
     sampling frequency in the process.
@@ -262,7 +262,7 @@ rule collect_tabulated_molecules:
         '--invalid_smiles {input.invalid_smiles_file} '
 
 
-rule process_tabulated_molecules:
+rule combine:
     """
     Aggregate sampled smiles across all folds, calculating metrics like
     average sampling frequency (if metric=freq-avg), freq-sum etc.
@@ -291,7 +291,7 @@ rule process_tabulated_molecules:
         '--min_freq {wildcards.min_freq}'
 
 
-rule write_structural_prior_CV:
+rule structural_prior:
     """
     Evaluate test smiles against the trained models, with PubChem as a baseline.
 
@@ -340,7 +340,7 @@ rule write_structural_prior_CV:
         '--carbon_file {input.carbon_file} '
 
 
-rule write_formula_prior_CV:
+rule formula_prior:
     """
     NOTE: Analogous to `write_structural_prior_CV`, but "correctness" is based
     on a matching formula, not a matching smile. Read on for full details.
@@ -378,7 +378,7 @@ rule write_formula_prior_CV:
         '--seed {config[random_seed]} '
 
 
-rule write_structural_prior_CV_overall:
+rule structural_prior_overall:
     """
     How good are the "overall" samplings from all models (across all folds)?
 

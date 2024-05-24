@@ -1,11 +1,12 @@
 representations:
   - SMILES
-folds: 3
+folds: 2
 train_seeds:
   - 0
   - 1
 sample_seeds:
   - 0
+  - 1
 enum_factors:
   - 0
 max_input_smiles: 1000
@@ -29,6 +30,7 @@ top_k: 30
 err_ppm: 10
 structural_prior_min_freq:
   - 1
+  - 2
 random_seed: 5831
 paths:
   output_dir: data

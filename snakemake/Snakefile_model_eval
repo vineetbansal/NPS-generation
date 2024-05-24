@@ -22,7 +22,7 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 # Rules
 # -----------------------------------------------------------------------------
-rule all:
+rule all_eval:
     input:
         topk=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk",
             enum_factor=ENUM_FACTORS),
@@ -41,6 +41,8 @@ rule all:
         topk_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc",
             enum_factor=ENUM_FACTORS)
 
+
+include: "Snakefile"
 
 rule prep_outcome_freq:
     """
