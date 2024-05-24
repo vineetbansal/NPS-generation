@@ -163,7 +163,7 @@ rule train_models_RNN:
         runtime=15+MODEL_PARAMS["max_epochs"]*15,
         slurm_extra="--gres=gpu:1"
     shell:
-        'clm inner_train_models_RNN '
+        'clm train_models_RNN '
         '--representation {wildcards.repr} '
         '--seed {wildcards.train_seed} '
         '--rnn_type {MODEL_PARAMS[rnn_type]} '
@@ -199,7 +199,7 @@ rule sample_molecules_RNN:
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
         slurm_extra="--gres=gpu:1"
     shell:
-        'clm inner_sample_molecules_RNN '
+        'clm sample_molecules_RNN '
         '--representation {wildcards.repr} '
         '--seed {wildcards.sample_seed} '
         '--rnn_type {MODEL_PARAMS[rnn_type]} '
@@ -231,7 +231,7 @@ rule tabulate_molecules:
         mem_mb=32000,
         runtime=lambda wildcards: 15+MODEL_PARAMS["sample_mols"]*(int(wildcards["enum_factor"])+1)//100000,
     shell:
-        'clm inner_tabulate_molecules '
+        'clm tabulate_molecules '
         '--input_file {input.input_file} '
         '--train_file {input.train_file} '
         '--representation {wildcards.repr} '
@@ -255,7 +255,7 @@ rule collect_tabulated_molecules:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//1000000,
     shell:
-        'clm inner_collect_tabulated_molecules '
+        'clm collect_tabulated_molecules '
         '--input_files {input.input_files} '
         '--output_file {output.output_file} '
         '--known_smiles {input.known_smiles_file} '
@@ -283,7 +283,7 @@ rule process_tabulated_molecules:
         mem_mb=128000,
         runtime=15+MODEL_PARAMS["sample_mols"]//100000,
     shell:
-        'clm inner_process_tabulated_molecules '
+        'clm process_tabulated_molecules '
         '--input_file {input.input_file} '
         '--cv_file {input.cv_file} '
         '--output_file {output.output_file} '
@@ -328,7 +328,7 @@ rule write_structural_prior_CV:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
     shell:
-        'clm inner_write_structural_prior_CV '
+        'clm write_structural_prior_CV '
         '--ranks_file {output.ranks_file} '
         '--tc_file {output.tc_file} '
         '--train_file {input.train_file} '
@@ -368,7 +368,7 @@ rule write_formula_prior_CV:
         mem_mb=64000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
     shell:
-        'clm inner_write_formula_prior_CV '
+        'clm write_formula_prior_CV '
         '--ranks_file {output.ranks_file} '
         '--train_file {input.train_file} '
         '--test_file {input.test_file} '
@@ -412,7 +412,7 @@ rule write_structural_prior_CV_overall:
         mem_mb=128000,
         runtime=15+MODEL_PARAMS["sample_mols"]//5000,
     shell:
-        'clm inner_write_structural_prior_CV '
+        'clm write_structural_prior_CV '
         '--ranks_file {output.ranks_file} '
         '--tc_file {output.tc_file} '
         '--train_file {input.train_file} '
