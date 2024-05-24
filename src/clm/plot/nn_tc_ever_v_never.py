@@ -17,6 +17,7 @@ def add_args(parser):
     parser.add_argument(
         "--ranks_file",
         type=str,
+        nargs="+",
         help="Path to ranks file ",
     )
     parser.add_argument(
