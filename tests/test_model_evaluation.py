@@ -6,7 +6,7 @@ from clm.commands.calculate_outcomes import (
     calculate_outcomes_dataframe,
     calculate_outcomes,
 )
-from clm.commands.inner_prep_nn_tc_PubChem import prep_nn_tc
+from clm.commands.prep_nn_tc_PubChem import prep_nn_tc
 from clm.commands.write_nn_Tc import write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
