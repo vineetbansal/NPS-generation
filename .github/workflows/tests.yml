@@ -1,4 +1,4 @@
-name: Build Package and Test it
+name: Tests
 
 on:
   push:
@@ -42,6 +42,7 @@ jobs:
       run: coverage run --source=clm -m pytest
 
     - name: Upload coverage to Coveralls
+      if: matrix.os == 'ubuntu-latest'
       run: coveralls
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
