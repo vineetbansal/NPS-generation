@@ -39,7 +39,7 @@ jobs:
 
     - name: Pytest with coverage
       shell: bash
-      run: coverage run --service=gihtub --source=clm -m pytest
+      run: coverage run --source=clm -m pytest
 
     - name: Upload coverage to Coveralls
       run: coveralls
