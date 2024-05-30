@@ -3,7 +3,6 @@ Calculate a set of outcomes for a list of SMILES, writing the complete
 distribution and not just a summary statistic.
 """
 
-import argparse
 import os
 import numpy as np
 import pandas as pd
@@ -177,9 +176,3 @@ def calculate_outcome_distr(input_file, output_file, seed=None):
 
 def main(args):
     calculate_outcome_distr(input_file=args.input_file, output_file=args.output_file)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

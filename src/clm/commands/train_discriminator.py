@@ -1,4 +1,3 @@
-import argparse
 import numpy as np
 import os
 import pandas as pd
@@ -125,9 +124,3 @@ def main(args):
         seed=args.seed,
         max_mols=args.max_mols,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

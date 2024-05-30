@@ -1,4 +1,3 @@
-import argparse
 import logging
 from tqdm import tqdm
 import numpy as np
@@ -154,9 +153,3 @@ def main(args):
         valid_atoms=args.valid_atoms,
         remove_rare=args.remove_rare,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

@@ -1,4 +1,3 @@
-import argparse
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -174,9 +173,3 @@ def main(args):
         chunk_size=args.chunk_size,
         seed=args.seed,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)

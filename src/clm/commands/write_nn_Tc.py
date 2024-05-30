@@ -1,4 +1,3 @@
-import argparse
 import pandas as pd
 from rdkit.DataStructs import FingerprintSimilarity
 from clm.functions import (
@@ -113,9 +112,3 @@ def main(args):
         output_file=args.output_file,
         query_type=args.query_type,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    args = add_args(parser).parse_args()
-    main(args)
