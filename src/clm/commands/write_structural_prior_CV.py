@@ -7,6 +7,7 @@ from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
 
 from clm.functions import (
+    compute_fingerprint,
     compute_fingerprints,
     set_seed,
     seed_type,
@@ -123,15 +124,29 @@ def match_molecules(row, dataset, data_type):
 
     row_inchikey = row["inchikey"]
     rank = match[match["target_inchikey"] == row_inchikey][
-        ["target_size", "target_rank", "target_source", "target_inchikey"]
+        [
+            "target_smiles",
+            "target_size",
+            "target_rank",
+            "target_source",
+            "target_inchikey",
+        ]
     ]
 
     # `rank` denotes the best match
-    if rank.shape[0] > 1:
+    if rank.shape[0] >= 1:
         rank = rank.head(1)
+        rank_row = rank.iloc[0]
+
+        rank["Tc"] = FingerprintSimilarity(
+            compute_fingerprint(clean_mol(rank_row.target_smiles), algorithm="ecfp6"),
+            compute_fingerprint(clean_mol(row.smiles), algorithm="ecfp6"),
+        )
     elif rank.shape[0] == 0:
         rank = pd.DataFrame(
             {
+                "target_smiles": [np.nan],
+                "Tc": [np.nan],
                 "target_size": [np.nan],
                 "target_rank": [np.nan],
                 "target_source": [data_type],
