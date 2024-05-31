@@ -6,6 +6,7 @@ from clm.commands.calculate_outcomes import (
     calculate_outcomes_dataframe,
     calculate_outcomes,
 )
+from clm.commands.prep_outcomes_freq import prep_outcomes_freq
 from clm.commands.prep_nn_tc_PubChem import prep_nn_tc
 from clm.commands.write_nn_Tc import write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
@@ -35,6 +36,25 @@ def test_generate_outcome_dicts():
         train_df,
         sample_df,
     )
+
+
+def test_prep_outcome_freq(tmp_path):
+    output_file = tmp_path / "prep_outcomes_freq.csv"
+
+    outcomes = prep_outcomes_freq(
+        samples=test_dir
+        / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
+        max_molecules=500,
+        output_file=output_file,
+        seed=12,
+        known_smiles=test_dir
+        / "snakemake_output/0/prior/samples/known_LOTUS_truncated_SMILES_0_unique_masses.csv",
+        invalid_smiles=test_dir
+        / "snakemake_output/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_unique_masses.csv",
+    )
+
+    true_outcomes = read_csv_file(test_dir / "prep_outcomes_freq.csv")
+    pd.testing.assert_frame_equal(outcomes, true_outcomes, check_dtype=False)
 
 
 def test_calculate_outcomes(tmp_path):
