@@ -22,6 +22,7 @@ from tqdm import tqdm
 
 # import functions
 from clm.functions import (
+    read_file,
     clean_mol,
     pct_rotatable_bonds,
     pct_stereocenters,
@@ -37,19 +38,52 @@ rdBase.DisableLog("rdApp.error")
 
 
 def add_args(parser):
-    parser.add_argument("--input_file", type=str, help="Path to the input file.")
-    parser.add_argument("--output_file", type=str, help="Path to the output file")
+    parser.add_argument("--sample_file", type=str, help="Path to the sampled file")
+    parser.add_argument("--train_file", type=str, help="Path to the train file")
+    parser.add_argument("--max_mols", type=int, help="Number of samples to select")
+    parser.add_argument("--pubchem_file", type=str, help="Path to the PubChem file")
+    parser.add_argument(
+        "--output_file", type=str, help="Path to the save the output file"
+    )
     return parser
 
 
-def calculate_outcome_distr(input_file, output_file, seed=None):
+def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file, seed=None):
+    sample = read_csv_file(sample_file, delimiter=",")
+    if sample.shape[0] > max_mols:
+        sample = sample.sample(
+            n=max_mols, replace=True, weights=sample["size"], ignore_index=True
+        )
+
+    pubchem = read_csv_file(
+        pubchem_file, delimiter="\t", header=None, names=["smiles", "mass", "formula"]
+    )
+    pubchem = pubchem[pubchem["formula"].isin(set(sample.formula))]
+    pubchem = pubchem.drop_duplicates(subset=["formula"], keep="first")
+
+    train = pd.DataFrame({"smiles": read_file(train_file, smile_only=True)})
+    combination = pd.concat(
+        [
+            sample.assign(source="model"),
+            pubchem.assign(source="pubchem"),
+            train.assign(source="train"),
+        ]
+    )
+
+    # write_to_csv_file(output_file, combination, columns=["smiles", "source"])
+    return combination[["smiles", "source"]]
+
+
+def calculate_outcome_distr(
+    sample_file, max_mols, train_file, pubchem_file, output_file, seed=None
+):
     set_seed(seed)
 
     # create results container
     res = []
 
     # read SMILES and convert to molecules
-    df = read_csv_file(input_file)
+    df = write_outcome_distr(sample_file, max_mols, train_file, pubchem_file)
     smiles = df["smiles"].tolist()
     mols = [clean_mol(smile, raise_error=False) for smile in smiles]
     idxs = [idx for idx, mol in enumerate(mols) if mol]
@@ -175,4 +209,10 @@ def calculate_outcome_distr(input_file, output_file, seed=None):
 
 
 def main(args):
-    calculate_outcome_distr(input_file=args.input_file, output_file=args.output_file)
+    calculate_outcome_distr(
+        sample_file=args.sample_file,
+        max_mols=args.max_mols,
+        train_file=args.train_file,
+        pubchem_file=args.pubchem_file,
+        output_file=args.output_file,
+    )
