@@ -21,6 +21,7 @@ from clm.functions import (
     clean_mol,
     write_to_csv_file,
     compute_fingerprint,
+    split_frequency_ranges,
     # Functions for calculating metrics
     continuous_JSD,
     discrete_JSD,
@@ -42,10 +43,18 @@ def add_args(parser):
     parser.add_argument(
         "--train_file", type=str, help="Training csv file with smiles as a column."
     )
+    parser.add_argument("--sampled_file", type=str, help="Path to the sampled file")
     parser.add_argument(
-        "--sampled_file",
-        type=str,
-        help="Sampled csv file with smiles as a column, or a text file with one SMILES per line.",
+        "--invalid_smiles_file", type=str, help="Path to the invalid sampled file"
+    )
+    parser.add_argument(
+        "--known_smiles_file", type=str, help="Path to the known sampled file"
+    )
+    parser.add_argument(
+        "--max_molecules",
+        type=int,
+        help="Max number of sampled smiles to select for a bin (smiles that are not designated to a bin are discarded.)",
+        default=None,
     )
     parser.add_argument("--output_file", type=str)
     parser.add_argument(
@@ -91,33 +100,21 @@ molecular_properties = {
 }
 
 
-def smile_properties_dataframe(input_file, is_sample=False):
+def smile_properties_dataframe(a_row, is_sample=False):
     data = []
-    for i, df in enumerate(
-        read_csv_file(
-            input_file,
-            iterator=True,
-            chunksize=1,
-        ),
-        start=1,
-    ):
-        a_row = df.iloc[0]
-        if (mol := clean_mol(a_row.smiles, raise_error=False)) is not None:
-            row = tuple(fun(mol) for fun in molecular_properties.values())
-        else:
-            row = tuple([None] * len(molecular_properties))
+    if (mol := clean_mol(a_row.smiles, raise_error=False)) is not None:
+        row = tuple(fun(mol) for fun in molecular_properties.values())
+    else:
+        row = tuple([None] * len(molecular_properties))
 
-        if is_sample:
-            # note: "size" instead of .size which is a property of Series
-            data.append(
-                (a_row.smiles, a_row.is_valid, a_row.is_novel, a_row["size"], a_row.bin)
-                + row
-            )
-        else:
-            data.append((a_row.smiles,) + row)
-
-        if i % 1_000 == 0:
-            logger.info(f"Processed {i} SMILES")
+    if is_sample:
+        # note: "size" instead of .size which is a property of Series
+        data.append(
+            (a_row.smiles, a_row.is_valid, a_row.is_novel, a_row["size"], a_row.bin)
+            + row
+        )
+    else:
+        data.append((a_row.smiles,) + row)
 
     # Unlike training smiles, sampled smiles can be categorized as valid/ novel
     # So, sampled df have more columns than train df, both of which are parsed in this function
@@ -148,12 +145,20 @@ def calculate_probabilities(*dicts):
     return return_values
 
 
-def get_dataframes(train_file, sampled_file):
+def get_dataframes(train_file, prep_sample_df):
     logger.info(f"Reading training smiles from {train_file}")
-    train_df = smile_properties_dataframe(train_file)
 
-    logger.info(f"Reading sample smiles from {sampled_file}")
-    sample_df = smile_properties_dataframe(sampled_file, is_sample=True)
+    train_data = []
+    for df in read_csv_file(train_file, chunksize=1000):
+        train_data.extend(df.apply(smile_properties_dataframe, axis=1))
+
+    train_df = pd.concat(train_data)
+
+    logger.info(f"Reading sample smiles from {prep_sample_df}")
+    sample_data = prep_sample_df.apply(
+        lambda x: smile_properties_dataframe(x, is_sample=True), axis=1
+    )
+    sample_df = pd.concat(sample_data.to_list())
 
     n_valid_smiles = sample_df["is_valid"].sum()
     logger.info(f"{n_valid_smiles} valid SMILES out of {len(sample_df)}")
@@ -166,10 +171,14 @@ def get_dataframes(train_file, sampled_file):
 
 def calculate_outcomes_dataframe(sample_df, train_df):
     train_element_distribution = dict(
-        zip(*np.unique(np.concatenate(train_df["elements"]), return_counts=True))
+        zip(
+            *np.unique(
+                np.concatenate(train_df["elements"].to_numpy()), return_counts=True
+            )
+        )
     )
     train_murcko_distribution = dict(
-        zip(*np.unique(train_df["murcko"], return_counts=True))
+        zip(*np.unique(train_df["murcko"].to_numpy(), return_counts=True))
     )
 
     out = []
@@ -271,7 +280,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                 ),
                 "Frechet ChemNet distance": fcd(
                     bin_df[bin_df["is_novel"]]["canonical_smile"],
-                    train_df["canonical_smile"],
+                    train_df["canonical_smile"].to_numpy(),
                 ),
             }
         )
@@ -283,9 +292,42 @@ def calculate_outcomes_dataframe(sample_df, train_df):
     return out
 
 
-def calculate_outcomes(sampled_file, train_file, output_file, seed=None):
+def prep_outcomes_freq(
+    samples,
+    max_molecules,
+    known_smiles,
+    invalid_smiles,
+):
+    known_df = read_csv_file(known_smiles, usecols=["smiles", "size"]).assign(
+        is_valid=True, is_novel=False
+    )
+    invalid_df = read_csv_file(invalid_smiles, usecols=["smiles", "size"]).assign(
+        is_valid=False, is_novel=True
+    )
+    sample_df = read_csv_file(samples, usecols=["smiles", "size"]).assign(
+        is_valid=True, is_novel=True
+    )
+
+    data = pd.concat([known_df, invalid_df, sample_df])
+    data = split_frequency_ranges(data, max_molecules)
+
+    return data
+
+
+def calculate_outcomes(
+    sampled_file,
+    train_file,
+    known_smiles,
+    invalid_smiles,
+    max_molecules,
+    output_file,
+    seed=None,
+):
     set_seed(seed)
-    train_df, sample_df = get_dataframes(train_file, sampled_file)
+    prep_sample_df = prep_outcomes_freq(
+        sampled_file, max_molecules, known_smiles, invalid_smiles
+    )
+    train_df, sample_df = get_dataframes(train_file, prep_sample_df)
 
     logger.info("Calculating outcomes")
     out = calculate_outcomes_dataframe(sample_df, train_df)
@@ -301,6 +343,9 @@ def main(args):
     calculate_outcomes(
         train_file=args.train_file,
         sampled_file=args.sampled_file,
+        known_smiles=args.known_smiles_file,
+        invalid_smiles=args.invalid_smiles_file,
+        max_molecules=args.max_molecules,
         output_file=args.output_file,
         seed=args.seed,
     )

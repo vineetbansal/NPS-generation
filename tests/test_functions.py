@@ -1,19 +1,7 @@
-import contextlib
 import pytest
-import numpy as np
 import seaborn as sns
 import pandas as pd
-from clm.functions import read_file, read_csv_file, write_to_csv_file
-
-
-@contextlib.contextmanager
-def local_seed(seed):
-    current_state = np.random.get_state()
-    np.random.seed(seed)
-    try:
-        yield
-    finally:
-        np.random.set_state(current_state)
+from clm.functions import read_file, read_csv_file, write_to_csv_file, local_seed
 
 
 def test_read_file_all(dataset):
