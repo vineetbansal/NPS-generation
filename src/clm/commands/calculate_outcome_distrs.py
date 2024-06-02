@@ -48,7 +48,7 @@ def add_args(parser):
     return parser
 
 
-def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file, seed=None):
+def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file):
     sample = read_csv_file(sample_file, delimiter=",")
     if sample.shape[0] > max_mols:
         sample = sample.sample(

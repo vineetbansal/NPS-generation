@@ -186,7 +186,6 @@ def test_write_outcome_distr(tmp_path):
         train_file=test_dir
         / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         pubchem_file=test_dir / "PubChem_truncated.tsv",
-        seed=0,
     )
 
     true_outcomes = read_csv_file(test_dir / "write_outcome_distr.csv")
