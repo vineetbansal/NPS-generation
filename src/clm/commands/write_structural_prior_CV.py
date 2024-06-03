@@ -138,10 +138,6 @@ def match_molecules(row, dataset, data_type, top_n=1):
     tc = match
     if tc.shape[0] > top_n:
         tc = tc.head(top_n)
-    if data_type == "model" and match.shape[0] > 1:
-        # For the generative model, we'll pick a molecule sampled less
-        # frequently against which to compare fingerprints.
-        tc = pd.concat([tc, match.tail(-1).sample()], axis=0)
 
     if tc.shape[0] > 0:
         if "target_fingerprint" in tc:
