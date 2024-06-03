@@ -6,11 +6,12 @@ from clm.commands.calculate_outcomes import (
     calculate_outcomes_dataframe,
     calculate_outcomes,
 )
-from clm.commands.write_nn_Tc import prep_nn_tc
-from clm.commands.write_nn_Tc import write_nn_Tc
+from clm.commands.prep_outcomes_freq import prep_outcomes_freq
+from clm.commands.write_nn_Tc import prep_nn_tc, write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
 from clm.commands.calculate_outcome_distrs import calculate_outcome_distr
+from clm.commands.write_outcome_distr import write_outcome_distr
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
 from clm.functions import assert_checksum_equals, read_csv_file, local_seed
@@ -34,6 +35,25 @@ def test_generate_outcome_dicts():
         train_df,
         sample_df,
     )
+
+
+def test_prep_outcome_freq(tmp_path):
+    output_file = tmp_path / "prep_outcomes_freq.csv"
+
+    outcomes = prep_outcomes_freq(
+        samples=test_dir
+        / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
+        max_molecules=500,
+        output_file=output_file,
+        seed=12,
+        known_smiles=test_dir
+        / "snakemake_output/0/prior/samples/known_LOTUS_truncated_SMILES_0_unique_masses.csv",
+        invalid_smiles=test_dir
+        / "snakemake_output/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_unique_masses.csv",
+    )
+
+    true_outcomes = read_csv_file(test_dir / "prep_outcomes_freq.csv")
+    pd.testing.assert_frame_equal(outcomes, true_outcomes, check_dtype=False)
 
 
 def test_calculate_outcomes(tmp_path):
@@ -160,6 +180,25 @@ def test_train_discriminator(tmp_path):
         evaluation_type="train_discriminator",
         outcome_files=[output_file],
         output_dir=tmp_path,
+    )
+
+
+def test_write_outcome_distr(tmp_path):
+    output_file = tmp_path / "write_outcome_distr.csv"
+    outcomes = write_outcome_distr(
+        sample_file=test_dir
+        / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
+        max_mols=50,
+        train_file=test_dir
+        / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
+        pubchem_file=test_dir / "PubChem_truncated.tsv",
+        output_file=output_file,
+        seed=0,
+    )
+
+    true_outcomes = read_csv_file(test_dir / "write_outcome_distr.csv")
+    pd.testing.assert_frame_equal(
+        outcomes.reset_index(drop=True), true_outcomes.reset_index(drop=True)
     )
 
 
