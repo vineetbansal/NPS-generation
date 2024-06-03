@@ -1,10 +1,12 @@
 import pandas as pd
 from rdkit.DataStructs import FingerprintSimilarity
 from clm.functions import (
+    set_seed,
     clean_mol,
     write_to_csv_file,
     compute_fingerprint,
     read_csv_file,
+    seed_type,
 )
 import logging
 
@@ -13,14 +15,26 @@ logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
-    parser.add_argument("--query_file", type=str, help="Path to the prep file ")
-    parser.add_argument("--reference_file", type=str, help="Path to the PubChem file")
-    parser.add_argument("--output_file", type=str, help="Path to save the output file")
+    parser.add_argument("--query_file", type=str, help="Path to the file to be queried")
     parser.add_argument(
-        "--query_type",
+        "--reference_file",
         type=str,
-        help="The type of file you're using to query: e.g. model or train",
+        help="Path to the file that the tc is being compared to",
     )
+    parser.add_argument("--pubchem_file", type=str, help="Path to the PubChem file")
+    parser.add_argument(
+        "--max_molecules", type=int, default=500_000, help="Number of samples to select"
+    )
+    parser.add_argument(
+        "--output_file",
+        type=str,
+        required=True,
+        help="Path to the save the output file",
+    )
+    parser.add_argument(
+        "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
+    )
+
     return parser
 
 
@@ -49,7 +63,47 @@ def find_max_similarity_fingerprint(
     return max_tc, max_tc_ref_smile
 
 
-def write_nn_Tc(query_file, reference_file, output_file, query_type="model"):
+def prep_nn_tc(sample_file, pubchem_file, max_molecules):
+    sample = read_csv_file(sample_file, delimiter=",")
+    if len(sample) > max_molecules:
+        sample = sample.sample(
+            n=max_molecules, replace=True, weights=sample["size"], ignore_index=True
+        )
+    pubchem = read_csv_file(pubchem_file, delimiter="\t", header=None)
+
+    # PubChem tsv can have 3 or 4 columns (if fingerprints are precalculated)
+    match len(pubchem.columns):
+        case 3:
+            pubchem.columns = ["smiles", "mass", "formula"]
+        case 4:
+            pubchem.columns = ["smiles", "mass", "formula", "fingerprint"]
+            pubchem = pubchem.dropna(subset="fingerprint")
+            # ignore the fingerprint column since we don't need it
+            pubchem = pubchem.drop(columns="fingerprint")
+        case _:
+            raise RuntimeError("Unexpected column count for PubChem")
+
+    pubchem = pubchem[pubchem["formula"].isin(set(sample.formula))]
+    pubchem = pubchem.drop_duplicates(subset=["formula"], keep="first")
+
+    combination = pd.concat(
+        [
+            sample.assign(source="DeepMet"),
+            pubchem.assign(source="PubChem"),
+        ]
+    )
+
+    return combination
+
+
+def write_nn_Tc(
+    query_file,
+    reference_file,
+    output_file,
+    pubchem_file=None,
+    max_molecules=None,
+    seed=None,
+):
     """
     Find nearest neighbor Tanimoto coefficient for each molecule in the query file
     compared to the molecules in the reference file.
@@ -66,6 +120,8 @@ def write_nn_Tc(query_file, reference_file, output_file, query_type="model"):
     Returns:
         None
     """
+    set_seed(seed)
+
     ref_fps, ref_smiles, ref_inchikeys = [], [], []
 
     # Processing the reference_file in chunks of one row at a time to optimize memory efficiency.
@@ -77,32 +133,27 @@ def write_nn_Tc(query_file, reference_file, output_file, query_type="model"):
             ref_smiles.append(row.smiles)
             ref_inchikeys.append(row.inchikey)
 
-    # A relatively quick and low-memory way to determine the number of lines in the file
-    if query_type == "model":
-        total_lines = len(read_csv_file(query_file, usecols=["size"]))
+    # If PubChem file is not present, there is no preparatory computation to be done
+    if pubchem_file is not None:
+        query = prep_nn_tc(query_file, pubchem_file, max_molecules)
     else:
-        total_lines = total_lines = len(read_csv_file(query_file, usecols=["smiles"]))
+        query = read_csv_file(query_file)
 
-    n_processed = 0
-    for query in read_csv_file(query_file, chunksize=10000):
-        results = query.apply(
-            lambda x: find_max_similarity_fingerprint(
-                x.smiles,
-                x.inchikey,
-                ref_smiles,
-                ref_fps,
-                ref_inchikeys,
-            ),
-            axis=1,
-        )
-        query = query.assign(nn_tc=[i[0] for i in results])
-        query = query.assign(nn=[i[1] for i in results])
+    results = query.apply(
+        lambda x: find_max_similarity_fingerprint(
+            x.smiles,
+            x.inchikey,
+            ref_smiles,
+            ref_fps,
+            ref_inchikeys,
+        ),
+        axis=1,
+    )
+    query = query.assign(nn_tc=[i[0] for i in results])
+    query = query.assign(nn=[i[1] for i in results])
 
-        write_to_csv_file(
-            output_file, info=query, mode="w" if n_processed == 0 else "a+"
-        )
-        n_processed += len(query)
-        logger.info(f"Processed {n_processed}/{total_lines}")
+    write_to_csv_file(output_file, info=query, mode="w")
+    return query
 
 
 def main(args):
@@ -110,5 +161,7 @@ def main(args):
         query_file=args.query_file,
         reference_file=args.reference_file,
         output_file=args.output_file,
-        query_type=args.query_type,
+        pubchem_file=args.pubchem_file,
+        max_molecules=args.max_molecules,
+        seed=args.seed,
     )

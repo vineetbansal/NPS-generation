@@ -221,6 +221,7 @@ def test_07_write_structural_prior_CV(tmp_path):
         err_ppm=10,
         seed=5831,
         chunk_size=100000,
+        top_n=1,
     )
     assert_checksum_equals(
         temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
@@ -268,6 +269,7 @@ def test_08_write_structural_prior_CV(tmp_path):
         err_ppm=10,
         seed=5831,
         chunk_size=100000,
+        top_n=1,
     )
     assert_checksum_equals(
         temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
