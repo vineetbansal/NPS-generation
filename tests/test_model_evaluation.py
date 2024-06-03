@@ -200,7 +200,7 @@ def test_outcome_distr(tmp_path):
     outcomes = calculate_outcome_distr(
         sample_file=test_dir
         / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
-        max_mols=50,
+        max_mols=40,
         train_file=test_dir
         / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         pubchem_file=test_dir / "PubChem_truncated.tsv",
