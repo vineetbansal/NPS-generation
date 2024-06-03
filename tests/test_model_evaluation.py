@@ -181,3 +181,20 @@ def test_add_carbon(tmp_path):
     assert_checksum_equals(
         tmp_path / "add_carbon-unique.smi", test_dir / "add_carbon-unique.smi"
     )
+
+
+def test_nn_tc_ever_never(tmp_path):
+    query_file = (
+        test_dir / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi"
+    )
+    reference_file = (
+        test_dir / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi"
+    )
+    output_file = tmp_path / "output_nn_tc_ever_never.csv"
+    write_nn_Tc(
+        query_file=query_file,
+        reference_file=reference_file,
+        output_file=output_file,
+        query_type="train",
+    )
+    assert_checksum_equals(output_file, test_dir / "output_nn_tc_ever_never.csv")
