@@ -201,6 +201,5 @@ def test_nn_tc_ever_never(tmp_path):
         query_file=query_file,
         reference_file=reference_file,
         output_file=output_file,
-        query_type="train",
     )
     assert_checksum_equals(output_file, test_dir / "output_nn_tc_ever_never.csv")
