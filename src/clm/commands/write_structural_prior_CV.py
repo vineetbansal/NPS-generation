@@ -155,14 +155,10 @@ def match_molecules(row, dataset, data_type, top_n=1):
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
     else:
+        empty_data = {key: np.nan for key in tc.columns}
+        minimal_data = {"target_source": data_type, "target_inchikey": row_inchikey}
         tc = pd.DataFrame(
-            {
-                "target_size": np.nan,
-                "target_rank": np.nan,
-                "target_source": data_type,
-                "Tc": np.nan,
-                "target_inchikey": row_inchikey,
-            },
+            empty_data | minimal_data,
             index=[0],
         )
 

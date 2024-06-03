@@ -65,4 +65,4 @@ def test_snakemake():
             ]
         ).encode("utf8")
     ).hexdigest()
-    assert checksum == "72ff5cc72f7c90c1147c0ca42748ec7e"
+    assert checksum == "2a8dfe17f424dc4e6073d316351a8287"
