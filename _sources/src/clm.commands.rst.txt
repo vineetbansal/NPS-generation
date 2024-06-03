@@ -60,14 +60,6 @@ clm.commands.plot module
    :undoc-members:
    :show-inheritance:
 
-clm.commands.prep\_nn\_tc\_PubChem module
------------------------------------------
-
-.. automodule:: clm.commands.prep_nn_tc_PubChem
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 clm.commands.prep\_outcomes\_freq module
 ----------------------------------------
 
