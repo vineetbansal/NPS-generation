@@ -10,7 +10,10 @@ from clm.commands.prep_outcomes_freq import prep_outcomes_freq
 from clm.commands.write_nn_Tc import prep_nn_tc, write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
-from clm.commands.calculate_outcome_distrs import calculate_outcome_distr, write_outcome_distr
+from clm.commands.calculate_outcome_distrs import (
+    calculate_outcome_distr,
+    write_outcome_distr,
+)
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
 from clm.functions import assert_checksum_equals, read_csv_file, local_seed
