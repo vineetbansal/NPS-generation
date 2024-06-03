@@ -7,15 +7,14 @@ from clm.commands.calculate_outcomes import (
     calculate_outcomes,
 )
 from clm.commands.prep_outcomes_freq import prep_outcomes_freq
-from clm.commands.prep_nn_tc_PubChem import prep_nn_tc
-from clm.commands.write_nn_Tc import write_nn_Tc
+from clm.commands.write_nn_Tc import prep_nn_tc, write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
 from clm.commands.calculate_outcome_distrs import calculate_outcome_distr
 from clm.commands.write_outcome_distr import write_outcome_distr
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
-from clm.functions import assert_checksum_equals, read_csv_file
+from clm.functions import assert_checksum_equals, read_csv_file, local_seed
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
@@ -102,36 +101,42 @@ def test_calculate_outcomes(tmp_path):
 
 
 def test_prep_nn_tc(tmp_path):
-    output_file = tmp_path / "prep_nn_tc_PubChem.csv"
-    outcomes = prep_nn_tc(
-        sample_file=test_dir / "prep_nn_tc_input.csv",
-        max_molecules=100,
-        pubchem_file=test_dir / "PubChem_truncated.tsv",
-        output_file=output_file,
-        seed=0,
-    )
+    with local_seed(0):
+        outcomes = prep_nn_tc(
+            sample_file=test_dir / "prep_nn_tc_input.csv",
+            max_molecules=100,
+            pubchem_file=test_dir / "PubChem_truncated.tsv",
+        )
 
-    true_outcomes = read_csv_file(test_dir / "prep_nn_tc_output.csv")
-    pd.testing.assert_frame_equal(
-        outcomes.sort_index(axis=1)
-        .sort_values(["smiles", "formula"])
-        .reset_index(drop=True),
-        true_outcomes.sort_index(axis=1)
-        .sort_values(["smiles", "formula"])
-        .reset_index(drop=True),
-    )
+        true_outcomes = read_csv_file(test_dir / "prep_nn_tc_output.csv")
+        pd.testing.assert_frame_equal(
+            outcomes.sort_index(axis=1)
+            .sort_values(["smiles", "formula"])
+            .reset_index(drop=True),
+            true_outcomes.sort_index(axis=1)
+            .sort_values(["smiles", "formula"])
+            .reset_index(drop=True),
+        )
 
 
 def test_write_nn_tc(tmp_path):
     query_file = test_dir / "input_write_nn_tc_query_file.csv"
     reference_file = test_dir / "input_write_nn_tc_reference_file.csv"
     output_file = tmp_path / "output_write_nn_tc.csv"
-    write_nn_Tc(
+    outcomes = write_nn_Tc(
         query_file=query_file,
         reference_file=reference_file,
+        pubchem_file=test_dir / "input_write_nn_tc_pubchem.tsv",
+        max_molecules=100,
         output_file=output_file,
+        seed=0,
     )
-    assert_checksum_equals(output_file, test_dir / "output_write_nn_tc.csv")
+    true_outcomes = read_csv_file(test_dir / "output_write_nn_tc.csv")
+    pd.testing.assert_frame_equal(
+        outcomes.reset_index(drop=True),
+        true_outcomes.reset_index(drop=True),
+        check_like=True,
+    )
 
     plot(
         evaluation_type="write_nn_tc", outcome_files=[output_file], output_dir=tmp_path
@@ -221,3 +226,19 @@ def test_add_carbon(tmp_path):
     assert_checksum_equals(
         tmp_path / "add_carbon-unique.smi", test_dir / "add_carbon-unique.smi"
     )
+
+
+def test_nn_tc_ever_never(tmp_path):
+    query_file = (
+        test_dir / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi"
+    )
+    reference_file = (
+        test_dir / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi"
+    )
+    output_file = tmp_path / "output_nn_tc_ever_never.csv"
+    write_nn_Tc(
+        query_file=query_file,
+        reference_file=reference_file,
+        output_file=output_file,
+    )
+    assert_checksum_equals(output_file, test_dir / "output_nn_tc_ever_never.csv")
