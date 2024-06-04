@@ -91,27 +91,11 @@ rule plot_calculate_outcomes:
         '--output_dir {output} '
 
 
-rule prep_nn_tc:
-    input:
-        sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        pubchem_file=PATHS['pubchem_tsv_file'],
-    output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_prep_nn_tc.csv.gz",
-    resources:
-        mem_mb=64000,
-        runtime=1000,
-    shell:
-        'clm prep_nn_tc_PubChem '
-        '--sample_file {input.sampled_file} '
-        '--pubchem_file {input.pubchem_file} '
-        '--max_molecules 50000 '
-        '--output_file {output.output_file} '
-
-
 rule write_nn_tc:
     input:
-        query_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_prep_nn_tc.csv.gz",
+        query_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
         reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        pubchem_file=PATHS['pubchem_tsv_file'],
     output:
         output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_nn_tc.csv.gz",
     resources:
@@ -121,6 +105,8 @@ rule write_nn_tc:
         'clm write_nn_Tc '
         '--query_file {input.query_file} '
         '--reference_file {input.reference_file} '
+        '--pubchem_file {input.pubchem_file} '
+        '--max_molecules 50000 '
         '--output_file {output.output_file} '
 
 
