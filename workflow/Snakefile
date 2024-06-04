@@ -39,7 +39,9 @@ rule plots:
         nn_tc_ever_v_never_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never",
             enum_factor=ENUM_FACTORS),
         topk_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc",
-            enum_factor=ENUM_FACTORS)
+            enum_factor=ENUM_FACTORS),
+        forecast_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/forecast",
+        enum_factor=ENUM_FACTORS)
 
 
 include: "Snakefile_data"
@@ -318,6 +320,21 @@ rule forecast:
         '--test_file {input.test_file} '
         '--sample_file {input.sample_file} '
         '--output_file {output.output_file} '
+
+
+rule plot_forecast:
+    input:
+        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_forecast.csv",
+            dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
+    output:
+        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/forecast"),
+    resources:
+        mem_mb=64000,
+        runtime=30,
+    shell:
+        'clm plot forecast '
+        '--outcome_files {input} '
+        '--output_dir {output} '
 
 
 rule plot_topk:
