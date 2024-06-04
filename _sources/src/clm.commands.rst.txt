@@ -60,14 +60,6 @@ clm.commands.plot module
    :undoc-members:
    :show-inheritance:
 
-clm.commands.prep\_outcomes\_freq module
-----------------------------------------
-
-.. automodule:: clm.commands.prep_outcomes_freq
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 clm.commands.preprocess module
 ------------------------------
 
