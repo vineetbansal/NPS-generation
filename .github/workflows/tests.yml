@@ -30,6 +30,7 @@ jobs:
       with:
         auto-update-conda: true
         python-version: ${{ matrix.python-version }}
+        activate-environment: clm
 
     - name: Install pip
       run: conda install pip
