@@ -348,7 +348,7 @@ rule write_structural_prior_CV:
         '--err_ppm {ERR_PPM} '
         '--seed {config[random_seed]} '
         '--carbon_file {input.carbon_file} '
-
+        '--top_n 30 '
 
 rule write_formula_prior_CV:
     """
@@ -434,4 +434,5 @@ rule write_structural_prior_CV_overall:
         '--err_ppm {ERR_PPM} '
         '--seed {config[random_seed]} '
         '--carbon_file {input.carbon_file} '
-        '--cv_ranks_files {input.cv_ranks_files}'
+        '--cv_ranks_files {input.cv_ranks_files} '
+        '--top_n 30 '

@@ -2,11 +2,11 @@ import numpy as np
 import logging
 import pandas as pd
 from rdkit import Chem
-from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity, ExplicitBitVect
 from tqdm import tqdm
 
 from clm.functions import (
+    compute_fingerprint,
     compute_fingerprints,
     set_seed,
     seed_type,
@@ -62,19 +62,12 @@ def add_args(parser):
         help="Size of chunks for processing large files.",
     )
     parser.add_argument(
+        "--top_n", type=int, default=1, help="Max. number of top ranks to save for Tc."
+    )
+    parser.add_argument(
         "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
     )
     return parser
-
-
-def pd_concat(row, data, col):
-    return pd.concat(
-        [
-            pd.DataFrame([row[col]]).reset_index(drop=True),
-            data.reset_index(drop=True),
-        ],
-        axis=1,
-    )
 
 
 def get_fp_obj(fp_string, bits=1024):
@@ -91,7 +84,7 @@ def get_inchikey(smile):
     return Chem.inchi.MolToInchiKey(clean_mol(smile, raise_error=True))
 
 
-def match_molecules(row, dataset, data_type):
+def match_molecules(row, dataset, data_type, top_n=1):
     match = dataset[dataset["mass"].between(row["mass_range"][0], row["mass_range"][1])]
 
     # For the PubChem dataset, not all SMILES might be valid; consider only the ones that are.
@@ -143,12 +136,8 @@ def match_molecules(row, dataset, data_type):
     rank = rank.assign(n_candidates=match.shape[0])
 
     tc = match
-    if tc.shape[0] > 1:
-        tc = tc.head(1)
-    if data_type == "model" and match.shape[0] > 1:
-        # For the generative model, we'll pick a molecule sampled less
-        # frequently against which to compare fingerprints.
-        tc = pd.concat([tc, match.tail(-1).sample()])
+    if tc.shape[0] > top_n:
+        tc = tc.head(top_n)
 
     if tc.shape[0] > 0:
         if "target_fingerprint" in tc:
@@ -162,22 +151,31 @@ def match_molecules(row, dataset, data_type):
             FingerprintSimilarity(row["fp"], target_fp) for target_fp in target_fps
         ]
     else:
+        empty_data = {key: np.nan for key in tc.columns}
+        minimal_data = {"target_source": data_type, "target_inchikey": row_inchikey}
         tc = pd.DataFrame(
-            {
-                "target_size": np.nan,
-                "target_rank": np.nan,
-                "target_source": data_type,
-                "Tc": np.nan,
-                "target_inchikey": row_inchikey,
-            },
+            empty_data | minimal_data,
             index=[0],
         )
 
-    tc = pd_concat(
-        row, tc, col=["smiles", "mass", "formula", "mass_known", "formula_known"]
+    tc = pd.concat(
+        [
+            pd.DataFrame(
+                [row[["smiles", "mass", "formula", "mass_known", "formula_known"]]]
+            ).reset_index(drop=True),
+            tc.reset_index(drop=True),
+        ],
+        axis=1,
     )
-    rank = pd_concat(
-        row, rank, col=["smiles", "mass", "formula", "mass_known", "formula_known"]
+
+    rank = pd.concat(
+        [
+            pd.DataFrame(
+                [row[["smiles", "mass", "formula", "mass_known", "formula_known"]]]
+            ).reset_index(drop=True),
+            rank.reset_index(drop=True),
+        ],
+        axis=1,
     )
 
     return pd.Series((rank, tc))
@@ -195,6 +193,7 @@ def write_structural_prior_CV(
     seed,
     carbon_file=None,
     cv_ranks_files=None,
+    top_n=1,
 ):
     set_seed(seed)
 
@@ -203,9 +202,7 @@ def write_structural_prior_CV(
 
     test = generate_df(test_file, chunk_size)
     test["fp"] = test.apply(
-        lambda row: AllChem.GetMorganFingerprintAsBitVect(
-            clean_mol(row["smiles"]), 3, nBits=1024
-        ),
+        lambda row: compute_fingerprint(clean_mol(row["smiles"]), algorithm="ecfp6"),
         axis=1,
     )
     test["mass_range"] = test.apply(
@@ -261,24 +258,24 @@ def write_structural_prior_CV(
         logging.info(f"Generating statistics for model {datatype}")
 
         results = test.progress_apply(
-            lambda x: match_molecules(x, dataset, datatype), axis=1
+            lambda x: match_molecules(x, dataset, datatype, top_n=top_n), axis=1
         )
 
         logging.info(f"Generated statistics for model {datatype}")
-        rank = pd.concat(results[0].to_list())
+        rank = pd.concat(results[0].to_list(), axis=0)
         rank.insert(0, "Index", range(len(rank)))
-        tc = pd.concat(results[1].to_list())
+        tc = pd.concat(results[1].to_list(), axis=0)
         tc.insert(0, "Index", range(len(tc)))
-        rank_df = pd.concat([rank_df, rank])
-        tc_df = pd.concat([tc_df, tc])
+        rank_df = pd.concat([rank_df, rank], axis=0)
+        tc_df = pd.concat([tc_df, tc], axis=0)
 
     # The cv_rank_files contain statistics evaluated from individual cross-validation folds
     # Since the test sets across all folds and the train set across all fold contain exactly the same unique elements,
     # we aggregate results from all folds to assess test SMILES against training SMILES across all folds
     if cv_ranks_files is not None:
-        cv_data = pd.concat([read_csv_file(f) for f in cv_ranks_files])
+        cv_data = pd.concat([read_csv_file(f) for f in cv_ranks_files], axis=0)
         train_cv_data = cv_data[cv_data["target_source"] == "train"]
-        rank_df = pd.concat([rank_df, train_cv_data])
+        rank_df = pd.concat([rank_df, train_cv_data], axis=0)
 
     write_to_csv_file(ranks_file, rank_df)
     write_to_csv_file(
@@ -299,4 +296,5 @@ def main(args):
         seed=args.seed,
         carbon_file=args.carbon_file,
         cv_ranks_files=args.cv_ranks_files,
+        top_n=args.top_n,
     )

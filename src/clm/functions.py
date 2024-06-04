@@ -1,3 +1,5 @@
+import contextlib
+
 import deepsmiles
 import numpy as np
 import os
@@ -535,3 +537,13 @@ def assert_checksum_equals(generated_file, oracle):
             "".join(open(oracle, "r").readlines()).encode("utf8")
         ).hexdigest()
     )
+
+
+@contextlib.contextmanager
+def local_seed(seed):
+    current_state = np.random.get_state()
+    np.random.seed(seed)
+    try:
+        yield
+    finally:
+        np.random.set_state(current_state)
