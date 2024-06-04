@@ -265,15 +265,19 @@ def calculate_outcomes_dataframe(sample_df, train_df):
             ),
             "Frechet ChemNet distance": fcd(
                 bin_df[bin_df["is_novel"]]["canonical_smile"],
-                train_df["canonical_smile"],
+                train_df["canonical_smile"].to_numpy(),
             ),
         }
 
     train_element_distribution = dict(
-        zip(*np.unique(np.concatenate(train_df["elements"]), return_counts=True))
+        zip(
+            *np.unique(
+                np.concatenate(train_df["elements"].to_numpy()), return_counts=True
+            )
+        )
     )
     train_murcko_distribution = dict(
-        zip(*np.unique(train_df["murcko"], return_counts=True))
+        zip(*np.unique(train_df["murcko"].to_numpy(), return_counts=True))
     )
 
     # Generate outcomes for all rows (with a special "all" bin name)
