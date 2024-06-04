@@ -88,21 +88,12 @@ def test_calculate_outcomes(tmp_path):
     true_outcomes = read_csv_file(
         test_dir / "calculate_outcome.csv", keep_default_na=False
     )
-    # Todo: remove drop input_file
-    # When collapsing prep_outcome_freq into calculate_outcomes,
-    # dropped input_file from testing equality
-    # to make sure the rest of the dataframe was the same
 
     # https://stackoverflow.com/questions/14224172
     pd.testing.assert_frame_equal(
-        outcomes.drop("input_file", axis=1)
-        .sort_index(axis=1)
-        .sort_values(["outcome", "bin"])
-        .reset_index(drop=True),
-        true_outcomes.drop("input_file", axis=1)
-        .sort_index(axis=1)
-        .sort_values(["outcome", "bin"])
-        .reset_index(drop=True),
+        outcomes.sort_values(["outcome", "bin"]).reset_index(drop=True),
+        true_outcomes.sort_values(["outcome", "bin"]).reset_index(drop=True),
+        check_like=False,
     )
 
     plot(
