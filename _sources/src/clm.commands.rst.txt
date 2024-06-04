@@ -140,14 +140,6 @@ clm.commands.write\_nn\_Tc module
    :undoc-members:
    :show-inheritance:
 
-clm.commands.write\_outcome\_distr module
------------------------------------------
-
-.. automodule:: clm.commands.write_outcome_distr
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 clm.commands.write\_structural\_prior\_CV module
 ------------------------------------------------
 
