@@ -9,6 +9,7 @@ REPRESENTATIONS = config["representations"]
 FOLDS = config["folds"]
 ENUM_FACTORS = config["enum_factors"]
 OUTPUT_DIR = PATHS['output_dir']
+MIN_FREQS = config['structural_prior_min_freq']
 
 shell.executable("/bin/bash")
 
@@ -39,6 +40,8 @@ rule plots:
         nn_tc_ever_v_never_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never",
             enum_factor=ENUM_FACTORS),
         topk_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc",
+            enum_factor=ENUM_FACTORS),
+        structural_prior_min_freq_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq",
             enum_factor=ENUM_FACTORS)
 
 
@@ -332,4 +335,22 @@ rule plot_topk:
     shell:
         'clm plot topk '
         '--outcome_files {input} '
+        '--output_dir {output} '
+
+
+rule plot_structural_prior_min_freq:
+    input:
+        rank_files = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min{{min_freq}}_all_freq-avg_CV_ranks_structure.csv.gz",
+            dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True),
+        tc_files = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min{{min_freq}}_all_freq-avg_CV_tc.csv.gz",
+            dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True)
+    output:
+        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq")
+    resources:
+        mem_mb=64000,
+        runtime=30,
+    shell:
+        'clm plot structural_prior_min_freq '
+        '--tc_files {input.tc_files} '
+        '--rank_files {input.rank_files} '
         '--output_dir {output} '
