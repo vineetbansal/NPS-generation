@@ -188,28 +188,11 @@ rule plot_freq_distribution:
         '--output_dir {output} '
 
 
-rule write_outcome_distr:
+rule calculate_outcome_distrs:
     input:
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
         pubchem_file=PATHS['pubchem_tsv_file'],
-    output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_outcome_distr.csv.gz",
-    resources:
-        mem_mb=64000,
-        runtime=1000,
-    shell:
-        'clm write_outcome_distr '
-        '--sample_file {input.sample_file} '
-        '--train_file {input.train_file} '
-        '--pubchem_file {input.pubchem_file} '
-        '--max_mols 100000 '
-        '--output_file {output.output_file} '
-
-
-rule calculate_outcome_distrs:
-    input:
-        input_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_outcome_distr.csv.gz",
     output:
         output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv.gz",
     resources:
@@ -217,7 +200,10 @@ rule calculate_outcome_distrs:
         runtime=1000,
     shell:
         'clm calculate_outcome_distrs '
-        '--input_file {input.input_file} '
+        '--sample_file {input.sample_file} '
+        '--train_file {input.train_file} '
+        '--pubchem_file {input.pubchem_file} '
+        '--max_mols 100000 '
         '--output_file {output.output_file} '
 
 

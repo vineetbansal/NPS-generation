@@ -10,8 +10,10 @@ from clm.commands.calculate_outcomes import (
 from clm.commands.write_nn_Tc import prep_nn_tc, write_nn_Tc
 from clm.commands.train_discriminator import train_discriminator
 from clm.commands.write_freq_distribution import write_freq_distribution
-from clm.commands.calculate_outcome_distrs import calculate_outcome_distr
-from clm.commands.write_outcome_distr import write_outcome_distr
+from clm.commands.calculate_outcome_distrs import (
+    calculate_outcome_distr,
+    write_outcome_distr,
+)
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
 from clm.functions import assert_checksum_equals, read_csv_file, local_seed
@@ -194,7 +196,6 @@ def test_train_discriminator(tmp_path):
 
 
 def test_write_outcome_distr(tmp_path):
-    output_file = tmp_path / "write_outcome_distr.csv"
     outcomes = write_outcome_distr(
         sample_file=test_dir
         / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
@@ -202,8 +203,6 @@ def test_write_outcome_distr(tmp_path):
         train_file=test_dir
         / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         pubchem_file=test_dir / "PubChem_truncated.tsv",
-        output_file=output_file,
-        seed=0,
     )
 
     true_outcomes = read_csv_file(test_dir / "write_outcome_distr.csv")
@@ -214,8 +213,14 @@ def test_write_outcome_distr(tmp_path):
 
 def test_outcome_distr(tmp_path):
     output_file = tmp_path / "outcome_distr.csv"
+
     outcomes = calculate_outcome_distr(
-        input_file=test_dir / "write_outcome_distr.csv",
+        sample_file=test_dir
+        / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
+        max_mols=40,
+        train_file=test_dir
+        / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
+        pubchem_file=test_dir / "PubChem_truncated.tsv",
         output_file=output_file,
         seed=0,
     )
