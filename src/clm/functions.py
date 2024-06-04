@@ -539,6 +539,34 @@ def assert_checksum_equals(generated_file, oracle):
     )
 
 
+def split_frequency_ranges(data, max_molecules=None):
+    # TODO: make this process dynamic later
+    frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
+
+    data["bin"] = ""
+    for (f_min, f_max) in frequency_ranges:
+        if f_max is not None:
+            selected_rows = data[data["size"].between(f_min, f_max)]
+        else:
+            selected_rows = data[data["size"] > f_min]
+
+        bin_name = f"{f_min}-{f_max}" if f_max is not None else f"{f_min}-"
+
+        if max_molecules is not None and len(selected_rows) > max_molecules:
+            selected_rows = selected_rows.sample(n=max_molecules)
+        elif max_molecules is not None and len(selected_rows) < max_molecules:
+            logger.warning(
+                f"Not enough molecules for frequency bin '{bin_name}'. Using {len(selected_rows)} molecules."
+            )
+
+        data.loc[selected_rows.index, "bin"] = bin_name
+
+    # Save only the rows where we've assigned a bin
+    data = data[data["bin"] != ""].reset_index(drop=True)
+
+    return data
+
+
 @contextlib.contextmanager
 def local_seed(seed):
     current_state = np.random.get_state()

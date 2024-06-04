@@ -33,7 +33,8 @@ def plot(outcome_files, output_dir):
     for outcome_type, _outcome in outcome.groupby("outcome"):
         _data = {}
         for bin, df in _outcome.groupby("bin"):
-            _data[bin] = df["value"].tolist()
+            if bin != "all":
+                _data[bin] = df["value"].tolist()
 
         # rearrange by bin ascending
         data = []
