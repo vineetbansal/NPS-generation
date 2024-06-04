@@ -50,7 +50,6 @@ jobs:
           pre-commit run --all-files
 
     - name: Pytest with coverage
-      shell: bash
       run: coverage run --source=src/clm -m pytest
 
     - name: Upload coverage to Coveralls
