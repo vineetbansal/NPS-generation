@@ -1,11 +1,13 @@
 import argparse
 import pandas as pd
+import re
 from pathlib import Path
 import logging
 import os
 from sklearn.metrics import auc
 from matplotlib import pyplot as plt
 import seaborn as sns
+from clm.functions import read_csv_file
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,7 @@ def add_args(parser):
     return parser
 
 
-def plot_roc_curve(outcome, output_dir, outcome_type):
+def plot_roc_curve(outcome, output_dir, outcome_type, fold):
     true_positive_rate, false_positive_rate = outcome["tpr"], outcome["fpr"]
     roc_auc = auc(false_positive_rate, true_positive_rate)
     # Plot ROC curve
@@ -45,7 +47,7 @@ def plot_roc_curve(outcome, output_dir, outcome_type):
     plt.title("PR/ROC curves showing recovery of test set molecules")
     plt.legend(loc="lower right")
 
-    filepath = Path(output_dir) / f"forecast_roc_{outcome_type}"
+    filepath = Path(output_dir) / f"forecast_roc_{outcome_type}_{fold}"
     plt.savefig(filepath)
 
     # Clear the previous figure
@@ -77,17 +79,22 @@ def plot(outcome_files, output_dir):
     # Make an output directory if it doesn't yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome = pd.concat(
-        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
-    )
+    combined_outcome = []
+    for outcome_file in outcome_files:
+        fold = re.search(r"(\d)", os.path.basename(outcome_file)).group(1)
+        outcome = read_csv_file(outcome_file, delimiter=",")
+        true_outcome = outcome[
+            (outcome["mode"] == "true") & (outcome["curve"] == "ROC")
+        ]
+        random_outcome = outcome[
+            (outcome["mode"] == "random") & (outcome["curve"] == "ROC")
+        ]
+        combined_outcome.append(outcome)
+        plot_roc_curve(true_outcome, output_dir, outcome_type="true", fold=fold)
+        plot_roc_curve(random_outcome, output_dir, outcome_type="random", fold=fold)
 
-    true_outcome = outcome[(outcome["mode"] == "true") & (outcome["curve"] == "ROC")]
-    random_outcome = outcome[
-        (outcome["mode"] == "random") & (outcome["curve"] == "ROC")
-    ]
-    plot_roc_curve(true_outcome, output_dir, outcome_type="true")
-    plot_roc_curve(random_outcome, output_dir, outcome_type="random")
-    plot_distribution(outcome, output_dir)
+    combined_outcome = pd.concat(combined_outcome)
+    plot_distribution(combined_outcome, output_dir)
 
 
 def main(args):
