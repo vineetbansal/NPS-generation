@@ -31,7 +31,7 @@ structural_prior_min_freq:
   - 1
 random_seed: 5831
 paths:
-  output_dir: data
+  output_dir: "../tests/test_data/snakemake_output"
   dataset: "../tests/test_data/LOTUS_truncated.txt"
   pubchem_tsv_file: "../tests/test_data/PubChem_truncated.tsv"
   preprocess_output: "{output_dir}/prior/raw/{dataset}.txt"

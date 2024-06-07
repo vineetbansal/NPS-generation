@@ -1,4 +1,4 @@
-configfile: "config/config.yaml"
+configfile: "config/config_fast.yaml"
 threads: 1
 # -----------------------------------------------------------------------------
 # Setup
@@ -24,22 +24,22 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule plots:
     input:
-        topk=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk",
-            enum_factor=ENUM_FACTORS),
-        calculate_outcomes_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/calculate_outcomes",
-            enum_factor=ENUM_FACTORS),
-        nn_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/write_nn_tc",
-            enum_factor=ENUM_FACTORS),
-        train_discriminator_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/train_discriminator",
-            enum_factor=ENUM_FACTORS),
-        freq_distribution_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/freq_distribution",
-            enum_factor=ENUM_FACTORS),
-        calculate_outcome_distr_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/calculate_outcome_distrs",
-            enum_factor=ENUM_FACTORS),
-        nn_tc_ever_v_never_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never",
-            enum_factor=ENUM_FACTORS),
-        topk_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc",
-            enum_factor=ENUM_FACTORS)
+        # topk=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk",
+        #     enum_factor=ENUM_FACTORS),
+        # calculate_outcomes_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/calculate_outcomes",
+        #     enum_factor=ENUM_FACTORS),
+        # nn_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/write_nn_tc",
+        #     enum_factor=ENUM_FACTORS),
+        # train_discriminator_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/train_discriminator",
+        #     enum_factor=ENUM_FACTORS),
+        # freq_distribution_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/freq_distribution",
+        #     enum_factor=ENUM_FACTORS),
+        # calculate_outcome_distr_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/calculate_outcome_distrs",
+        #     enum_factor=ENUM_FACTORS),
+        # nn_tc_ever_v_never_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never",
+        #     enum_factor=ENUM_FACTORS),
+        # topk_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc",
+        #     enum_factor=ENUM_FACTORS)
 
 
 include: "Snakefile_data"
