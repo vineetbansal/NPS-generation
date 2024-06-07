@@ -11,6 +11,7 @@ from clm.commands import (
     process_tabulated_molecules,
     write_structural_prior_CV,
     write_formula_prior_CV,
+    plot,
 )
 from clm.functions import assert_checksum_equals, read_csv_file
 
@@ -257,8 +258,8 @@ def test_08_write_structural_prior_CV(tmp_path):
     temp_dir = tmp_path / "0/prior/structural_prior/add_carbon"
     write_structural_prior_CV.write_structural_prior_CV(
         ranks_file=temp_dir
-        / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
-        tc_file=temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
+        / "LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv",
+        tc_file=temp_dir / "LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv",
         train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi",
         test_file=test_dir / "0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi",
         pubchem_file=pubchem_tsv_file,
@@ -272,12 +273,21 @@ def test_08_write_structural_prior_CV(tmp_path):
         top_n=1,
     )
     assert_checksum_equals(
-        temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
+        temp_dir / "LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv",
         test_dir
-        / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_ranks_structure.csv",
+        / "0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv",
     )
     assert_checksum_equals(
-        temp_dir / "LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
+        temp_dir / "LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv",
         test_dir
-        / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
+        / "0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv",
+    )
+
+    plot.plot(
+        evaluation_type="structural_prior_min_freq",
+        rank_files=[
+            temp_dir / "LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv"
+        ],
+        tc_files=[temp_dir / "LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv"],
+        output_dir=temp_dir,
     )

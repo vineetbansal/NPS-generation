@@ -51,8 +51,8 @@ def add_args(parser):
 
 def plot(
     evaluation_type,
-    outcome_files,
     output_dir,
+    outcome_files=None,
     rank_files=None,
     tc_files=None,
     ranks_file=None,
