@@ -27,27 +27,29 @@ def add_args(parser):
     return parser
 
 
-def plot_roc_curve(outcome, output_dir, outcome_type, fold):
-    true_positive_rate, false_positive_rate = outcome["tpr"], outcome["fpr"]
-    roc_auc = auc(false_positive_rate, true_positive_rate)
-    # Plot ROC curve
+def plot_roc_curve(outcome, output_dir, fold):
+    outcome = outcome[outcome["curve"] == "ROC"]
+
     plt.figure()
-    plt.plot(
-        false_positive_rate,
-        true_positive_rate,
-        color="darkorange",
-        lw=2,
-        label="ROC curve (area = %0.2f)" % roc_auc,
-    )
+    for mode in ("true", "random"):
+        _outcome = outcome[outcome["mode"] == mode]
+        tpr, fpr = _outcome["tpr"], _outcome["fpr"]
+        roc_auc = auc(fpr, tpr)
+        plt.plot(
+            fpr,
+            tpr,
+            lw=2,
+            label=f"{mode} ROC curve (area = {roc_auc:.2})",
+        )
     plt.plot([0, 1], [0, 1], color="navy", lw=1, linestyle="--")
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title("PR/ROC curves showing recovery of test set molecules")
+    plt.title(f"ROC curve showing recovery of test set molecules (Fold {fold})")
     plt.legend(loc="lower right")
 
-    filepath = Path(output_dir) / f"forecast_roc_{outcome_type}_{fold}"
+    filepath = Path(output_dir) / f"forecast_roc_{fold}"
     plt.savefig(filepath)
 
     # Clear the previous figure
@@ -83,15 +85,8 @@ def plot(outcome_files, output_dir):
     for outcome_file in outcome_files:
         fold = re.search(r"(\d)", os.path.basename(outcome_file)).group(1)
         outcome = read_csv_file(outcome_file, delimiter=",")
-        true_outcome = outcome[
-            (outcome["mode"] == "true") & (outcome["curve"] == "ROC")
-        ]
-        random_outcome = outcome[
-            (outcome["mode"] == "random") & (outcome["curve"] == "ROC")
-        ]
         combined_outcome.append(outcome)
-        plot_roc_curve(true_outcome, output_dir, outcome_type="true", fold=fold)
-        plot_roc_curve(random_outcome, output_dir, outcome_type="random", fold=fold)
+        plot_roc_curve(outcome, output_dir, fold=fold)
 
     combined_outcome = pd.concat(combined_outcome)
     plot_distribution(combined_outcome, output_dir)
