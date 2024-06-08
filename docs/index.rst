@@ -10,6 +10,10 @@ A package to train and evaluate deep generative models of novel psychoactive sub
 as used in the manuscript, :cite:t:`Skinnider2021`.
 
 .. toctree::
+
+   clm/installation.md
+
+.. toctree::
    :titlesonly:
 
    modules
