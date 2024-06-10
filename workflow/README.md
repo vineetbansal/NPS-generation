@@ -1,3 +1,42 @@
+## Installation and Setup 
+Before you can use the `clm` package on your machine or a computing cluster, ensure that your system meets the following
+prerequisites: 
+
+1. Python 3.10 or later 
+2. Pip package manager 
+
+We recommend [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) for environment management.
+See [Setting up the Environment]() for conda setup instructions. 
+
+In the activated environment, run the following command in your terminal to install the CLM toolkit. 
+```
+    pip install skinniderlab-clm
+```
+## Developer Setup
+
+To contribute to CLM, follow these guidelines to set up a local environment for running the application.
+
+## Prerequisites
+
+- [Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) (miniconda or anaconda)
+
+## Setting up the Environment
+
+1. Create a new conda environment named `clm` with Python version 3.10.
+   ```
+   conda create --name clm python=3.10 pip
+   ```
+2. Activate the environment.
+   ```
+   conda activate clm
+   ``` 
+   The command prompt will change to indicate the new conda environment by prepending `(clm)`.
+
+3. When you are done with the development, deactivate the `clm` environment and return to `(base)` by the following command:
+   ```
+   conda deactivate
+   ```
+
 ## Snakemake workflow
 
 The included `Snakefile` provides a way to run the end-end workflow for the
