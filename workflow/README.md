@@ -1,6 +1,6 @@
 ## Setting up the Environment
 #### Della
-Make sure that `conda` is in your path by loading the appropriate module: 
+Make sure that `conda` is in your path by loading the appropriate module:
 
 ```
 module load anaconda3/2023.9
@@ -18,7 +18,7 @@ Before you can use the `clm` command on your personal machine, ensure that your 
 - Python 3.10 or later
 - Pip package manager
 
-We recommend [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) for environment management. 
+We recommend [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) for environment management.
 
 #### Creating a Conda Environment
 
@@ -29,15 +29,15 @@ We recommend [conda](https://conda.io/projects/conda/en/latest/user-guide/instal
 2. Activate the environment.
    ```
    conda activate clm
-   ``` 
+   ```
    The command prompt will change to indicate the new conda environment by prepending `(clm)`.
 
 3. When you are done with the development, deactivate the `clm` environment and return to `(base)` by the following command:
    ```
    conda deactivate
    ```
-   
-## Installation 
+
+## Installation
 1. Clone the repository and enter it:
    ```
    git clone https://github.com/skinniderlab/CLM.git
