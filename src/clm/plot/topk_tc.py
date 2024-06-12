@@ -50,22 +50,22 @@ def plot(outcome_files, output_dir):
 
     tc = outcome["Tc"].apply(lambda x: get_tc_range(x, min_tcs))
     outcome = outcome.assign(min_tc=tc)
+    outcome = outcome[outcome["min_tc"] >= 0.4]
 
     tc_count = {min_tc: [] for min_tc in min_tcs}
-    ks = []
+    ks = {min_tc: [] for min_tc in min_tcs}
+    n_rows = len(outcome)
     for k in range(0, 30):
         for min_tc in min_tcs:
-            rows = outcome[outcome["min_tc"] == min_tc]
-            n_rows = len(rows)
-            if n_rows == 0:
-                continue
+            rows = outcome[outcome["min_tc"] >= min_tc]
             n_rows_at_least_rank_k = len(rows[rows["target_rank"] <= k])
             top_k_accuracy = (n_rows_at_least_rank_k / n_rows) * 100
-            ks.append(k)
+            ks[min_tc].append(k)
             tc_count[min_tc].append(top_k_accuracy)
 
     for min_tc in min_tcs:
-        plt.step(ks, tc_count[min_tc], label=min_tc)
+        plt.step(ks[min_tc], tc_count[min_tc], label=min_tc)
+
     plt.title("Top-k accuracy curve when considering Tc >= 0.4, 0.675 as 'correct'")
     plt.xlabel("k")
     plt.xscale("log")
