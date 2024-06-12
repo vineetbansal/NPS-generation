@@ -1,4 +1,7 @@
 ## Setting up the Environment
+
+We recommend [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) for environment management.
+
 #### Della
 Make sure that `conda` is in your path by loading the appropriate module:
 
@@ -17,8 +20,6 @@ Before you can use the `clm` command on your personal machine, ensure that your 
 
 - Python 3.10 or later
 - Pip package manager
-
-We recommend [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) for environment management.
 
 #### Creating a Conda Environment
 
