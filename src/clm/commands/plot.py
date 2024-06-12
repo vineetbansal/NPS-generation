@@ -28,6 +28,12 @@ def add_args(parser):
         help="Path to the rank file ",
     )
     parser.add_argument(
+        "--tc_file",
+        type=str,
+        required=False,
+        help="Path to the tc file ",
+    )
+    parser.add_argument(
         "--output_dir",
         type=str,
         required=True,
@@ -36,7 +42,7 @@ def add_args(parser):
     return parser
 
 
-def plot(evaluation_type, outcome_files, output_dir, ranks_file=None):
+def plot(evaluation_type, outcome_files, output_dir, ranks_file=None, tc_file=None):
     if evaluation_type == "calculate_outcomes":
         calculate_outcomes(outcome_files, output_dir)
     elif evaluation_type == "write_nn_tc":
@@ -52,7 +58,7 @@ def plot(evaluation_type, outcome_files, output_dir, ranks_file=None):
     elif evaluation_type == "topk_tc":
         topk_tc(outcome_files, output_dir)
     elif evaluation_type == "topk":
-        topk(outcome_files, output_dir)
+        topk(ranks_file, tc_file, output_dir)
 
 
 def main(args):
@@ -61,4 +67,5 @@ def main(args):
         outcome_files=args.outcome_files,
         output_dir=args.output_dir,
         ranks_file=args.ranks_file,
+        tc_file=args.tc_file,
     )
