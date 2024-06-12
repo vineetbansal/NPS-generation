@@ -78,7 +78,7 @@ def plot_distribution(outcome, output_dir):
 
 
 def plot(outcome_files, output_dir):
-    # Make an output directory if it doesn't yet
+    # Make an output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
 
     combined_outcome = []
