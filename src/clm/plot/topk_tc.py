@@ -50,7 +50,6 @@ def plot(outcome_files, output_dir):
 
     tc = outcome["Tc"].apply(lambda x: get_tc_range(x, min_tcs))
     outcome = outcome.assign(min_tc=tc)
-    outcome = outcome[outcome["min_tc"] >= 0.4]
 
     tc_count = {min_tc: [] for min_tc in min_tcs}
     ks = {min_tc: [] for min_tc in min_tcs}
