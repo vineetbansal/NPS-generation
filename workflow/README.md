@@ -1,3 +1,53 @@
+## Setting up the Environment
+
+We recommend [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) for environment management.
+
+#### Della
+Make sure that `conda` is in your path by loading the appropriate module:
+
+```
+module load anaconda3/2023.9
+```
+You can also load a different anaconda version. To see all available modules, run `module avail anaconda3`.
+
+No further actions are required to install conda or python. You can go ahead and create a new conda environment as instructed [below](https://github.com/skinniderlab/CLM/edit/aa/update_readme/workflow/README.md#creating-a-conda-environment).
+
+#### Argo
+The default conda is recommended on argo systems. You do not need to load any modules or do anything special to use the conda command on argo. [Click here for detailed information regarding conda on Argo](https://lsidocs.princeton.edu/index.php/Conda).
+
+#### Personal Machine
+Before you can use the `clm` command on your personal machine, ensure that your system meets the following prerequisites:
+
+- Python 3.10 or later
+- Pip package manager
+
+#### Creating a Conda Environment
+
+1. Create a new conda environment named `clm` with Python version 3.10.
+   ```
+   conda create --name clm python=3.10 pip
+   ```
+2. Activate the environment.
+   ```
+   conda activate clm
+   ```
+   The command prompt will change to indicate the new conda environment by prepending `(clm)`.
+
+3. When you are done with the development, deactivate the `clm` environment and return to `(base)` by the following command:
+   ```
+   conda deactivate
+   ```
+
+## Installation
+1. Clone the repository and enter it:
+   ```
+   git clone https://github.com/skinniderlab/CLM.git
+   cd clm
+   ```
+2. In the activated environment, run the following command in your terminal to install the CLM package in editable mode with any optional dependenices
+    ```
+    pip install -e .[dev]
+    ```
 ## Snakemake workflow
 
 The included `Snakefile` provides a way to run the end-end workflow for the
@@ -25,21 +75,13 @@ To run this workflow on a tiny dataset provided with `clm`:
 
 #### Steps
 
-1. Clone the repository, install `clm` to get all the dependencies, including `snakemake`.
-```
-git clone ..
-cd CLM
-pip install -e ".[dev]"
-```
-
-2. `cd` to the `workflow/` folder and run the following command to see the steps (including the actual commands) that will be run:
+1. `cd` to the `workflow/` folder. In the activated environment, run the following command to see the steps (including the actual commands) that will be run:
 
 ```
 cd CLM/workflow
 snakemake --configfile config/config_fast.yaml --jobs 1 --dry-run -p
 ```
-
-3. Repeat the command without the `--dry-run -p` to execute the workflow. The end-end workflow should take around 5 minutes on computers where `torch` has access to a gpu, or 20-25 minutes otherwise.
+2. Repeat the command without the `--dry-run -p` to execute the workflow. The end-end workflow should take around 5 minutes on computers where `torch` has access to a gpu, or 20-25 minutes otherwise.
 
 Note that the configuration provided in `config_fast.yaml`, as well as the truncated datasets that it uses by default, are purely for software testing purposes, and generate results/graphs that are not interpretable. To run the actual workflow on your dataset, read on.
 
