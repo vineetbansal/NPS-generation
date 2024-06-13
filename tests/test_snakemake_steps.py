@@ -285,7 +285,6 @@ def test_08_write_structural_prior_CV(tmp_path):
 
 def test_unique_inchikeys(tmp_path):
     folds = 3
-    train0_all, train_all = [], []
     for fold in range(folds):
         create_training_sets.create_training_sets(
             input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
