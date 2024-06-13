@@ -281,3 +281,28 @@ def test_08_write_structural_prior_CV(tmp_path):
         test_dir
         / "0/prior/structural_prior/LOTUS_truncated_SMILES_all_freq-avg_CV_tc.csv",
     )
+
+
+def test_unique_inchikeys(tmp_path):
+    folds = 3
+    for fold in range(folds):
+        create_training_sets.create_training_sets(
+            input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
+            train0_file=tmp_path / "train0_file_{fold}",
+            train_file=tmp_path / "train_file_{fold}",
+            vocab_file=tmp_path / "vocabulary_file_{fold}",
+            test0_file=tmp_path / "test0_file_{fold}",
+            enum_factor=3,
+            folds=folds,
+            which_fold=fold,
+            representation="SMILES",
+            min_tc=0,
+            seed=5831,
+            max_input_smiles=1000,
+        )
+
+        train0_inchi = read_csv_file(tmp_path / f"train0_file_{fold}")["inchikey"]
+        train_inchi = read_csv_file(tmp_path / f"train_file_{fold}")["inchikey"]
+
+        # Verifying that both augmented and un-augmented training set has same unique inchikeys
+        assert set(train_inchi) == set(train0_inchi)

@@ -229,7 +229,7 @@ rule tabulate_molecules:
     conda: "clm"
     input:
         input_file = PATHS['input_file'],
-        train_file = PATHS['train_file']
+        train_file = PATHS['train0_file']
     output:
         output_file=PATHS['tabulate_molecules_output'],
         known_smiles_file = PATHS['known_smiles_file'],
