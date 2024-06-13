@@ -169,7 +169,7 @@ def get_dataframes(train_file, prep_sample_df):
     return train_df, sample_df
 
 
-def calculate_outcomes_dataframe(sample_df, train_df):
+def calculate_outcomes_dataframe(sample_df, train_df, max_molecules):
     def handle_bin(bin_name, df, train_element_distribution, train_murcko_distribution):
         # Filtering out invalid smiles
         bin_df = df[df["is_valid"]]
@@ -288,6 +288,10 @@ def calculate_outcomes_dataframe(sample_df, train_df):
             bin, bin_df, train_element_distribution, train_murcko_distribution
         ):
             out.append(_out)
+
+    # Sample non-binned df by weight
+    if sample_df.shape[0] > max_molecules:
+        sample_df.sample(n=max_molecules, weights="size")
     out.append(
         handle_bin(
             "all", sample_df, train_element_distribution, train_murcko_distribution
@@ -339,7 +343,7 @@ def calculate_outcomes(
     train_df, sample_df = get_dataframes(train_file, prep_sample_df)
 
     logger.info("Calculating outcomes")
-    out = calculate_outcomes_dataframe(sample_df, train_df)
+    out = calculate_outcomes_dataframe(sample_df, train_df, max_molecules)
 
     # `input_file` column added for legacy reasons
     out["input_file"] = os.path.basename(sampled_file)
