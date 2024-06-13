@@ -25,17 +25,6 @@ def add_args(parser):
     return parser
 
 
-def get_tc_range(sample_tc, min_tcs):
-    tc_match = 0
-
-    for min_tc in min_tcs:
-        if sample_tc >= min_tc:
-            tc_match = min_tc
-        else:
-            break
-    return tc_match
-
-
 def plot(outcome_files, output_dir):
     # Make output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
@@ -48,17 +37,15 @@ def plot(outcome_files, output_dir):
 
     min_tcs = [0.4, 0.675, 1]
 
-    tc = outcome["Tc"].apply(lambda x: get_tc_range(x, min_tcs))
-    outcome = outcome.assign(min_tc=tc)
-
     tc_count = {min_tc: [] for min_tc in min_tcs}
     ks = {min_tc: [] for min_tc in min_tcs}
-    n_rows = len(outcome)
-    for k in range(0, 30):
-        for min_tc in min_tcs:
-            rows = outcome[outcome["min_tc"] >= min_tc]
+    n_total = len(outcome)
+
+    for min_tc in min_tcs:
+        rows = outcome[outcome["Tc"] >= min_tc]
+        for k in range(0, 30):
             n_rows_at_least_rank_k = len(rows[rows["target_rank"] <= k])
-            top_k_accuracy = (n_rows_at_least_rank_k / n_rows) * 100
+            top_k_accuracy = (n_rows_at_least_rank_k / n_total) * 100
             ks[min_tc].append(k)
             tc_count[min_tc].append(top_k_accuracy)
 
