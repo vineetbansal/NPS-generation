@@ -307,9 +307,3 @@ def test_unique_inchikeys(tmp_path):
 
         # Verifying that both augmented and un-augmented training set has same unique inchikeys
         assert set(train_inchi) == set(train0_inchi)
-
-        train_all.extend(train_inchi.to_list())
-        train0_all.extend(train0_inchi.to_list())
-
-    # Verifying that both augmented and un-augmented training set has same unique inchikeys across the fold
-    assert set(train_all) == set(train0_all)
