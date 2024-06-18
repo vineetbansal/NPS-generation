@@ -1,6 +1,6 @@
 import argparse
 import pandas as pd
-import re
+import numpy as np
 from pathlib import Path
 import logging
 import os
@@ -16,7 +16,6 @@ def add_args(parser):
     parser.add_argument(
         "--outcome_files",
         type=str,
-        nargs="+",
         help="Paths of all the model evaluation files relevant to nn_tc_ever_v_never ",
     )
     parser.add_argument(
@@ -27,7 +26,7 @@ def add_args(parser):
     return parser
 
 
-def plot_roc_curve(outcome, output_dir, fold):
+def plot_roc_curve(outcome, output_dir):
     outcome = outcome[outcome["curve"] == "ROC"]
 
     plt.figure()
@@ -46,10 +45,10 @@ def plot_roc_curve(outcome, output_dir, fold):
     plt.ylim([0.0, 1.0])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title(f"ROC curve showing recovery of test set molecules (Fold {fold})")
+    plt.title("ROC curve showing recovery of test set molecules")
     plt.legend(loc="lower right")
 
-    filepath = Path(output_dir) / f"forecast_roc_{fold}"
+    filepath = Path(output_dir) / "forecast_roc"
     plt.savefig(filepath)
 
     # Clear the previous figure
@@ -58,38 +57,40 @@ def plot_roc_curve(outcome, output_dir, fold):
 
 def plot_distribution(outcome, output_dir):
     logger.info("Plotting frequency distribution")
-    enrichment_factor = list(outcome["EF"].dropna())
-    rank = list(outcome["rank"].dropna())
 
-    sns.scatterplot(x=rank, y=enrichment_factor)
-    plt.title("Fold enrichment for test-set molecules in model output")
-    plt.xlabel("# of top-ranked molecules")
-    plt.ylabel("Fold enrichment")
+    enrichment_factor = outcome["EF"].dropna().tolist()
+    rank = outcome["rank"].dropna().tolist()
+    p_value = outcome["pval"].dropna().tolist()
+    neg_log_p_value = [-np.log10(p) for p in p_value]
 
-    # Plot logarithmic scale
-    plt.yscale("log")
-    plt.xscale("log")
+    fig, axes = plt.subplots(2, 1, figsize=(10, 8))
 
-    file_path = Path(output_dir) / "fold_enrichment"
+    sns.scatterplot(x=rank, y=neg_log_p_value, ax=axes[0])
+    axes[0].set_title("Fold enrichment for test-set molecules in model output")
+    axes[0].set_xlabel("# of top-ranked molecules")
+    axes[0].set_ylabel(r"$-\log_{10}(\mathrm{P})$")
+    axes[0].set_xscale("log")
+
+    sns.scatterplot(x=rank, y=enrichment_factor, ax=axes[1])
+    axes[1].set_xlabel("# of top-ranked molecules")
+    axes[1].set_ylabel("Fold enrichment")
+    axes[1].set_xscale("log")
+
+    file_path = Path(output_dir) / "fold_enrichment.png"
     plt.savefig(file_path)
-
-    # Clear the previous figure
-    plt.clf()
+    plt.close(fig)
 
 
 def plot(outcome_files, output_dir):
     # Make an output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
 
-    combined_outcome = []
-    for outcome_file in outcome_files:
-        fold = re.search(r"(\d)", os.path.basename(outcome_file)).group(1)
-        outcome = read_csv_file(outcome_file, delimiter=",")
-        combined_outcome.append(outcome)
-        plot_roc_curve(outcome, output_dir, fold=fold)
+    outcome = pd.concat(
+        [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
+    )
 
-    combined_outcome = pd.concat(combined_outcome)
-    plot_distribution(combined_outcome, output_dir)
+    plot_roc_curve(outcome, output_dir)
+    plot_distribution(outcome, output_dir)
 
 
 def main(args):
