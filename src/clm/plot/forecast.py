@@ -33,7 +33,11 @@ def plot_roc_curve(outcome, output_dir):
     for mode in ("true", "random"):
         _outcome = outcome[outcome["mode"] == mode]
         tpr, fpr = _outcome["tpr"], _outcome["fpr"]
-        roc_auc = auc(fpr, tpr)
+        try:
+            roc_auc = auc(fpr, tpr)
+        except ValueError as e:
+            logger.warning(f" Couldn't generate ROC curve. {e}")
+            return
         plt.plot(
             fpr,
             tpr,

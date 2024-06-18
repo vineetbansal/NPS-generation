@@ -44,7 +44,6 @@ def add_args(parser):
 
 
 def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None):
-
     set_seed(seed)
 
     output_dir = os.path.dirname(output_file)
@@ -117,12 +116,21 @@ def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None)
     auprc_rnd = average_precision_score(y, x_rnd)
 
     ranks = []
-    i, step = 1, 10
-    while i * step <= deepmet.shape[0]:
-        ranks.append(i * step)
-        i += 1
-        if i % 10 == 0:
-            i, step = 1, step * 10
+    step_sizes, current_step = [], 10
+    deepmet_max = deepmet.shape[0]
+
+    while current_step <= 1000000:
+        step_sizes.append(current_step)
+        current_step *= 10
+
+    for step in step_sizes:
+        ranks.extend(range(step, min(step * 10, deepmet_max), step))
+
+    if deepmet_max > 1000000:
+        ranks.extend(range(1000000, deepmet_max, 1000000))
+    ranks.append(deepmet_max)
+
+    ranks = sorted(set(ranks))
 
     ef = pd.DataFrame({"rank": ranks, "EF": np.nan, "n_known": 0, "pval": np.nan})
     for idx, rank in enumerate(ranks):
