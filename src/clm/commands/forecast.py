@@ -8,11 +8,14 @@ from sklearn.metrics import (
     average_precision_score,
     precision_recall_curve,
 )
+import logging
 from rdkit import rdBase
 from clm.functions import set_seed, seed_type, read_csv_file
 
 # suppress rdkit errors
 rdBase.DisableLog("rdApp.error")
+
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -100,23 +103,27 @@ def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None)
         }
     )
 
-    # calculate metrics
-    auc = roc_auc_score(y, x)
+    try:
+        auc = roc_auc_score(y, x)
+        auc_rnd = roc_auc_score(y, x_rnd)
+    except ValueError:
+        logger.warning(
+            "Only one class present in y_true. ROC AUC score is not defined in that case."
+        )
+        auc = None
+        auc_rnd = None
+
     auprc = average_precision_score(y, x)
-    # calculate shuffled metrics too
-    auc_rnd = roc_auc_score(y, x_rnd)
     auprc_rnd = average_precision_score(y, x_rnd)
 
-    # last, calculate enrichment factors
-    ranks = (
-        list(range(10, 100, 10))
-        + list(range(100, 1000, 100))
-        + list(range(1000, 10000, 1000))
-        + list(range(10000, 100000, 10000))
-        + list(range(100000, 1000000, 100000))
-        + list(range(1000000, deepmet.shape[0], 1000000))
-        + [deepmet.shape[0]]
-    )
+    ranks = []
+    i, step = 1, 10
+    while i * step <= deepmet.shape[0]:
+        ranks.append(i * step)
+        i += 1
+        if i % 10 == 0:
+            i, step = 1, step * 10
+
     ef = pd.DataFrame({"rank": ranks, "EF": np.nan, "n_known": 0, "pval": np.nan})
     for idx, rank in enumerate(ranks):
         obs = sum(y[0:rank])

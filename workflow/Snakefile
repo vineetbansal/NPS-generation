@@ -57,7 +57,6 @@ rule calculate_outcomes:
     `max_molecules` is the max number of sampled smiles to consider for each
     frequency bin.
     """
-    conda: "clm"
     input:
         sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
         known_smiles=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/known_{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
@@ -80,7 +79,6 @@ rule calculate_outcomes:
 
 
 rule plot_calculate_outcomes:
-    conda: "clm"
     input:
         expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
@@ -96,7 +94,6 @@ rule plot_calculate_outcomes:
 
 
 rule write_nn_tc:
-    conda: "clm"
     input:
         query_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
         reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
@@ -116,7 +113,6 @@ rule write_nn_tc:
 
 
 rule plot_write_nn_tc:
-    conda: "clm"
     input:
         expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_nn_tc.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
@@ -133,7 +129,6 @@ rule plot_write_nn_tc:
 
 
 rule train_discriminator:
-    conda: "clm"
     input:
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
         sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
@@ -150,7 +145,6 @@ rule train_discriminator:
 
 
 rule plot_train_discriminator:
-    conda: "clm"
     input:
         expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_train_discriminator.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
@@ -166,7 +160,6 @@ rule plot_train_discriminator:
 
 
 rule freq_distribution:
-    conda: "clm"
     input:
         sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
         test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
@@ -183,7 +176,6 @@ rule freq_distribution:
 
 
 rule plot_freq_distribution:
-    conda: "clm"
     input:
         expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_freq_distribution.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
@@ -199,7 +191,6 @@ rule plot_freq_distribution:
 
 
 rule calculate_outcome_distrs:
-    conda: "clm"
     input:
         sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
         train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
@@ -219,7 +210,6 @@ rule calculate_outcome_distrs:
 
 
 rule plot_outcome_distributions:
-    conda: "clm"
     input:
         expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
@@ -234,7 +224,6 @@ rule plot_outcome_distributions:
         '--output_dir {output} '
 
 rule nn_tc_ever_v_never:
-    conda: "clm"
     input:
         query_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
         reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
@@ -251,7 +240,6 @@ rule nn_tc_ever_v_never:
 
 
 rule plot_nn_tc_ever_v_never:
-    conda: "clm"
     input:
         nn_tc_file = expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True),
@@ -270,7 +258,6 @@ rule plot_nn_tc_ever_v_never:
 
 
 rule plot_topk_tc:
-    conda: "clm"
     input:
         expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_tc.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
@@ -286,7 +273,6 @@ rule plot_topk_tc:
 
 
 rule forecast:
-    conda: "clm"
     input:
         test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
         sample_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_min1_freq-avg.csv.gz",
@@ -319,7 +305,6 @@ rule plot_forecast:
 
 
 rule plot_topk:
-    conda: "clm"
     input:
         expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_ranks_structure.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
