@@ -16,6 +16,7 @@ from clm.commands.calculate_outcome_distrs import (
 )
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
+from clm.plot.topk_tc import exact_tc_matches
 from clm.functions import assert_checksum_equals, read_csv_file, local_seed
 
 base_dir = Path(__file__).parent.parent
@@ -248,3 +249,38 @@ def test_nn_tc_ever_never(tmp_path):
         output_file=output_file,
     )
     assert_checksum_equals(output_file, test_dir / "output_nn_tc_ever_never.csv")
+
+
+def test_tc_matches(tmp_path):
+    data = {
+        "smiles": [
+            "CONCCNOOOC",
+            "CCNOOCONNO",
+            "CONONNCNON",
+            "COCNOONOON",
+            "ONONNCNNNC",
+            "CCCNNCONON",
+            "OOCCNCNCOO",
+            "OCONCCNCON",
+            "NCOCNNCCNO",
+            "NOCCOOONNO",
+        ],
+        "Tc": [
+            0.8048256115805752,
+            0.547905510270021,
+            0.20606892168056123,
+            0.10223785371617233,
+            0.5084079285260388,
+            0.4671584918857752,
+            0.057206875573343474,
+            0.189574167585153,
+            0.3260046265902604,
+            0.2328257013952244,
+        ],
+    }
+    df = pd.DataFrame.from_dict(data)
+    min_tcs = [0.1, 0.4, 0.5]
+    outcomes = exact_tc_matches(df, min_tcs).reset_index(drop=True)
+
+    true_outcomes = read_csv_file(test_dir / "min_tc_match_output.csv")
+    pd.testing.assert_frame_equal(outcomes, true_outcomes)
