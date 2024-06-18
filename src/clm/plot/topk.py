@@ -21,6 +21,23 @@ def add_args(parser):
     return parser
 
 
+def compute_topk(df, models, ks):
+    ys = {model: [] for model in models}
+
+    for k in ks:
+        for model in models:
+            rows = df[df["target_source"] == model]
+            n_rows = len(rows)  # independent of k, so can be pulled out of loop
+            n_rows_at_least_rank_k = len(
+                rows[rows["target_rank"] <= k]
+            )  # filters out NaNs
+            top_k_accuracy = (n_rows_at_least_rank_k / n_rows) * 100
+
+            ys[model].append(top_k_accuracy)
+
+    return ys
+
+
 def plot(outcome_files, output_dir):
     os.makedirs(output_dir, exist_ok=True)
 
@@ -32,19 +49,9 @@ def plot(outcome_files, output_dir):
     print(df.shape)
 
     models = ("model", "PubChem", "addcarbon", "train")
-    ys = {model: [] for model in models}
 
     ks = range(0, 30)
-    for k in ks:
-        for model in models:
-            rows = df[df["target_source"] == model]
-            n_rows = len(rows)  # independent of k, so can be pulled out of loop
-            n_rows_at_least_rank_k = len(
-                rows[rows["target_rank"] <= k]
-            )  # filters out NaNs
-            top_k_accuracy = n_rows_at_least_rank_k / n_rows
-
-            ys[model].append(top_k_accuracy)
+    ys = compute_topk(df, models, ks)
 
     for model in models:
         plt.step(ks, ys[model], label=model)

@@ -24,20 +24,22 @@ def add_args(parser):
 
     return parser
 
-def compute_topk_tc(outcome, min_tcs):
+
+def compute_topk_tc(outcome, min_tcs, ks):
     tc_count = {min_tc: [] for min_tc in min_tcs}
-    ks = {min_tc: [] for min_tc in min_tcs}
     n_total = len(outcome)
 
-    for min_tc in min_tcs:
-        rows = outcome[outcome["Tc"] >= min_tc]
-        for k in range(0, 30):
-            n_rows_at_least_rank_k = len(rows[rows["target_rank"] <= k])
-            top_k_accuracy = (n_rows_at_least_rank_k / n_total) * 100
-            ks[min_tc].append(k)
+    for k in ks:
+        for min_tc in min_tcs:
+            n_rows_at_least_rank_k = outcome[
+                (outcome["target_rank"] <= k) & (outcome["Tc"] >= min_tc)
+            ]
+            top_k_accuracy = (len(n_rows_at_least_rank_k) / n_total) * 100
             tc_count[min_tc].append(top_k_accuracy)
 
-    return ks, min_tcs
+    return tc_count
+
+
 def plot(outcome_files, output_dir):
     # Make output directory if it doesn't exist yet
     os.makedirs(output_dir, exist_ok=True)
@@ -49,10 +51,11 @@ def plot(outcome_files, output_dir):
 
     min_tcs = [0.4, 0.675, 1]
 
-    ks, tc_count = compute_topk_tc(outcome, min_tcs)
+    ks = range(0, 30)
+    tc_count = compute_topk_tc(outcome, min_tcs, ks)
 
     for min_tc in min_tcs:
-        plt.step(ks[min_tc], tc_count[min_tc], label=min_tc)
+        plt.step(ks, tc_count[min_tc], label=min_tc)
 
     plt.title("Top-k accuracy curve when considering Tc >= 0.4, 0.675 as 'correct'")
     plt.xlabel("k")
