@@ -15,6 +15,8 @@ from scipy.spatial.distance import jensenshannon
 from rdkit import rdBase
 from rdkit.Contrib.SA_Score import sascorer
 from rdkit.Contrib.NP_Score import npscorer
+from tqdm import tqdm
+
 from clm.functions import (
     seed_type,
     set_seed,
@@ -37,6 +39,7 @@ from clm.functions import (
 rdBase.DisableLog("rdApp.error")
 fscore = npscorer.readNPModel()
 logger = logging.getLogger(__name__)
+tqdm.pandas()
 
 
 def add_args(parser):
@@ -119,10 +122,10 @@ def smile_properties_dataframe(a_row, is_sample=False):
     # Unlike training smiles, sampled smiles can be categorized as valid/ novel
     # So, sampled df have more columns than train df, both of which are parsed in this function
     columns = (
-        ["smile", "is_valid", "is_novel", "size", "bin"]
+        ["smiles", "is_valid", "is_novel", "size", "bin"]
         + list(molecular_properties.keys())
         if is_sample
-        else ["smile"] + list(molecular_properties.keys())
+        else ["smiles"] + list(molecular_properties.keys())
     )
 
     # Some of the calculations later strictly require specific datatypes
@@ -155,10 +158,15 @@ def get_dataframes(train_file, prep_sample_df):
     train_df = pd.concat(train_data)
 
     logger.info(f"Reading sample smiles from {prep_sample_df}")
-    sample_data = prep_sample_df.apply(
+    # Compute molecular properties of valid SMILES only
+    valid_data = prep_sample_df[prep_sample_df["is_valid"]].progress_apply(
         lambda x: smile_properties_dataframe(x, is_sample=True), axis=1
     )
-    sample_df = pd.concat(sample_data.to_list())
+    valid_df = pd.concat(valid_data.to_list())
+    invalid_df = prep_sample_df[~(prep_sample_df["is_valid"])]
+
+    # Concatenate valid and invalid dfs for computations later
+    sample_df = pd.concat([valid_df, invalid_df])
 
     n_valid_smiles = sample_df["is_valid"].sum()
     logger.info(f"{n_valid_smiles} valid SMILES out of {len(sample_df)}")
@@ -264,7 +272,7 @@ def calculate_outcomes_dataframe(sample_df, train_df, max_molecules):
                 bin_df["acceptors"], train_df["acceptors"]
             ),
             "Frechet ChemNet distance": fcd(
-                bin_df[bin_df["is_novel"]]["canonical_smile"],
+                bin_df[bin_df["is_novel"]]["canonical_smile"].to_numpy(),
                 train_df["canonical_smile"].to_numpy(),
             ),
         }
