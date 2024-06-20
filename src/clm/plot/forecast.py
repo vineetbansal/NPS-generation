@@ -65,6 +65,13 @@ def plot_distribution(outcome, output_dir):
     enrichment_factor = outcome["EF"].dropna().tolist()
     rank = outcome["rank"].dropna().tolist()
     p_value = outcome["pval"].dropna().tolist()
+
+    # For cases when either of these values are empty
+    # This only happens when all generated SMILES are novel
+    if not (enrichment_factor and rank and p_value):
+        logger.warning("Not enough values to plot the Enrichment Factor Curve")
+        return
+
     neg_log_p_value = [-np.log10(p) for p in p_value]
 
     fig, axes = plt.subplots(2, 1, figsize=(10, 8))

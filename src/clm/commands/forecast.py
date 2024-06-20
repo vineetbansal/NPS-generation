@@ -136,7 +136,12 @@ def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None)
     for idx, rank in enumerate(ranks):
         obs = sum(y[0:rank])
         exp = rank * sum(y) / deepmet.shape[0]
-        EF = obs / exp
+        # exp will be 0 when every single generated SMILE is known
+        try:
+            EF = obs / exp
+        except ZeroDivisionError as e:
+            logger.warning(f"Cannot compute enrichment factor. {e}")
+            EF = None
 
         # chi-square test
         f_obs = np.array([obs, rank - obs]) / rank
