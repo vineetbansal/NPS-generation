@@ -281,7 +281,7 @@ def write_structural_prior_CV(
     # we aggregate results from all folds to assess test SMILES against training SMILES across all folds
     if cv_ranks_files is not None and cv_tc_flies is not None:
         cv_rank_data = pd.concat([read_csv_file(f) for f in cv_ranks_files], axis=0)
-        cv_tc_data = pd.concat([read_csv_file(f) for f in cv_ranks_files], axis=0)
+        cv_tc_data = pd.concat([read_csv_file(f) for f in cv_tc_flies], axis=0)
 
         train_cv_rank_data = cv_rank_data[cv_rank_data["target_source"] == "train"]
         train_cv_tc_data = cv_tc_data[cv_tc_data["target_source"] == "train"]
