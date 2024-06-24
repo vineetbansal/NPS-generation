@@ -12,6 +12,7 @@ as used in the manuscript, :cite:t:`Skinnider2021`.
 .. toctree::
 
    clm/installation.md
+   clm/snakemake.md
    clm/faq.md
 
 .. toctree::
