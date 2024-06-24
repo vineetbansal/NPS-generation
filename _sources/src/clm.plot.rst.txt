@@ -36,6 +36,14 @@ clm.plot.nn\_tc\_ever\_v\_never module
    :undoc-members:
    :show-inheritance:
 
+clm.plot.structural\_prior\_min\_freq module
+--------------------------------------------
+
+.. automodule:: clm.plot.structural_prior_min_freq
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 clm.plot.topk module
 --------------------
 
