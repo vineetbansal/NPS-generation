@@ -292,7 +292,7 @@ rule forecast:
         sample_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_min1_freq-avg.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_forecast.csv",
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_forecast.csv",
     resources:
         mem_mb=64000,
         runtime=30,
@@ -306,8 +306,8 @@ rule forecast:
 rule plot_forecast:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_forecast.csv",
-            dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
+        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_forecast.csv",
+            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
         directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/forecast"),
     resources:
