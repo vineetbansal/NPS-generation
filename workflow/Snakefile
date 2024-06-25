@@ -42,7 +42,7 @@ rule plots:
         topk_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc",
             enum_factor=ENUM_FACTORS),
         forecast_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/forecast",
-        enum_factor=ENUM_FACTORS)
+        enum_factor=ENUM_FACTORS),
         structural_prior_min_freq_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq",
             enum_factor=ENUM_FACTORS)
 
