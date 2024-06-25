@@ -17,7 +17,6 @@ def add_args(parser):
     parser.add_argument(
         "--ranks_file",
         type=str,
-        nargs="+",
         help="Path to ranks file ",
     )
     parser.add_argument(
@@ -30,8 +29,9 @@ def add_args(parser):
 
 def plot_generated_v_never(outcome, output_dir):
     data = []
-    data.append(list(outcome[outcome["target_rank"].notnull]["nn_tc"]))
-    data.append(list(outcome[outcome["target_rank"].isnull]["nn_tc"]))
+
+    data.append(list(outcome[outcome["target_rank"].notnull()]["nn_tc"]))
+    data.append(list(outcome[outcome["target_rank"].isnull()]["nn_tc"]))
 
     labels = ["Ever Generated", "Never Generated"]
 
@@ -60,8 +60,8 @@ def plot_generated_v_never(outcome, output_dir):
 
 def plot_generated_ratio(rank_df, output_dir):
     data = {
-        "Ever Generated": len(rank_df[rank_df["target_rank"].notnull]),
-        "Never Generated": len(rank_df[rank_df["target_rank"].isnull]),
+        "Ever Generated": len(rank_df[rank_df["target_rank"].notnull()]),
+        "Never Generated": len(rank_df[rank_df["target_rank"].isnull()]),
     }
 
     sns.set_style("darkgrid")
@@ -101,8 +101,7 @@ def plot(outcome_files, ranks_file, output_dir):
         )
         rank.append(rank_df)
 
-    rank_df, merged_df = pd.concat(rank), pd.concat(merged_df)
-
+    merged_df = pd.merge(outcome, rank_df, how="inner", on=["smiles"])
     plot_generated_v_never(merged_df, output_dir)
     plot_generated_ratio(rank_df, output_dir)
 

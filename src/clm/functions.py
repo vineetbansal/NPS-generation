@@ -1,3 +1,5 @@
+import contextlib
+
 import deepsmiles
 import numpy as np
 import os
@@ -16,6 +18,7 @@ from scipy.spatial.distance import jensenshannon
 import hashlib
 import gzip
 import logging
+import csv
 
 
 logger = logging.getLogger(__name__)
@@ -165,10 +168,9 @@ def read_file(
         max_lines=None,
         smile_only=False,
     ):
-        compressed = str(input_file).endswith(".gz")
-        if compressed:
+        if str(input_file).endswith(".gz"):
             open_fn = gzip.open
-            mode = "rb"
+            mode = "rt"
         else:
             open_fn = open
             mode = "r"
@@ -177,22 +179,19 @@ def read_file(
         with open_fn(input_file, mode) as f:
             # Detect if we're dealing with a csv file with "smiles" in the header
             first_line = f.readline()
-            if compressed:
-                first_line = first_line.decode("utf8").strip()
-            first_line = first_line.strip()
-            is_csv = "smiles" in first_line
+            first_line_tokens = next(csv.reader([first_line]))
+            is_csv = "smiles" in first_line_tokens
 
             if is_csv:
-                smile_idx = first_line.split(",").index("smiles")
+                smile_idx = first_line_tokens.index("smiles")
             else:
                 smile_idx = None
                 f.seek(0)  # go to beginning of file
 
             for line in f:
-                if compressed:
-                    line = line.decode("utf8")
+                tokens = next(csv.reader([line]))
                 if is_csv and smile_only:
-                    yield line.split(",")[smile_idx].strip()
+                    yield tokens[smile_idx]
                 else:
                     yield line.strip()
                 count += 1
@@ -535,3 +534,41 @@ def assert_checksum_equals(generated_file, oracle):
             "".join(open(oracle, "r").readlines()).encode("utf8")
         ).hexdigest()
     )
+
+
+def split_frequency_ranges(data, max_molecules=None):
+    # TODO: make this process dynamic later
+    frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
+
+    data["bin"] = ""
+    for (f_min, f_max) in frequency_ranges:
+        if f_max is not None:
+            selected_rows = data[data["size"].between(f_min, f_max)]
+        else:
+            selected_rows = data[data["size"] > f_min]
+
+        bin_name = f"{f_min}-{f_max}" if f_max is not None else f"{f_min}-"
+
+        if max_molecules is not None and len(selected_rows) > max_molecules:
+            selected_rows = selected_rows.sample(n=max_molecules)
+        elif max_molecules is not None and len(selected_rows) < max_molecules:
+            logger.warning(
+                f"Not enough molecules for frequency bin '{bin_name}'. Using {len(selected_rows)} molecules."
+            )
+
+        data.loc[selected_rows.index, "bin"] = bin_name
+
+    # Save only the rows where we've assigned a bin
+    data = data[data["bin"] != ""].reset_index(drop=True)
+
+    return data
+
+
+@contextlib.contextmanager
+def local_seed(seed):
+    current_state = np.random.get_state()
+    np.random.seed(seed)
+    try:
+        yield
+    finally:
+        np.random.set_state(current_state)

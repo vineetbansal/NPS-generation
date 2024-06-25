@@ -1,85 +1,57 @@
 bin,outcome,value,input_file
-1-1,n_mols,500.0,prep_outcomes_freq.csv
-2-2,n_mols,1000.0,prep_outcomes_freq.csv
-3-10,n_mols,1557.0,prep_outcomes_freq.csv
-1-1,% valid,1.0,prep_outcomes_freq.csv
-2-2,% valid,1.0,prep_outcomes_freq.csv
-3-10,% valid,1.0,prep_outcomes_freq.csv
-1-1,% novel,1.0,prep_outcomes_freq.csv
-2-2,% novel,1.0,prep_outcomes_freq.csv
-3-10,% novel,1.0,prep_outcomes_freq.csv
-1-1,% unique,1.0,prep_outcomes_freq.csv
-2-2,% unique,0.5,prep_outcomes_freq.csv
-3-10,% unique,0.32113,prep_outcomes_freq.csv
-1-1,"KL divergence, atoms",inf,prep_outcomes_freq.csv
-2-2,"KL divergence, atoms",inf,prep_outcomes_freq.csv
-3-10,"KL divergence, atoms",inf,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, atoms",0.07465253001890862,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, atoms",0.08027668039358377,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, atoms",0.09229615809801409,prep_outcomes_freq.csv
-1-1,"Wasserstein distance, atoms",0.01668844393228318,prep_outcomes_freq.csv
-2-2,"Wasserstein distance, atoms",0.012951154441904426,prep_outcomes_freq.csv
-3-10,"Wasserstein distance, atoms",0.016020471104010232,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, MWs",0.17155530345252115,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, MWs",0.10232359970238909,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, MWs",0.11611622445052662,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, logP",0.15622024244546598,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, logP",0.14706690482931367,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, logP",0.14456963011240004,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, Bertz TC",0.2565847946057493,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, Bertz TC",0.18295003559329837,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, Bertz TC",0.20371494186046188,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, QED",0.10234155248405664,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, QED",0.1688224116687081,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, QED",0.22438136037931888,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, TPSA",0.27714908506245883,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, TPSA",0.14629920214480388,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, TPSA",0.1279191122686101,prep_outcomes_freq.csv
-1-1,Internal diversity,0.29051476753390304,prep_outcomes_freq.csv
-2-2,Internal diversity,0.2243120532499809,prep_outcomes_freq.csv
-3-10,Internal diversity,0.207071888432229,prep_outcomes_freq.csv
-1-1,External diversity,0.2127613339411125,prep_outcomes_freq.csv
-2-2,External diversity,0.19228904436751332,prep_outcomes_freq.csv
-3-10,External diversity,0.17296968819584882,prep_outcomes_freq.csv
-1-1,Internal nearest-neighbor Tc,0.6024605378631317,prep_outcomes_freq.csv
-2-2,Internal nearest-neighbor Tc,0.652601118044936,prep_outcomes_freq.csv
-3-10,Internal nearest-neighbor Tc,0.7550929795120098,prep_outcomes_freq.csv
-1-1,External nearest-neighbor Tc,0.5660268071668029,prep_outcomes_freq.csv
-2-2,External nearest-neighbor Tc,0.531242422120069,prep_outcomes_freq.csv
-3-10,External nearest-neighbor Tc,0.48553006373397206,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, # of rings",0.31278203464411025,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, # of rings",0.28783113998700494,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, # of rings",0.2890607751893959,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, # of aliphatic rings",0.23897188564644672,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, # of aliphatic rings",0.17016083367767879,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, # of aliphatic rings",0.18076320584904668,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, # of aromatic rings",0.25094728830733376,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, # of aromatic rings",0.2734078873091278,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, # of aromatic rings",0.35226317342901087,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, SA score",0.1321776949593958,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, SA score",0.17405487504861994,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, SA score",0.2789337840004811,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, NP score",0.11417857130875099,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, NP score",0.11944379219620818,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, NP score",0.17095951874137713,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, % sp3 carbons",0.1955748691673706,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, % sp3 carbons",0.25059091268075157,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, % sp3 carbons",0.35749057616697305,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, % rotatable bonds",0.14622656331041287,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, % rotatable bonds",0.19773802028622708,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, % rotatable bonds",0.24586178535786832,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, % stereocenters",0.12388568179044376,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, % stereocenters",0.13690054908096555,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, % stereocenters",0.16563632650919596,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, Murcko scaffolds",0.7459523436018911,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, Murcko scaffolds",0.7201319903067306,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, Murcko scaffolds",0.7288927826650033,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, hydrogen donors",0.2824916493560205,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, hydrogen donors",0.17753729393165624,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, hydrogen donors",0.17602798981784826,prep_outcomes_freq.csv
-1-1,"Jensen-Shannon distance, hydrogen acceptors",0.35714072190879564,prep_outcomes_freq.csv
-2-2,"Jensen-Shannon distance, hydrogen acceptors",0.22064053573918707,prep_outcomes_freq.csv
-3-10,"Jensen-Shannon distance, hydrogen acceptors",0.20572801556857429,prep_outcomes_freq.csv
-1-1,Frechet ChemNet distance,13.622936221007443,prep_outcomes_freq.csv
-2-2,Frechet ChemNet distance,14.532675380490502,prep_outcomes_freq.csv
-3-10,Frechet ChemNet distance,18.02370384708652,prep_outcomes_freq.csv
+2-2,n_mols,4.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,n_mols,4.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,% valid,1.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,% valid,1.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,% novel,1.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,% novel,1.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,% unique,0.5,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,% unique,0.5,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"KL divergence, atoms",inf,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"KL divergence, atoms",inf,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, atoms",0.5046837721893537,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, atoms",0.5046837721893537,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Wasserstein distance, atoms",0.08892683752963756,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Wasserstein distance, atoms",0.08892683752963756,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, MWs",0.8038230534161156,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, MWs",0.8038230534161156,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, logP",0.6678264246969052,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, logP",0.6678264246969052,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, Bertz TC",0.8285844742415922,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, Bertz TC",0.8285844742415922,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, QED",0.6455545811223654,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, QED",0.6455545811223654,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, TPSA",0.825382789962287,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, TPSA",0.825382789794428,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,Internal diversity,0.4938,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,Internal diversity,0.5054,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,External diversity,0.005108636302768539,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,External diversity,0.005028135336599291,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,Internal nearest-neighbor Tc,0.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,Internal nearest-neighbor Tc,0.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,External nearest-neighbor Tc,0.063875,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,External nearest-neighbor Tc,0.057375,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, # of rings",0.6252960018969264,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, # of rings",0.6252960018969264,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, # of aliphatic rings",0.5804424267694744,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, # of aliphatic rings",0.5804424267694744,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, # of aromatic rings",0.25388032849586234,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, # of aromatic rings",0.25388032849586234,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, SA score",0.3435628702795307,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, SA score",0.3435628702795307,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, NP score",0.7861880074925389,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, NP score",0.7861880074925389,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, % sp3 carbons",0.2699973730658874,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, % sp3 carbons",0.2699973730658874,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, % rotatable bonds",0.8296481081674388,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, % rotatable bonds",0.8296479033838146,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, % stereocenters",0.5773688588423502,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, % stereocenters",0.5773688588423502,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, Murcko scaffolds",0.6252960118622004,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, Murcko scaffolds",0.6252960118622004,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, hydrogen donors",0.5904790954306586,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, hydrogen donors",0.5904790954306586,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,"Jensen-Shannon distance, hydrogen acceptors",0.7536554684644989,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,"Jensen-Shannon distance, hydrogen acceptors",0.7536554684644989,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,Frechet ChemNet distance,33.85478056195371,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,Frechet ChemNet distance,33.85478056195371,LOTUS_truncated_SMILES_0_unique_masses.csv
