@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 from matplotlib import pyplot as plt
 import os
+import numpy as np
 from clm.functions import read_csv_file
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -25,15 +26,37 @@ def add_args(parser):
     return parser
 
 
-def get_tc_range(sample_tc, min_tcs):
-    tc_match = 0
+def compute_topk_tc(outcome, min_tcs, ks):
+    tc_count = {min_tc: [] for min_tc in min_tcs}
+    n_total = len(outcome)
 
     for min_tc in min_tcs:
-        if sample_tc >= min_tc:
-            tc_match = min_tc
-        else:
-            break
-    return tc_match
+        for k in ks:
+            n_rows_at_least_rank_k = outcome[
+                (outcome["target_rank"] <= k) & (outcome["Tc"] >= min_tc)
+            ]
+            top_k_accuracy = (len(n_rows_at_least_rank_k) / n_total) * 100
+            tc_count[min_tc].append(top_k_accuracy)
+
+    return tc_count
+
+
+def exact_tc_matches(outcome, min_tcs):
+    match = []
+    for min_tc in min_tcs:
+        for smile, df in outcome.groupby("smiles"):
+            # For each held out molecule, extracting tc of at least min_tc
+            # We are assuming min_tc threshold to be an exact match in this case instead of inchikey
+            matches = df[df["Tc"] >= min_tc]
+            if matches.shape[0] > 0:
+                match.append(matches.head(1).assign(min_tc=min_tc))
+            else:
+                # Assigning every other attribute as nan to avoid double representation of a single threshold
+                match.append(
+                    pd.DataFrame([{col: np.nan for col in df}]).assign(min_tc=min_tc)
+                )
+
+    return pd.concat(match)
 
 
 def plot(outcome_files, output_dir):
@@ -43,29 +66,19 @@ def plot(outcome_files, output_dir):
     outcome = pd.concat(
         [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
     )
-    outcome = outcome[outcome["target_source"] == "model"]
-    outcome = outcome.dropna(subset=["Tc"])
 
+    # Filtering out tc of more than 0.4 because that's considered to be an exact match for this case
+    outcome = outcome[(outcome["target_source"] == "model")]
     min_tcs = [0.4, 0.675, 1]
 
-    tc = outcome["Tc"].apply(lambda x: get_tc_range(x, min_tcs))
-    outcome = outcome.assign(min_tc=tc)
+    filtered_outcome = exact_tc_matches(outcome, min_tcs)
 
-    tc_count = {min_tc: [] for min_tc in min_tcs}
-    ks = []
-    for k in range(0, 30):
-        for min_tc in min_tcs:
-            rows = outcome[outcome["min_tc"] == min_tc]
-            n_rows = len(rows)
-            if n_rows == 0:
-                continue
-            n_rows_at_least_rank_k = len(rows[rows["target_rank"] <= k])
-            top_k_accuracy = (n_rows_at_least_rank_k / n_rows) * 100
-            ks.append(k)
-            tc_count[min_tc].append(top_k_accuracy)
+    ks = range(0, 30)
+    tc_count = compute_topk_tc(filtered_outcome, min_tcs, ks)
 
     for min_tc in min_tcs:
         plt.step(ks, tc_count[min_tc], label=min_tc)
+
     plt.title("Top-k accuracy curve when considering Tc >= 0.4, 0.675 as 'correct'")
     plt.xlabel("k")
     plt.xscale("log")
