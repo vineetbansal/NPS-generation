@@ -288,7 +288,6 @@ def calculate_outcomes_dataframe(sample_df, train_df, max_molecules):
         zip(*np.unique(train_df["murcko"].to_numpy(), return_counts=True))
     )
 
-    # Generate outcomes for all rows (with a special "all" bin name)
     out = []
     for bin, bin_df in sample_df.groupby("bin"):
         logger.info(f"Calculating outcomes for bin {bin}")
@@ -298,8 +297,14 @@ def calculate_outcomes_dataframe(sample_df, train_df, max_molecules):
             out.append(_out)
 
     # Sample non-binned df by weight
-    if sample_df.shape[0] > max_molecules:
-        sample_df.sample(n=max_molecules, weights="size")
+    if max_molecules is not None and len(sample_df) > max_molecules:
+        sample_df = sample_df.sample(n=max_molecules, weights="size")
+    elif max_molecules is not None and len(sample_df) < max_molecules:
+        logger.warning(
+            f"Not enough molecules for {max_molecules}, using {len(sample_df)} instead."
+        )
+
+    # Generate outcomes for all rows (with a special "all" bin name)
     out.append(
         handle_bin(
             "all", sample_df, train_element_distribution, train_murcko_distribution
