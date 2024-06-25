@@ -28,8 +28,9 @@ def add_args(parser):
 
 def plot_generated_v_never(outcome, output_dir):
     data = []
-    data.append(list(outcome[~(outcome["target_rank"] == 0)]["nn_tc"]))
-    data.append(list(outcome[outcome["target_rank"] == 0]["nn_tc"]))
+
+    data.append(list(outcome[outcome["target_rank"].notnull()]["nn_tc"]))
+    data.append(list(outcome[outcome["target_rank"].isnull()]["nn_tc"]))
 
     labels = ["Ever Generated", "Never Generated"]
 
@@ -58,8 +59,8 @@ def plot_generated_v_never(outcome, output_dir):
 
 def plot_generated_ratio(rank_df, output_dir):
     data = {
-        "Ever Generated": len(rank_df[~(rank_df["target_rank"] == 0)]),
-        "Never Generated": len(rank_df[rank_df["target_rank"] == 0]),
+        "Ever Generated": len(rank_df[rank_df["target_rank"].notnull()]),
+        "Never Generated": len(rank_df[rank_df["target_rank"].isnull()]),
     }
 
     sns.set_style("darkgrid")
@@ -89,9 +90,6 @@ def plot(outcome_files, ranks_file, output_dir):
     )
     rank_df = pd.read_csv(ranks_file)
     rank_df = rank_df[rank_df["target_source"] == "model"]
-
-    # Fill all the empty ranks with 0
-    rank_df["target_rank"].fillna(0, inplace=True)
 
     merged_df = pd.merge(outcome, rank_df, how="inner", on=["smiles"])
     plot_generated_v_never(merged_df, output_dir)

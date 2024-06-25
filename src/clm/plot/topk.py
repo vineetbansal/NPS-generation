@@ -21,21 +21,33 @@ def add_args(parser):
     return parser
 
 
-def compute_topk(df, models, ks):
-    ys = {model: [] for model in models}
-
+def topk(df, category, output_dir, target_column, title, filename):
+    ys = {item: [] for item in category}
+    ks = range(0, 30)
     for k in ks:
-        for model in models:
-            rows = df[df["target_source"] == model]
+        for item in category:
+            rows = df[df[target_column] == item]
             n_rows = len(rows)  # independent of k, so can be pulled out of loop
             n_rows_at_least_rank_k = len(
                 rows[rows["target_rank"] <= k]
             )  # filters out NaNs
-            top_k_accuracy = (n_rows_at_least_rank_k / n_rows) * 100
+            top_k_accuracy = n_rows_at_least_rank_k / n_rows
 
-            ys[model].append(top_k_accuracy)
+            ys[item].append(top_k_accuracy)
 
-    return ys
+    for model in category:
+        plt.step(ks, ys[model], label=model)
+    plt.title(title)
+    plt.xlabel("k")
+    plt.xscale("log")
+    plt.ylabel("Accuracy (%) ")
+    plt.legend()
+
+    file_name = Path(output_dir) / filename
+    plt.savefig(file_name)
+
+    # Clear the previous figure
+    plt.clf()
 
 
 def plot(outcome_files, output_dir):
@@ -49,23 +61,14 @@ def plot(outcome_files, output_dir):
     print(df.shape)
 
     models = ("model", "PubChem", "addcarbon", "train")
-
-    ks = range(0, 30)
-    ys = compute_topk(df, models, ks)
-
-    for model in models:
-        plt.step(ks, ys[model], label=model)
-    plt.title("Figure 6b")
-    plt.xlabel("k")
-    plt.xscale("log")
-    plt.ylabel("Top k %")
-    plt.legend()
-
-    file_name = Path(output_dir) / "topk"
-    plt.savefig(file_name)
-
-    # Clear the previous figure
-    plt.clf()
+    topk(
+        df,
+        models,
+        output_dir,
+        target_column="target_source",
+        title="Figure 6b",
+        filename="topk",
+    )
 
 
 def main(args):
