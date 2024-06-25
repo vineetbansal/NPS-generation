@@ -6,6 +6,7 @@ from clm.plot.nn_tc_ever_v_never import plot as nn_tc_ever_v_never
 from clm.plot.calculate_outcome_distrs import plot as calculate_outcome_distrs
 from clm.plot.topk_tc import plot as topk_tc
 from clm.plot.topk import plot as topk
+from clm.plot.structural_prior_min_freq import plot as structural_prior_min_freq
 
 
 def add_args(parser):
@@ -28,6 +29,18 @@ def add_args(parser):
         help="Path to the rank file ",
     )
     parser.add_argument(
+        "--tc_files",
+        type=str,
+        nargs="+",
+        help="Path to ranks file ",
+    )
+    parser.add_argument(
+        "--rank_files",
+        type=str,
+        nargs="+",
+        help="Path to ranks file ",
+    )
+    parser.add_argument(
         "--output_dir",
         type=str,
         required=True,
@@ -36,7 +49,14 @@ def add_args(parser):
     return parser
 
 
-def plot(evaluation_type, outcome_files, output_dir, ranks_file=None):
+def plot(
+    evaluation_type,
+    output_dir,
+    outcome_files=None,
+    rank_files=None,
+    tc_files=None,
+    ranks_file=None,
+):
     if evaluation_type == "calculate_outcomes":
         calculate_outcomes(outcome_files, output_dir)
     elif evaluation_type == "write_nn_tc":
@@ -46,13 +66,15 @@ def plot(evaluation_type, outcome_files, output_dir, ranks_file=None):
     elif evaluation_type == "freq_distribution":
         freq_distribution(outcome_files, output_dir)
     elif evaluation_type == "nn_tc_ever_v_never":
-        nn_tc_ever_v_never(outcome_files, ranks_file, output_dir)
+        nn_tc_ever_v_never(outcome_files, rank_files, ranks_file, output_dir)
     elif evaluation_type == "calculate_outcome_distrs":
         calculate_outcome_distrs(outcome_files, output_dir)
     elif evaluation_type == "topk_tc":
         topk_tc(outcome_files, output_dir)
     elif evaluation_type == "topk":
         topk(outcome_files, output_dir)
+    elif evaluation_type == "structural_prior_min_freq":
+        structural_prior_min_freq(rank_files, tc_files, output_dir)
 
 
 def main(args):
@@ -61,4 +83,6 @@ def main(args):
         outcome_files=args.outcome_files,
         output_dir=args.output_dir,
         ranks_file=args.ranks_file,
+        rank_files=args.rank_files,
+        tc_files=args.tc_files,
     )

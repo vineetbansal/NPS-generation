@@ -164,10 +164,12 @@ def match_molecules(row, dataset, data_type, top_n=1):
             index=[0],
         )
 
+    row = row[["smiles", "mass", "formula", "mass_known", "formula_known"]]
     tc = pd.concat(
         [
             pd.DataFrame(
-                [row[["smiles", "mass", "formula", "mass_known", "formula_known"]]]
+                np.repeat(pd.DataFrame([row]), repeats=len(tc), axis=0),
+                columns=["smiles", "mass", "formula", "mass_known", "formula_known"],
             ).reset_index(drop=True),
             tc.reset_index(drop=True),
         ],
@@ -176,9 +178,7 @@ def match_molecules(row, dataset, data_type, top_n=1):
 
     rank = pd.concat(
         [
-            pd.DataFrame(
-                [row[["smiles", "mass", "formula", "mass_known", "formula_known"]]]
-            ).reset_index(drop=True),
+            pd.DataFrame([row]).reset_index(drop=True),
             rank.reset_index(drop=True),
         ],
         axis=1,

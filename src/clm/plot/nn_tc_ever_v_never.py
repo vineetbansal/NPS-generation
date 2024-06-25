@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 from matplotlib import pyplot as plt
 import seaborn as sns
+from clm.functions import read_csv_file
 
 
 def add_args(parser):
@@ -14,9 +15,15 @@ def add_args(parser):
         help="Paths of all the model evaluation files relevant to nn_tc_ever_v_never ",
     )
     parser.add_argument(
+        "--rank_files",
+        type=str,
+        nargs="+",
+        help="Path to individual CV ranks file ",
+    )
+    parser.add_argument(
         "--ranks_file",
         type=str,
-        help="Path to ranks file ",
+        help="Path to overall rank file ",
     )
     parser.add_argument(
         "--output_dir",
@@ -28,8 +35,9 @@ def add_args(parser):
 
 def plot_generated_v_never(outcome, output_dir):
     data = []
-    data.append(list(outcome[~(outcome["target_rank"] == 0)]["nn_tc"]))
-    data.append(list(outcome[outcome["target_rank"] == 0]["nn_tc"]))
+
+    data.append(list(outcome[outcome["target_rank"].notnull()]["nn_tc"]))
+    data.append(list(outcome[outcome["target_rank"].isnull()]["nn_tc"]))
 
     labels = ["Ever Generated", "Never Generated"]
 
@@ -56,10 +64,12 @@ def plot_generated_v_never(outcome, output_dir):
     plt.clf()
 
 
-def plot_generated_ratio(rank_df, output_dir):
+def plot_generated_ratio(ranks_file, output_dir):
+    # Overall rank file
+    rank_df = read_csv_file(ranks_file)
     data = {
-        "Ever Generated": len(rank_df[~(rank_df["target_rank"] == 0)]),
-        "Never Generated": len(rank_df[rank_df["target_rank"] == 0]),
+        "Ever Generated": len(rank_df[rank_df["target_rank"].notnull()]),
+        "Never Generated": len(rank_df[rank_df["target_rank"].isnull()]),
     }
 
     sns.set_style("darkgrid")
@@ -80,27 +90,32 @@ def plot_generated_ratio(rank_df, output_dir):
     plt.clf()
 
 
-def plot(outcome_files, ranks_file, output_dir):
+def plot(outcome_files, rank_files, ranks_file, output_dir):
     # Make an output directory if it doesn't yet
     os.makedirs(output_dir, exist_ok=True)
 
-    outcome = pd.concat(
-        [pd.read_csv(outcome_file, delimiter=",") for outcome_file in outcome_files]
-    )
-    rank_df = pd.read_csv(ranks_file)
-    rank_df = rank_df[rank_df["target_source"] == "model"]
+    merged_df = []
+    for outcome_file, rank_file in zip(outcome_files, rank_files):
+        outcome_df, rank_df = read_csv_file(outcome_file), read_csv_file(rank_file)
+        rank_df = rank_df[rank_df["target_source"] == "model"]
+        merged_df.append(
+            pd.merge(
+                outcome_df,
+                rank_df,
+                how="inner",
+                left_on="inchikey",
+                right_on="target_inchikey",
+            )
+        )
 
-    # Fill all the empty ranks with 0
-    rank_df["target_rank"].fillna(0, inplace=True)
-
-    merged_df = pd.merge(outcome, rank_df, how="inner", on=["smiles"])
-    plot_generated_v_never(merged_df, output_dir)
-    plot_generated_ratio(rank_df, output_dir)
+    plot_generated_v_never(pd.concat(merged_df), output_dir)
+    plot_generated_ratio(ranks_file, output_dir)
 
 
 def main(args):
     plot(
         outcome_files=args.outcome_files,
+        rank_files=args.rank_files,
         ranks_file=args.ranks_file,
         output_dir=args.output_dir,
     )
