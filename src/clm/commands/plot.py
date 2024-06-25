@@ -66,7 +66,7 @@ def plot(
     elif evaluation_type == "freq_distribution":
         freq_distribution(outcome_files, output_dir)
     elif evaluation_type == "nn_tc_ever_v_never":
-        nn_tc_ever_v_never(outcome_files, ranks_file, output_dir)
+        nn_tc_ever_v_never(outcome_files, rank_files, ranks_file, output_dir)
     elif evaluation_type == "calculate_outcome_distrs":
         calculate_outcome_distrs(outcome_files, output_dir)
     elif evaluation_type == "topk_tc":

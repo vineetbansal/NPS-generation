@@ -15,9 +15,15 @@ def add_args(parser):
         help="Paths of all the model evaluation files relevant to nn_tc_ever_v_never ",
     )
     parser.add_argument(
+        "--rank_files",
+        type=str,
+        nargs="+",
+        help="Path to individual CV ranks file ",
+    )
+    parser.add_argument(
         "--ranks_file",
         type=str,
-        help="Path to ranks file ",
+        help="Path to overall rank file ",
     )
     parser.add_argument(
         "--output_dir",
@@ -58,7 +64,9 @@ def plot_generated_v_never(outcome, output_dir):
     plt.clf()
 
 
-def plot_generated_ratio(rank_df, output_dir):
+def plot_generated_ratio(ranks_file, output_dir):
+    # Overall rank file
+    rank_df = read_csv_file(ranks_file)
     data = {
         "Ever Generated": len(rank_df[rank_df["target_rank"].notnull()]),
         "Never Generated": len(rank_df[rank_df["target_rank"].isnull()]),
@@ -82,12 +90,12 @@ def plot_generated_ratio(rank_df, output_dir):
     plt.clf()
 
 
-def plot(outcome_files, ranks_file, output_dir):
+def plot(outcome_files, rank_files, ranks_file, output_dir):
     # Make an output directory if it doesn't yet
     os.makedirs(output_dir, exist_ok=True)
 
-    merged_df, rank = [], []
-    for outcome_file, rank_file in zip(outcome_files, ranks_file):
+    merged_df = []
+    for outcome_file, rank_file in zip(outcome_files, rank_files):
         outcome_df, rank_df = read_csv_file(outcome_file), read_csv_file(rank_file)
         rank_df = rank_df[rank_df["target_source"] == "model"]
         merged_df.append(
@@ -95,20 +103,19 @@ def plot(outcome_files, ranks_file, output_dir):
                 outcome_df,
                 rank_df,
                 how="inner",
-                right_on="inchikey",
-                left_on="target_inchikey",
+                left_on="inchikey",
+                right_on="target_inchikey",
             )
         )
-        rank.append(rank_df)
 
-    merged_df = pd.merge(outcome, rank_df, how="inner", on=["smiles"])
-    plot_generated_v_never(merged_df, output_dir)
-    plot_generated_ratio(rank_df, output_dir)
+    plot_generated_v_never(pd.concat(merged_df), output_dir)
+    plot_generated_ratio(ranks_file, output_dir)
 
 
 def main(args):
     plot(
         outcome_files=args.outcome_files,
+        rank_files=args.rank_files,
         ranks_file=args.ranks_file,
         output_dir=args.output_dir,
     )
