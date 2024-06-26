@@ -41,6 +41,8 @@ rule plots:
             enum_factor=ENUM_FACTORS),
         topk_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc",
             enum_factor=ENUM_FACTORS),
+        forecast_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/forecast",
+        enum_factor=ENUM_FACTORS),
         structural_prior_min_freq_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq",
             enum_factor=ENUM_FACTORS)
 
@@ -292,18 +294,35 @@ rule plot_topk_tc:
 rule forecast:
     conda: "clm"
     input:
-        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
+        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
+        sample_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_min1_freq-avg.csv.gz",
+            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_forecast.csv",
+        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_forecast.csv",
     resources:
         mem_mb=64000,
         runtime=30,
     shell:
         'clm forecast '
-        '--test_file {input.test_file} '
-        '--sample_file {input.sample_file} '
-        '--output_file {output.output_file} '
+        '--test-file {input.test_file} '
+        '--sample-file {input.sample_file} '
+        '--output-file {output.output_file} '
+
+
+rule plot_forecast:
+    conda: "clm"
+    input:
+        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_forecast.csv",
+            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
+    output:
+        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/forecast"),
+    resources:
+        mem_mb=64000,
+        runtime=30,
+    shell:
+        'clm plot forecast '
+        '--outcome_files {input} '
+        '--output_dir {output} '
 
 
 rule plot_topk:
