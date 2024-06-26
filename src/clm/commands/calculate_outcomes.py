@@ -179,6 +179,8 @@ def get_dataframes(train_file, prep_sample_df):
 
 def calculate_outcomes_dataframe(sample_df, train_df, max_molecules):
     def handle_bin(bin_name, df, train_element_distribution, train_murcko_distribution):
+        n_valid_smiles = df[df["is_valid"]]["size"].sum()
+
         # Filtering out invalid smiles
         bin_df = df[df["is_valid"]]
 
@@ -186,7 +188,6 @@ def calculate_outcomes_dataframe(sample_df, train_df, max_molecules):
         if len(bin_df) == 0:
             return None
 
-        n_valid_smiles = bin_df[bin_df["is_valid"]]["size"].sum()
         bin_df = bin_df.reset_index(drop=True)
         element_distribution = dict(
             zip(
