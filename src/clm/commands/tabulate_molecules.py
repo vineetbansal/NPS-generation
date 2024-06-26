@@ -3,7 +3,7 @@ import os
 from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
-
+from collections import defaultdict
 from clm.functions import read_file, clean_mol, write_to_csv_file, read_csv_file
 
 # suppress rdkit errors
@@ -43,7 +43,8 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     train_data = train_data.set_index("inchikey")["smiles"].to_dict()
     sampled_smiles = read_file(input_file, stream=True)
 
-    new_smiles, invalid_smiles, known_smiles = [], [], []
+    new_smiles = []
+    invalid_smiles, known_smiles = defaultdict(int), defaultdict(int)
     for i, line in enumerate(tqdm(sampled_smiles)):
         *_, smile = line.split(",")
 
@@ -54,7 +55,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
         try:
             mol = clean_mol(smile, selfies=representation == "SELFIE")
         except ValueError:
-            invalid_smiles.append(smile)
+            invalid_smiles[smile] += 1
         else:
             mass = round(Descriptors.ExactMolWt(mol), 6)
             formula = rdMolDescriptors.CalcMolFormula(mol)
@@ -64,7 +65,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
             if inchikey not in train_data:
                 new_smiles.append([canonical_smile, mass, formula, inchikey])
             else:
-                known_smiles.append(canonical_smile)
+                known_smiles[canonical_smile] += 1
 
     freqs = pd.DataFrame(new_smiles, columns=["smiles", "mass", "formula", "inchikey"])
 
@@ -84,7 +85,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
             os.path.dirname(output_file), "known_" + os.path.basename(output_file)
         ),
         pd.DataFrame(
-            {(smile, known_smiles.count(smile)) for smile in known_smiles},
+            [(smile, freq) for smile, freq in known_smiles.items()],
             columns=["smiles", "size"],
         ),
     )
@@ -93,7 +94,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
             os.path.dirname(output_file), "invalid_" + os.path.basename(output_file)
         ),
         pd.DataFrame(
-            {(smile, invalid_smiles.count(smile)) for smile in invalid_smiles},
+            [(smile, freq) for smile, freq in invalid_smiles.items()],
             columns=["smiles", "size"],
         ),
     )

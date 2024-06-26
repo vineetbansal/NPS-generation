@@ -18,6 +18,7 @@ from scipy.spatial.distance import jensenshannon
 import hashlib
 import gzip
 import logging
+import csv
 
 
 logger = logging.getLogger(__name__)
@@ -167,10 +168,9 @@ def read_file(
         max_lines=None,
         smile_only=False,
     ):
-        compressed = str(input_file).endswith(".gz")
-        if compressed:
+        if str(input_file).endswith(".gz"):
             open_fn = gzip.open
-            mode = "rb"
+            mode = "rt"
         else:
             open_fn = open
             mode = "r"
@@ -179,22 +179,19 @@ def read_file(
         with open_fn(input_file, mode) as f:
             # Detect if we're dealing with a csv file with "smiles" in the header
             first_line = f.readline()
-            if compressed:
-                first_line = first_line.decode("utf8").strip()
-            first_line = first_line.strip()
-            is_csv = "smiles" in first_line
+            first_line_tokens = next(csv.reader([first_line]))
+            is_csv = "smiles" in first_line_tokens
 
             if is_csv:
-                smile_idx = first_line.split(",").index("smiles")
+                smile_idx = first_line_tokens.index("smiles")
             else:
                 smile_idx = None
                 f.seek(0)  # go to beginning of file
 
             for line in f:
-                if compressed:
-                    line = line.decode("utf8")
+                tokens = next(csv.reader([line]))
                 if is_csv and smile_only:
-                    yield line.split(",")[smile_idx].strip()
+                    yield tokens[smile_idx]
                 else:
                     yield line.strip()
                 count += 1

@@ -9,6 +9,7 @@ REPRESENTATIONS = config["representations"]
 FOLDS = config["folds"]
 ENUM_FACTORS = config["enum_factors"]
 OUTPUT_DIR = PATHS['output_dir']
+MIN_FREQS = config['structural_prior_min_freq']
 
 shell.executable("/bin/bash")
 
@@ -39,6 +40,8 @@ rule plots:
         nn_tc_ever_v_never_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never",
             enum_factor=ENUM_FACTORS),
         topk_tc_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc",
+            enum_factor=ENUM_FACTORS),
+        structural_prior_min_freq_plot=expand(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq",
             enum_factor=ENUM_FACTORS)
 
 
@@ -253,8 +256,10 @@ rule plot_nn_tc_ever_v_never:
     input:
         nn_tc_file = expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True),
+        rank_files = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz",
+            dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True),
         ranks_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_ranks_structure.csv.gz",
-            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
+            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True),
     output:
         directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never"),
     resources:
@@ -263,6 +268,7 @@ rule plot_nn_tc_ever_v_never:
     shell:
         'clm plot nn_tc_ever_v_never '
         '--outcome_files {input.nn_tc_file} '
+        '--rank_files {input.rank_files} '
         '--ranks_file {input.ranks_file} '
         '--output_dir {output} '
 
@@ -316,4 +322,22 @@ rule plot_topk:
         'clm plot topk '
         '--ranks_file {input.rank_file} '
         '--tc_file {input.tc_file} '
+        '--output_dir {output} '
+
+
+rule plot_structural_prior_min_freq:
+    input:
+        rank_files = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min{{min_freq}}_all_freq-avg_CV_ranks_structure.csv.gz",
+            dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True),
+        tc_files = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min{{min_freq}}_all_freq-avg_CV_tc.csv.gz",
+            dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True)
+    output:
+        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq")
+    resources:
+        mem_mb=64000,
+        runtime=30,
+    shell:
+        'clm plot structural_prior_min_freq '
+        '--tc_files {input.tc_files} '
+        '--rank_files {input.rank_files} '
         '--output_dir {output} '
