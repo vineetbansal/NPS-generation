@@ -415,7 +415,8 @@ rule write_structural_prior_CV_overall:
         pubchem_file = PATHS['pubchem_tsv_file'],
         carbon_file = PATHS['carbon_all_file'],
         sample_file = PATHS['process_tabulated_output'],
-        cv_ranks_files=expand(PATHS['cv_ranks_file'], fold=range(FOLDS), allow_missing=True)
+        cv_ranks_files=expand(PATHS['cv_ranks_file'], fold=range(FOLDS), allow_missing=True),
+        cv_tc_files=expand(PATHS['cv_tc_file'], fold=range(FOLDS), allow_missing=True)
     output:
         ranks_file = PATHS['overall_ranks_file'],
         tc_file = PATHS['overall_tc_file']
@@ -435,4 +436,5 @@ rule write_structural_prior_CV_overall:
         '--seed {config[random_seed]} '
         '--carbon_file {input.carbon_file} '
         '--cv_ranks_files {input.cv_ranks_files} '
+        '--cv_tc_files {input.cv_tc_files} '
         '--top_n 30 '

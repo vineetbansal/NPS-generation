@@ -48,6 +48,12 @@ def add_args(parser):
         help="Rank files for individual CV folds.",
     )
     parser.add_argument(
+        "--cv_tc_files",
+        type=str,
+        nargs="+",
+        help="Tc files for individual CV folds.",
+    )
+    parser.add_argument(
         "--sample_file", type=str, help="Path to the file containing sample molecules."
     )
     parser.add_argument(
@@ -193,6 +199,7 @@ def write_structural_prior_CV(
     seed,
     carbon_file=None,
     cv_ranks_files=None,
+    cv_tc_flies=None,
     top_n=1,
 ):
     set_seed(seed)
@@ -238,7 +245,7 @@ def write_structural_prior_CV(
     }
 
     # We are only comparing training set with test set for individual cv fold
-    if cv_ranks_files is None:
+    if cv_ranks_files is None and cv_tc_flies is None:
         inputs["train"] = train.assign(source="train")
 
     if carbon_file:
@@ -272,10 +279,15 @@ def write_structural_prior_CV(
     # The cv_rank_files contain statistics evaluated from individual cross-validation folds
     # Since the test sets across all folds and the train set across all fold contain exactly the same unique elements,
     # we aggregate results from all folds to assess test SMILES against training SMILES across all folds
-    if cv_ranks_files is not None:
-        cv_data = pd.concat([read_csv_file(f) for f in cv_ranks_files], axis=0)
-        train_cv_data = cv_data[cv_data["target_source"] == "train"]
-        rank_df = pd.concat([rank_df, train_cv_data], axis=0)
+    if cv_ranks_files is not None and cv_tc_flies is not None:
+        cv_rank_data = pd.concat([read_csv_file(f) for f in cv_ranks_files], axis=0)
+        cv_tc_data = pd.concat([read_csv_file(f) for f in cv_tc_flies], axis=0)
+
+        train_cv_rank_data = cv_rank_data[cv_rank_data["target_source"] == "train"]
+        train_cv_tc_data = cv_tc_data[cv_tc_data["target_source"] == "train"]
+
+        rank_df = pd.concat([rank_df, train_cv_rank_data], axis=0)
+        tc_df = pd.concat([tc_df, train_cv_tc_data], axis=0)
 
     write_to_csv_file(ranks_file, rank_df)
     write_to_csv_file(
@@ -296,5 +308,6 @@ def main(args):
         seed=args.seed,
         carbon_file=args.carbon_file,
         cv_ranks_files=args.cv_ranks_files,
+        cv_tc_flies=args.cv_tc_files,
         top_n=args.top_n,
     )
