@@ -20,6 +20,14 @@ clm.plot.calculate\_outcomes module
    :undoc-members:
    :show-inheritance:
 
+clm.plot.forecast module
+------------------------
+
+.. automodule:: clm.plot.forecast
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 clm.plot.freq\_distribution module
 ----------------------------------
 
