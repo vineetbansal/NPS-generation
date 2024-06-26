@@ -6,6 +6,7 @@ from clm.plot.nn_tc_ever_v_never import plot as nn_tc_ever_v_never
 from clm.plot.calculate_outcome_distrs import plot as calculate_outcome_distrs
 from clm.plot.topk_tc import plot as topk_tc
 from clm.plot.topk import plot as topk
+from clm.plot.forecast import plot as forecast
 from clm.plot.structural_prior_min_freq import plot as structural_prior_min_freq
 
 
@@ -73,6 +74,8 @@ def plot(
         topk_tc(outcome_files, output_dir)
     elif evaluation_type == "topk":
         topk(outcome_files, output_dir)
+    elif evaluation_type == "forecast":
+        forecast(outcome_files, output_dir)
     elif evaluation_type == "structural_prior_min_freq":
         structural_prior_min_freq(rank_files, tc_files, output_dir)
 

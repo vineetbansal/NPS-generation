@@ -8,11 +8,14 @@ from sklearn.metrics import (
     average_precision_score,
     precision_recall_curve,
 )
+import logging
 from rdkit import rdBase
 from clm.functions import set_seed, seed_type, read_csv_file
 
 # suppress rdkit errors
 rdBase.DisableLog("rdApp.error")
+
+logger = logging.getLogger(__name__)
 
 
 def add_args(parser):
@@ -41,7 +44,6 @@ def add_args(parser):
 
 
 def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None):
-
     set_seed(seed)
 
     output_dir = os.path.dirname(output_file)
@@ -51,6 +53,7 @@ def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None)
     test = read_csv_file(test_file)
     deepmet = read_csv_file(sample_file, nrows=max_molecules)
     deepmet = deepmet.assign(known=deepmet["inchikey"].isin(test["inchikey"]))
+    deepmet = deepmet.sort_values(by=["size"], ascending=False)
 
     # extract ROC/PR curves
     y = deepmet["known"].tolist()
@@ -99,28 +102,46 @@ def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None)
         }
     )
 
-    # calculate metrics
-    auc = roc_auc_score(y, x)
+    try:
+        auc = roc_auc_score(y, x)
+        auc_rnd = roc_auc_score(y, x_rnd)
+    except ValueError:
+        logger.warning(
+            "Only one class present in y_true. ROC AUC score is not defined in that case."
+        )
+        auc = None
+        auc_rnd = None
+
     auprc = average_precision_score(y, x)
-    # calculate shuffled metrics too
-    auc_rnd = roc_auc_score(y, x_rnd)
     auprc_rnd = average_precision_score(y, x_rnd)
 
-    # last, calculate enrichment factors
-    ranks = (
-        list(range(10, 100, 10))
-        + list(range(100, 1000, 100))
-        + list(range(1000, 10000, 1000))
-        + list(range(10000, 100000, 10000))
-        + list(range(100000, 1000000, 100000))
-        + list(range(1000000, deepmet.shape[0], 1000000))
-        + [deepmet.shape[0]]
-    )
+    ranks = []
+    step_sizes, current_step = [], 10
+    deepmet_max = deepmet.shape[0]
+
+    while current_step <= 1000000:
+        step_sizes.append(current_step)
+        current_step *= 10
+
+    for step in step_sizes:
+        ranks.extend(range(step, min(step * 10, deepmet_max), step))
+
+    if deepmet_max > 1000000:
+        ranks.extend(range(1000000, deepmet_max, 1000000))
+    ranks.append(deepmet_max)
+
+    ranks = sorted(set(ranks))
+
     ef = pd.DataFrame({"rank": ranks, "EF": np.nan, "n_known": 0, "pval": np.nan})
     for idx, rank in enumerate(ranks):
         obs = sum(y[0:rank])
         exp = rank * sum(y) / deepmet.shape[0]
-        EF = obs / exp
+        # exp will be 0 when every single generated SMILE is known
+        try:
+            EF = obs / exp
+        except ZeroDivisionError as e:
+            logger.warning(f"Cannot compute enrichment factor. {e}")
+            EF = None
 
         # chi-square test
         f_obs = np.array([obs, rank - obs]) / rank
