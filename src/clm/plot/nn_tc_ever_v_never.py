@@ -1,4 +1,5 @@
 import argparse
+import re
 import pandas as pd
 from pathlib import Path
 import os
@@ -95,9 +96,21 @@ def plot(outcome_files, rank_files, ranks_file, output_dir):
     os.makedirs(output_dir, exist_ok=True)
 
     merged_df = []
-    for outcome_file, rank_file in zip(outcome_files, rank_files):
-        outcome_df, rank_df = read_csv_file(outcome_file), read_csv_file(rank_file)
+    for outcome_file in outcome_files:
+        # Extract the fold of the outcome file
+        outcome_fold = re.search(r"(\d+)", os.path.basename(outcome_file)).group(1)
+        outcome_df = read_csv_file(outcome_file)
+
+        # Concatenate rank files of all the folds except that of the current outcome file
+        rank_df = pd.concat(
+            [
+                read_csv_file(rank_file)
+                for rank_file in rank_files
+                if not re.match(rf".*{outcome_fold}.*", os.path.basename(rank_file))
+            ]
+        )
         rank_df = rank_df[rank_df["target_source"] == "model"]
+
         merged_df.append(
             pd.merge(
                 outcome_df,
