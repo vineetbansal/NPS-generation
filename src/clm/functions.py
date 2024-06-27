@@ -536,7 +536,10 @@ def assert_checksum_equals(generated_file, oracle):
     )
 
 
-def split_frequency_ranges(data, max_molecules=None):
+def split_frequency_ranges(data, max_molecules=None, all=False):
+    # Reset index of the dataframe before doing anything
+    data = data.reset_index(drop=True)
+
     # TODO: make this process dynamic later
     frequency_ranges = [(1, 1), (2, 2), (3, 10), (11, 30), (31, 100), (101, None)]
 
@@ -545,7 +548,7 @@ def split_frequency_ranges(data, max_molecules=None):
         if f_max is not None:
             selected_rows = data[data["size"].between(f_min, f_max)]
         else:
-            selected_rows = data[data["size"] > f_min]
+            selected_rows = data[data["size"] >= f_min]
 
         bin_name = f"{f_min}-{f_max}" if f_max is not None else f"{f_min}-"
 
@@ -557,6 +560,17 @@ def split_frequency_ranges(data, max_molecules=None):
             )
 
         data.loc[selected_rows.index, "bin"] = bin_name
+
+    if all:
+        # Sample non-binned df by weight
+        if max_molecules is not None and len(data) > max_molecules:
+            selected_rows = data.sample(n=max_molecules, weights="size")
+            selected_rows["bin"] = "all"
+            data = pd.concat([data, selected_rows])
+        elif max_molecules is not None and len(data) < max_molecules:
+            logger.warning(
+                f"Not enough molecules for {max_molecules}, using {len(data)} instead."
+            )
 
     # Save only the rows where we've assigned a bin
     data = data[data["bin"] != ""].reset_index(drop=True)

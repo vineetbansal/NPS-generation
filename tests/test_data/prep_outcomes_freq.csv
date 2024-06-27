@@ -1,6 +1,6 @@
 smiles,size,is_valid,is_novel,bin
  #,2,False,True,2-2
- #=C)O)cC(1)=COCC3CCl))CC(CC)2CC)=C3(cCCCcCC)CC(C(CC)O(CCc)C)c=C(C(CC1CCCCC(O=C(()c,1,False,True,2-2
+ #=C)O)cC(1)=COCC3CCl))CC(CC)2CC)=C3(cCCCcCC)CC(C(CC)O(CCc)C)c=C(C(CC1CCCCC(O=C(()c,1,False,True,1-1
  #=C)O)cC(Br)=COCC3CCl))CC(CC)2CC)=C)(cCCCcCC)CC(C(OC)O((Cc)C)c=C(C(CC1CCCCC(O=C(()c,1,False,True,1-1
  #=c2COc))))C(Cc(C(C,2,False,True,2-2
  #cc(=C())CCC(c(CNCCCC))cC=)c31C,1,False,True,1-1

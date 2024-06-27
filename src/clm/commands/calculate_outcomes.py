@@ -297,20 +297,6 @@ def calculate_outcomes_dataframe(sample_df, train_df, max_molecules):
         ):
             out.append(_out)
 
-    # Sample non-binned df by weight
-    if max_molecules is not None and len(sample_df) > max_molecules:
-        sample_df = sample_df.sample(n=max_molecules, weights="size")
-    elif max_molecules is not None and len(sample_df) < max_molecules:
-        logger.warning(
-            f"Not enough molecules for {max_molecules}, using {len(sample_df)} instead."
-        )
-
-    # Generate outcomes for all rows (with a special "all" bin name)
-    out.append(
-        handle_bin(
-            "all", sample_df, train_element_distribution, train_murcko_distribution
-        )
-    )
     out = pd.DataFrame(out)
 
     # Have 'bin' as a column and each of our other columns as rows in an
@@ -336,7 +322,7 @@ def prep_outcomes_freq(
     )
 
     data = pd.concat([known_df, invalid_df, sample_df])
-    data = split_frequency_ranges(data, max_molecules)
+    data = split_frequency_ranges(data, max_molecules, all=True)
 
     return data
 
