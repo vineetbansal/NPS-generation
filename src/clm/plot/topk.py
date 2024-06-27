@@ -60,10 +60,11 @@ def topk_box(df, output_dir):
     for model in models:
         if model == "model (random)":
             outcome = df[df["target_source"] == "model"]
+            n_mols = len(outcome[outcome["target_rank"] == 0])
             data.append(
                 list(
                     outcome["Tc"].sample(
-                        n=200,
+                        n=n_mols,
                     )
                 )
             )
