@@ -30,10 +30,13 @@ def add_args(parser):
         help="Path to the rank file ",
     )
     parser.add_argument(
+        "--tc_file", type=str, required=False, help="Path to the tc file "
+    ),
+    parser.add_argument(
         "--tc_files",
         type=str,
         nargs="+",
-        help="Path to ranks file ",
+        help="Path to tc files ",
     )
     parser.add_argument(
         "--rank_files",
@@ -56,6 +59,7 @@ def plot(
     outcome_files=None,
     rank_files=None,
     tc_files=None,
+    tc_file=None,
     ranks_file=None,
 ):
     if evaluation_type == "calculate_outcomes":
@@ -73,7 +77,7 @@ def plot(
     elif evaluation_type == "topk_tc":
         topk_tc(outcome_files, output_dir)
     elif evaluation_type == "topk":
-        topk(outcome_files, output_dir)
+        topk(ranks_file, tc_file, output_dir)
     elif evaluation_type == "forecast":
         forecast(outcome_files, output_dir)
     elif evaluation_type == "structural_prior_min_freq":
@@ -86,6 +90,7 @@ def main(args):
         outcome_files=args.outcome_files,
         output_dir=args.output_dir,
         ranks_file=args.ranks_file,
+        tc_file=args.tc_file,
         rank_files=args.rank_files,
         tc_files=args.tc_files,
     )

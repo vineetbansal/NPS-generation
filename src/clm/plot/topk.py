@@ -1,5 +1,5 @@
 import argparse
-import pandas as pd
+import seaborn as sns
 from pathlib import Path
 import os
 from matplotlib import pyplot as plt
@@ -8,9 +8,13 @@ from clm.functions import read_csv_file
 
 def add_args(parser):
     parser.add_argument(
-        "--outcome_files",
+        "--rank_file",
         type=str,
-        nargs="+",
+        help="Paths of all the model evaluation files relevant to calculate outcomes ",
+    )
+    parser.add_argument(
+        "--tc_file",
+        type=str,
         help="Paths of all the model evaluation files relevant to calculate outcomes ",
     )
     parser.add_argument(
@@ -50,30 +54,63 @@ def topk(df, category, output_dir, target_column, title, filename):
     plt.clf()
 
 
-def plot(outcome_files, output_dir):
+def topk_box(df, output_dir):
+    models = ("model", "model (random)", "PubChem", "addcarbon", "train")
+    data = []
+    for model in models:
+        if model == "model (random)":
+            outcome = df[df["target_source"] == "model"]
+            n_mols = len(outcome[outcome["target_rank"] == 0])
+            data.append(
+                list(
+                    outcome["Tc"].sample(
+                        n=n_mols,
+                    )
+                )
+            )
+        else:
+            outcome = df[df["target_source"] == model]
+            data.append(list(outcome[outcome["target_rank"] == 0]["Tc"]))
+
+    sns.boxplot(data=data)
+    plt.xticks(list(range(len(models))), models)
+
+    plt.title("Structural prior evaluation plots")
+    # plt.xscale("log")
+    plt.ylabel("Tanimoto coefficient ")
+    plt.legend()
+
+    file_name = Path(output_dir) / "topk_box_plot"
+    plt.savefig(file_name)
+
+    # Clear the previous figure
+    plt.clf()
+
+
+def plot(rank_file, tc_file, output_dir):
     os.makedirs(output_dir, exist_ok=True)
 
-    df = pd.concat(
-        [read_csv_file(outcome_file, delimiter=",") for outcome_file in outcome_files]
-    )
+    rank_df = read_csv_file(rank_file, delimiter=",")
+    tc_df = read_csv_file(tc_file, delimiter=",")
 
-    print(df.columns)
-    print(df.shape)
-
-    models = ("model", "PubChem", "addcarbon", "train")
     topk(
-        df,
-        models,
+        rank_df,
+        ("model", "PubChem", "addcarbon", "train"),
         output_dir,
         target_column="target_source",
         title="Figure 6b",
         filename="topk",
     )
+    topk_box(
+        tc_df,
+        output_dir,
+    )
 
 
 def main(args):
     plot(
-        outcome_files=args.outcome_files,
+        rank_file=args.rank_file,
+        tc_file=args.tc_file,
         output_dir=args.output_dir,
     )
 
