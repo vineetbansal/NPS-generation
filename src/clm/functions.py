@@ -563,14 +563,19 @@ def split_frequency_ranges(data, max_molecules=None, all=False):
 
     if all:
         # Sample non-binned df by weight
-        if max_molecules is not None and len(data) > max_molecules:
-            selected_rows = data.sample(n=max_molecules, weights="size")
-            selected_rows["bin"] = "all"
-            data = pd.concat([data, selected_rows])
-        elif max_molecules is not None and len(data) < max_molecules:
-            logger.warning(
-                f"Not enough molecules for {max_molecules}, using {len(data)} instead."
-            )
+        if max_molecules is not None:
+            if len(data) >= max_molecules:
+                selected_rows = data.sample(n=max_molecules, weights="size")
+            else:
+                logger.warning(
+                    f"Not enough molecules for {max_molecules}, using {len(data)} instead."
+                )
+                selected_rows = data.copy()
+        else:
+            selected_rows = data.copy()
+
+        selected_rows["bin"] = "all"
+        data = pd.concat([data, selected_rows])
 
     # Save only the rows where we've assigned a bin
     data = data[data["bin"] != ""].reset_index(drop=True)
