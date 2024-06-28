@@ -15,6 +15,8 @@ from scipy.spatial.distance import jensenshannon
 from rdkit import rdBase
 from rdkit.Contrib.SA_Score import sascorer
 from rdkit.Contrib.NP_Score import npscorer
+from tqdm import tqdm
+
 from clm.functions import (
     seed_type,
     set_seed,
@@ -37,6 +39,7 @@ from clm.functions import (
 rdBase.DisableLog("rdApp.error")
 fscore = npscorer.readNPModel()
 logger = logging.getLogger(__name__)
+tqdm.pandas()
 
 
 def add_args(parser):
@@ -119,10 +122,10 @@ def smile_properties_dataframe(a_row, is_sample=False):
     # Unlike training smiles, sampled smiles can be categorized as valid/ novel
     # So, sampled df have more columns than train df, both of which are parsed in this function
     columns = (
-        ["smile", "is_valid", "is_novel", "size", "bin"]
+        ["smiles", "is_valid", "is_novel", "size", "bin"]
         + list(molecular_properties.keys())
         if is_sample
-        else ["smile"] + list(molecular_properties.keys())
+        else ["smiles"] + list(molecular_properties.keys())
     )
 
     # Some of the calculations later strictly require specific datatypes
@@ -155,10 +158,15 @@ def get_dataframes(train_file, prep_sample_df):
     train_df = pd.concat(train_data)
 
     logger.info(f"Reading sample smiles from {prep_sample_df}")
-    sample_data = prep_sample_df.apply(
+    # Compute molecular properties of valid SMILES only
+    valid_data = prep_sample_df[prep_sample_df["is_valid"]].progress_apply(
         lambda x: smile_properties_dataframe(x, is_sample=True), axis=1
     )
-    sample_df = pd.concat(sample_data.to_list())
+    valid_df = pd.concat(valid_data.to_list())
+    invalid_df = prep_sample_df[~(prep_sample_df["is_valid"])]
+
+    # Concatenate valid and invalid dfs for computations later
+    sample_df = pd.concat([valid_df, invalid_df])
 
     n_valid_smiles = sample_df["is_valid"].sum()
     logger.info(f"{n_valid_smiles} valid SMILES out of {len(sample_df)}")
@@ -171,14 +179,17 @@ def get_dataframes(train_file, prep_sample_df):
 
 def calculate_outcomes_dataframe(sample_df, train_df):
     def handle_bin(bin_name, df, train_element_distribution, train_murcko_distribution):
+        n_total_smiles = df["size"].sum()
+
         # Filtering out invalid smiles
         bin_df = df[df["is_valid"]]
+
+        n_valid_smiles = bin_df["size"].sum()
 
         # Skip iteration if number of valid smiles in a particular bin is 0
         if len(bin_df) == 0:
             return None
 
-        n_valid_smiles = bin_df[bin_df["is_valid"]]["size"].sum()
         bin_df = bin_df.reset_index(drop=True)
         element_distribution = dict(
             zip(
@@ -202,10 +213,10 @@ def calculate_outcomes_dataframe(sample_df, train_df):
 
         return {
             "bin": bin_name,
-            "n_mols": bin_df["size"].sum(),
-            "% valid": n_valid_smiles / bin_df["size"].sum(),
-            "% novel": bin_df[bin_df["is_novel"]]["size"].sum() / bin_df["size"].sum(),
-            "% unique": len(bin_df) / bin_df["size"].sum(),
+            "n_mols": n_total_smiles,
+            "% valid": n_valid_smiles / n_total_smiles,
+            "% novel": bin_df[bin_df["is_novel"]]["size"].sum() / n_valid_smiles,
+            "% unique": len(bin_df) / n_valid_smiles,
             "KL divergence, atoms": scipy.stats.entropy(p2, p1),
             "Jensen-Shannon distance, atoms": jensenshannon(p2, p1),
             "Wasserstein distance, atoms": wasserstein_distance(p2, p1),
@@ -264,7 +275,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
                 bin_df["acceptors"], train_df["acceptors"]
             ),
             "Frechet ChemNet distance": fcd(
-                bin_df[bin_df["is_novel"]]["canonical_smile"],
+                bin_df[bin_df["is_novel"]]["canonical_smile"].to_numpy(),
                 train_df["canonical_smile"].to_numpy(),
             ),
         }
@@ -280,7 +291,6 @@ def calculate_outcomes_dataframe(sample_df, train_df):
         zip(*np.unique(train_df["murcko"].to_numpy(), return_counts=True))
     )
 
-    # Generate outcomes for all rows (with a special "all" bin name)
     out = []
     for bin, bin_df in sample_df.groupby("bin"):
         logger.info(f"Calculating outcomes for bin {bin}")
@@ -288,11 +298,7 @@ def calculate_outcomes_dataframe(sample_df, train_df):
             bin, bin_df, train_element_distribution, train_murcko_distribution
         ):
             out.append(_out)
-    out.append(
-        handle_bin(
-            "all", sample_df, train_element_distribution, train_murcko_distribution
-        )
-    )
+
     out = pd.DataFrame(out)
 
     # Have 'bin' as a column and each of our other columns as rows in an
@@ -318,7 +324,7 @@ def prep_outcomes_freq(
     )
 
     data = pd.concat([known_df, invalid_df, sample_df])
-    data = split_frequency_ranges(data, max_molecules)
+    data = split_frequency_ranges(data, max_molecules, all=True)
 
     return data
 
