@@ -13,7 +13,7 @@ from clm.commands import (
     write_formula_prior_CV,
     plot,
 )
-from clm.functions import assert_checksum_equals, read_csv_file
+from clm.functions import assert_checksum_equals, read_csv_file, set_seed
 
 base_dir = Path(__file__).parent.parent
 
@@ -36,6 +36,7 @@ def test_00_preprocess(tmp_path):
 def test_01_create_training_sets(tmp_path):
     folds = 3
     for fold in range(folds):
+        set_seed(5831)
         create_training_sets.create_training_sets(
             input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
             train0_file=tmp_path / "train0_file_{fold}",
@@ -47,7 +48,6 @@ def test_01_create_training_sets(tmp_path):
             which_fold=fold,
             representation="SMILES",
             min_tc=0,
-            seed=5831,
             max_input_smiles=1000,
         )
     # `train0_file_0` denotes the train smiles without augmentation for fold
@@ -80,9 +80,9 @@ def test_01_create_training_sets(tmp_path):
 
 
 def test_02_train_models_RNN(tmp_path):
+    set_seed(0)
     train_models_RNN.train_models_RNN(
         representation="SMILES",
-        seed=0,
         rnn_type="LSTM",
         embedding_size=32,
         hidden_size=256,
@@ -108,9 +108,9 @@ def test_02_train_models_RNN(tmp_path):
 
 def test_03_sample_molecules_RNN(tmp_path):
     output_file = tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv"
+    set_seed(0)
     sample_molecules_RNN.sample_molecules_RNN(
         representation="SMILES",
-        seed=0,
         rnn_type="LSTM",
         embedding_size=32,
         hidden_size=256,
@@ -209,6 +209,7 @@ def test_06_process_tabulated_molecules(tmp_path):
 
 def test_07_write_structural_prior_CV(tmp_path):
     temp_dir = tmp_path / "0/prior/structural_prior"
+    set_seed(5831)
     write_structural_prior_CV.write_structural_prior_CV(
         ranks_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
         tc_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_tc.csv",
@@ -220,7 +221,6 @@ def test_07_write_structural_prior_CV(tmp_path):
         carbon_file=test_dir
         / "0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv",
         err_ppm=10,
-        seed=5831,
         chunk_size=100000,
         top_n=1,
     )
@@ -236,6 +236,7 @@ def test_07_write_structural_prior_CV(tmp_path):
 
 
 def test_08_write_formula_prior_CV(tmp_path):
+    set_seed(5831)
     write_formula_prior_CV.write_formula_prior_CV(
         ranks_file=tmp_path / "LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
         train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
@@ -244,7 +245,6 @@ def test_08_write_formula_prior_CV(tmp_path):
         sample_file=test_dir
         / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
         err_ppm=10,
-        seed=5831,
         chunk_size=100000,
     )
     assert_checksum_equals(
@@ -256,6 +256,7 @@ def test_08_write_formula_prior_CV(tmp_path):
 
 def test_08_write_structural_prior_CV(tmp_path):
     temp_dir = tmp_path / "0/prior/structural_prior/add_carbon"
+    set_seed(5831)
     write_structural_prior_CV.write_structural_prior_CV(
         ranks_file=temp_dir
         / "LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv",
@@ -268,7 +269,6 @@ def test_08_write_structural_prior_CV(tmp_path):
         carbon_file=test_dir
         / "0/prior/inputs/train_LOTUS_truncated_SMILES_carbon_all.csv",
         err_ppm=10,
-        seed=5831,
         chunk_size=100000,
         top_n=1,
     )
@@ -296,6 +296,7 @@ def test_08_write_structural_prior_CV(tmp_path):
 def test_unique_inchikeys(tmp_path):
     folds = 3
     for fold in range(folds):
+        set_seed(5831)
         create_training_sets.create_training_sets(
             input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
             train0_file=tmp_path / "train0_file_{fold}",
@@ -307,7 +308,6 @@ def test_unique_inchikeys(tmp_path):
             which_fold=fold,
             representation="SMILES",
             min_tc=0,
-            seed=5831,
             max_input_smiles=1000,
         )
 

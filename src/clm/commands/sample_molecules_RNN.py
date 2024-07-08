@@ -67,7 +67,6 @@ def add_args(parser):
 
 def sample_molecules_RNN(
     representation,
-    seed,
     rnn_type,
     embedding_size,
     hidden_size,
@@ -125,7 +124,6 @@ def main(args):
     set_seed(args.seed)
     sample_molecules_RNN(
         representation=args.representation,
-        seed=args.seed,
         rnn_type=args.rnn_type,
         embedding_size=args.embedding_size,
         hidden_size=args.hidden_size,

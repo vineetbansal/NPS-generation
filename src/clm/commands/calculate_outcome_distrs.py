@@ -26,6 +26,7 @@ from clm.functions import (
     clean_mol,
     pct_rotatable_bonds,
     pct_stereocenters,
+    set_seed,
     write_to_csv_file,
     read_csv_file,
 )
@@ -206,6 +207,7 @@ def calculate_outcome_distr(
 
 
 def main(args):
+    set_seed(args.seed)
     calculate_outcome_distr(
         sample_file=args.sample_file,
         max_mols=args.max_mols,

@@ -105,7 +105,6 @@ def write_formula_prior_CV(
     sample_file,
     err_ppm,
     chunk_size,
-    seed,
 ):
 
     train = generate_df(train_file, chunk_size)
@@ -162,7 +161,6 @@ def write_formula_prior_CV(
 
 
 def main(args):
-    set_seed(args.seed)
     write_formula_prior_CV(
         ranks_file=args.ranks_file,
         train_file=args.train_file,
@@ -171,5 +169,4 @@ def main(args):
         sample_file=args.sample_file,
         err_ppm=args.err_ppm,
         chunk_size=args.chunk_size,
-        seed=args.seed,
     )

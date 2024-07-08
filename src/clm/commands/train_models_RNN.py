@@ -134,7 +134,6 @@ def sample_and_write_smiles(model, sample_mols, batch_size, smiles_file):
 
 def train_models_RNN(
     representation,
-    seed,
     rnn_type,
     embedding_size,
     hidden_size,
@@ -222,7 +221,6 @@ def main(args):
     set_seed(args.seed)
     train_models_RNN(
         representation=args.representation,
-        seed=args.seed,
         rnn_type=args.rnn_type,
         embedding_size=args.embedding_size,
         hidden_size=args.hidden_size,

@@ -330,7 +330,6 @@ def calculate_outcomes(
     invalid_smiles,
     max_molecules,
     output_file,
-    seed=None,
 ):
     prep_sample_df = prep_outcomes_freq(
         sampled_file, max_molecules, known_smiles, invalid_smiles
@@ -355,6 +354,5 @@ def main(args):
         known_smiles=args.known_smiles_file,
         invalid_smiles=args.invalid_smiles_file,
         max_molecules=args.max_molecules,
-        output_file=args.output_file,
-        seed=args.seed,
+        output_file=args.output_file
     )
