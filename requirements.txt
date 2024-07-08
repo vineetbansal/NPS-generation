@@ -120,7 +120,6 @@ toposort==1.10
 torch==2.3.0
 tqdm==4.66.4
 traitlets==5.14.3
-triton==2.3.0
 twine==5.1.0
 typing_extensions==4.12.0
 tzdata==2024.1
