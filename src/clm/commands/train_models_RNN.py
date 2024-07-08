@@ -112,7 +112,7 @@ def load_dataset(representation, input_file, vocab_file):
         return SmilesDataset(smiles=inputs, vocab_file=vocab_file)
 
 
-def training_step(batch, model, optim, dataset, batch_size): # Check may be?
+def training_step(batch, model, optim, dataset, batch_size):
     loss = model.loss(batch)
     optim.zero_grad()
     loss.backward()
