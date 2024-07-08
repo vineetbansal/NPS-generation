@@ -107,7 +107,6 @@ def write_formula_prior_CV(
     chunk_size,
     seed,
 ):
-    set_seed(seed)
 
     train = generate_df(train_file, chunk_size)
     train = train.assign(size=np.nan)
@@ -163,6 +162,7 @@ def write_formula_prior_CV(
 
 
 def main(args):
+    set_seed(args.seed)
     write_formula_prior_CV(
         ranks_file=args.ranks_file,
         train_file=args.train_file,

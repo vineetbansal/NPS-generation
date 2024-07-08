@@ -79,7 +79,7 @@ def sample_molecules_RNN(
     model_file,
     output_file,
 ):
-    set_seed(seed)
+
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     logging.info(f"cuda: {torch.cuda.is_available()}")
@@ -122,6 +122,7 @@ def sample_molecules_RNN(
 
 
 def main(args):
+    set_seed(args.seed)
     sample_molecules_RNN(
         representation=args.representation,
         seed=args.seed,

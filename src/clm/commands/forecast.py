@@ -44,7 +44,7 @@ def add_args(parser):
 
 
 def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None):
-    set_seed(seed)
+
 
     output_dir = os.path.dirname(output_file)
     if output_dir:
@@ -167,6 +167,7 @@ def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None)
 
 
 def main(args):
+    set_seed(args.seed)
     forecast(
         test_file=args.test_file,
         sample_file=args.sample_file,

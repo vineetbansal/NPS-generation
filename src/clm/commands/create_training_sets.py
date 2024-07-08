@@ -6,7 +6,7 @@ from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
 from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
-from clm.functions import read_file, write_smiles, clean_mols, seed_type
+from clm.functions import read_file, write_smiles, clean_mols, seed_type, set_seed
 from clm.datasets import vocabulary_from_representation
 from clm.util.SmilesEnumerator import SmilesEnumerator
 
@@ -276,6 +276,7 @@ def create_training_sets(
 
 
 def main(args):
+    set_seed(args.seed)
     create_training_sets(
         input_file=args.input_file,
         train0_file=args.train0_file,

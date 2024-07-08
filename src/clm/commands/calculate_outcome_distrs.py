@@ -77,8 +77,6 @@ def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file):
 def calculate_outcome_distr(
     sample_file, max_mols, train_file, pubchem_file, output_file, seed=None
 ):
-    set_seed(seed)
-
     # create results container
     res = []
 
@@ -209,10 +207,12 @@ def calculate_outcome_distr(
 
 
 def main(args):
+    set_seed(args.seed)
     calculate_outcome_distr(
         sample_file=args.sample_file,
         max_mols=args.max_mols,
         train_file=args.train_file,
         pubchem_file=args.pubchem_file,
         output_file=args.output_file,
+        seed=args.seed
     )

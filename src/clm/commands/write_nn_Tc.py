@@ -120,7 +120,6 @@ def write_nn_Tc(
     Returns:
         None
     """
-    set_seed(seed)
 
     ref_fps, ref_smiles, ref_inchikeys = [], [], []
 
@@ -157,6 +156,7 @@ def write_nn_Tc(
 
 
 def main(args):
+    set_seed(args.seed)
     write_nn_Tc(
         query_file=args.query_file,
         reference_file=args.reference_file,

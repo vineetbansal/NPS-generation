@@ -202,7 +202,6 @@ def write_structural_prior_CV(
     cv_tc_flies=None,
     top_n=1,
 ):
-    set_seed(seed)
 
     train = generate_df(train_file, chunk_size)
     train = train.assign(size=np.nan)
@@ -296,6 +295,7 @@ def write_structural_prior_CV(
 
 
 def main(args):
+    set_seed(args.seed)
     write_structural_prior_CV(
         ranks_file=args.ranks_file,
         tc_file=args.tc_file,

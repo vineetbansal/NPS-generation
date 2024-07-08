@@ -332,7 +332,6 @@ def calculate_outcomes(
     output_file,
     seed=None,
 ):
-    set_seed(seed)
     prep_sample_df = prep_outcomes_freq(
         sampled_file, max_molecules, known_smiles, invalid_smiles
     )
@@ -349,6 +348,7 @@ def calculate_outcomes(
 
 
 def main(args):
+    set_seed(args.seed)
     calculate_outcomes(
         train_file=args.train_file,
         sampled_file=args.sampled_file,

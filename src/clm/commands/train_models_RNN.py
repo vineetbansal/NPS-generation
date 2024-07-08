@@ -112,7 +112,7 @@ def load_dataset(representation, input_file, vocab_file):
         return SmilesDataset(smiles=inputs, vocab_file=vocab_file)
 
 
-def training_step(batch, model, optim, dataset, batch_size):
+def training_step(batch, model, optim, dataset, batch_size): # Check may be?
     loss = model.loss(batch)
     optim.zero_grad()
     loss.backward()
@@ -153,7 +153,6 @@ def train_models_RNN(
     model_file,
     loss_file,
 ):
-    set_seed(seed)
 
     os.makedirs(os.path.dirname(model_file), exist_ok=True)
     os.makedirs(os.path.dirname(loss_file), exist_ok=True)
@@ -220,6 +219,7 @@ def train_models_RNN(
 
 
 def main(args):
+    set_seed(args.seed)
     train_models_RNN(
         representation=args.representation,
         seed=args.seed,
