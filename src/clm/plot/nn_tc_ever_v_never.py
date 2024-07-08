@@ -69,8 +69,16 @@ def plot_generated_ratio(ranks_file, output_dir):
     # Overall rank file
     rank_df = read_csv_file(ranks_file)
     data = {
-        "Ever Generated": len(rank_df[rank_df["target_rank"].notnull()]),
-        "Never Generated": len(rank_df[rank_df["target_rank"].isnull()]),
+        "Ever Generated": len(
+            rank_df[rank_df["target_source"] == "model"][
+                rank_df["target_rank"].notnull()
+            ]
+        ),
+        "Never Generated": len(
+            rank_df[rank_df["target_source"] == "model"][
+                rank_df["target_rank"].isnull()
+            ]
+        ),
     }
 
     sns.set_style("darkgrid")

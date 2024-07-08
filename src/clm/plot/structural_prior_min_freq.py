@@ -48,6 +48,7 @@ def plot_topk(min_freqs, rank_files, output_dir):
             read_csv_file(filename, delimiter=",", index_col=0).assign(min_freqs=freq)
         )
     outcomes = pd.concat(outcomes)
+    outcomes = outcomes[outcomes["target_source"] == "model"]
 
     topk(
         outcomes,
@@ -115,6 +116,7 @@ def plot_p_ever_generated(
 
     for filename, freq in zip(rank_files, min_freqs.keys()):
         outcome = read_csv_file(filename, delimiter=",")
+        outcome = outcome[outcome["target_source"] == "model"]
         ever_generated = outcome[outcome["target_rank"].notnull()]
         min_freqs[freq] = round((len(ever_generated) / len(outcome)) * 100, 2)
 
