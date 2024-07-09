@@ -32,7 +32,7 @@ def add_args(parser):
 def collect_tabulated_molecules(
     input_files, output_file, known_smiles=None, invalid_smiles=None
 ):
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
 
     df = pd.concat(
         [read_csv_file(file, delimiter=",") for file in input_files], ignore_index=True

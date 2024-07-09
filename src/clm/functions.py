@@ -214,7 +214,7 @@ def write_smiles(smiles, smiles_file, mode="w", add_inchikeys=False):
     """
     Write a list of SMILES to a line-delimited file.
     """
-    os.makedirs(os.path.dirname(smiles_file), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(smiles_file)), exist_ok=True)
     with open(smiles_file, mode) as f:
         if add_inchikeys:
             f.write("smiles,inchikey\n")

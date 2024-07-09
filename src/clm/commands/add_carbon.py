@@ -28,7 +28,7 @@ def add_args(parser):
 def add_carbon(input_file, output_file, seed=None):
     set_seed(seed)
     # make output directories
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
 
     # remove output file if it exists
     if os.path.exists(output_file):
