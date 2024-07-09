@@ -31,6 +31,7 @@ jobs:
         auto-update-conda: true
         python-version: ${{ matrix.python-version }}
         activate-environment: clm
+        environment-file: environment.yml
 
     - name: Install pip
       run: conda install pip
@@ -38,8 +39,8 @@ jobs:
     - name: Install torch (CPU-only)
       run: pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-    - name: Install package with extras
-      run: pip install -e .[dev]
+    - name: Install package
+      run: pip install -e .
 
     - name: Conda info
       run: |
