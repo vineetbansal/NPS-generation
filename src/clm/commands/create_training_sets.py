@@ -6,7 +6,7 @@ from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
 from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
-from clm.functions import read_file, write_smiles, clean_mols, seed_type
+from clm.functions import read_file, write_smiles, clean_mols, seed_type, set_seed
 from clm.datasets import vocabulary_from_representation
 from clm.util.SmilesEnumerator import SmilesEnumerator
 
@@ -119,7 +119,6 @@ def get_similar_smiles(
     # try to pick n molecules with minimum Tc to random seed molecule
     success = False
     for try_idx in range(max_tries):
-        np.random.seed(try_idx)
         logger.info(
             f"picking {n_molecules} molecules with min_tc={min_tc} try #{try_idx} of {max_tries} ..."
         )
@@ -163,7 +162,6 @@ def create_training_sets(
     min_tc=0,
     n_molecules=100,
     max_tries=200,
-    seed=None,
     max_input_smiles=None,
 ):
     logger.info("reading input SMILES ...")
@@ -183,7 +181,6 @@ def create_training_sets(
 
     generate_test_data = folds > 0
     if generate_test_data:
-        np.random.seed(seed)
         np.random.shuffle(smiles)
         folds = np.array_split(smiles, folds)
     else:
@@ -276,6 +273,7 @@ def create_training_sets(
 
 
 def main(args):
+    set_seed(args.seed)
     create_training_sets(
         input_file=args.input_file,
         train0_file=args.train0_file,
@@ -289,6 +287,5 @@ def main(args):
         min_tc=args.min_tc,
         n_molecules=args.n_molecules,
         max_tries=args.max_tries,
-        seed=args.seed,
         max_input_smiles=args.max_input_smiles,
     )

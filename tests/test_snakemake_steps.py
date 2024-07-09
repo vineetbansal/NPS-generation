@@ -13,7 +13,7 @@ from clm.commands import (
     write_formula_prior_CV,
     plot,
 )
-from clm.functions import assert_checksum_equals, read_csv_file
+from clm.functions import assert_checksum_equals, read_csv_file, set_seed
 
 base_dir = Path(__file__).parent.parent
 
@@ -36,6 +36,7 @@ def test_00_preprocess(tmp_path):
 def test_01_create_training_sets(tmp_path):
     folds = 3
     for fold in range(folds):
+        set_seed(5831)
         create_training_sets.create_training_sets(
             input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
             train0_file=tmp_path / "train0_file_{fold}",
@@ -47,7 +48,6 @@ def test_01_create_training_sets(tmp_path):
             which_fold=fold,
             representation="SMILES",
             min_tc=0,
-            seed=5831,
             max_input_smiles=1000,
         )
     # `train0_file_0` denotes the train smiles without augmentation for fold
@@ -296,6 +296,7 @@ def test_08_write_structural_prior_CV(tmp_path):
 def test_unique_inchikeys(tmp_path):
     folds = 3
     for fold in range(folds):
+        set_seed(5831)
         create_training_sets.create_training_sets(
             input_file=test_dir / "prior/raw/LOTUS_truncated.txt",
             train0_file=tmp_path / "train0_file_{fold}",
@@ -307,7 +308,6 @@ def test_unique_inchikeys(tmp_path):
             which_fold=fold,
             representation="SMILES",
             min_tc=0,
-            seed=5831,
             max_input_smiles=1000,
         )
 
