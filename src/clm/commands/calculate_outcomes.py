@@ -27,7 +27,7 @@ from clm.functions import (
     discrete_JSD,
     internal_diversity,
     external_diversity,
-    internal_nn,
+    internal_nn,::q!:
     external_nn,
     pct_rotatable_bonds,
     pct_stereocenters,

@@ -1,8 +1,8 @@
 bin,outcome,value,input_file
-2-2,n_mols,4.0,LOTUS_truncated_SMILES_0_unique_masses.csv
-all,n_mols,4.0,LOTUS_truncated_SMILES_0_unique_masses.csv
-2-2,% valid,1.0,LOTUS_truncated_SMILES_0_unique_masses.csv
-all,% valid,1.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,n_mols,66.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,n_mols,245.0,LOTUS_truncated_SMILES_0_unique_masses.csv
+2-2,% valid,0.06060606060606061,LOTUS_truncated_SMILES_0_unique_masses.csv
+all,% valid,0.0163265306122449,LOTUS_truncated_SMILES_0_unique_masses.csv
 2-2,% novel,1.0,LOTUS_truncated_SMILES_0_unique_masses.csv
 all,% novel,1.0,LOTUS_truncated_SMILES_0_unique_masses.csv
 2-2,% unique,0.5,LOTUS_truncated_SMILES_0_unique_masses.csv

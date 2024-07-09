@@ -327,8 +327,10 @@ rule plot_forecast:
 rule plot_topk:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_ranks_structure.csv.gz",
-            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
+        rank_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_ranks_structure.csv.gz",
+            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True),
+        tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_tc.csv.gz",
+        dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
         directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk"),
     resources:
@@ -336,7 +338,8 @@ rule plot_topk:
         runtime=1000,
     shell:
         'clm plot topk '
-        '--outcome_files {input} '
+        '--ranks_file {input.rank_file} '
+        '--tc_file {input.tc_file} '
         '--output_dir {output} '
 
 
