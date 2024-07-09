@@ -155,8 +155,8 @@ def train_models_RNN(
 ):
     set_seed(seed)
 
-    os.makedirs(os.path.dirname(model_file), exist_ok=True)
-    os.makedirs(os.path.dirname(loss_file), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(model_file)), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(loss_file)), exist_ok=True)
 
     dataset = load_dataset(representation, input_file, vocab_file)
     model = RNN(

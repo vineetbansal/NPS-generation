@@ -80,7 +80,7 @@ def sample_molecules_RNN(
     output_file,
 ):
     set_seed(seed)
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
 
     logging.info(f"cuda: {torch.cuda.is_available()}")
 
