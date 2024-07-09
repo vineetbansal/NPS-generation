@@ -1,5 +1,4 @@
 import argparse
-import re
 import pandas as pd
 from pathlib import Path
 import os
@@ -34,16 +33,11 @@ def add_args(parser):
     return parser
 
 
-def plot_generated_v_never(outcome, output_dir):
-    data = []
-
-    data.append(list(outcome[outcome["target_rank"].notnull()]["nn_tc"]))
-    data.append(list(outcome[outcome["target_rank"].isnull()]["nn_tc"]))
-
+def plot_generated_v_never(data, output_dir):
     labels = ["Ever Generated", "Never Generated"]
 
     sns.violinplot(
-        data=data,
+        data=list(data.values()),
         palette=sns.color_palette("pastel"),
         linecolor="auto",
         width=0.2,
@@ -103,33 +97,28 @@ def plot(outcome_files, rank_files, ranks_file, output_dir):
     # Make an output directory if it doesn't yet
     os.makedirs(output_dir, exist_ok=True)
 
-    merged_df = []
-    for outcome_file in outcome_files:
-        # Extract the fold of the outcome file
-        outcome_fold = re.search(r"(\d+)", os.path.basename(outcome_file)).group(1)
+    data = {"generated_tc": [], "never_generated_tc": []}
+    for outcome_file, rank_file in zip(outcome_files, rank_files):
         outcome_df = read_csv_file(outcome_file)
-
-        # Concatenate rank files of all the folds except that of the current outcome file
-        rank_df = pd.concat(
-            [
-                read_csv_file(rank_file)
-                for rank_file in rank_files
-                if not re.match(rf".*{outcome_fold}.*", os.path.basename(rank_file))
-            ]
-        )
+        rank_df = read_csv_file(rank_file)
         rank_df = rank_df[rank_df["target_source"] == "model"]
 
-        merged_df.append(
-            pd.merge(
-                outcome_df,
-                rank_df,
-                how="inner",
-                left_on="inchikey",
-                right_on="target_inchikey",
-            )
+        merged_df = pd.merge(
+            outcome_df,
+            rank_df,
+            how="inner",
+            left_on="inchikey",
+            right_on="target_inchikey",
         )
 
-    plot_generated_v_never(pd.concat(merged_df), output_dir)
+        data["generated_tc"].extend(
+            list(merged_df[merged_df["target_rank"].notnull()]["nn_tc"])
+        )
+        data["never_generated_tc"].extend(
+            list(merged_df[merged_df["target_rank"].isnull()]["nn_tc"])
+        )
+
+    plot_generated_v_never(data, output_dir)
     plot_generated_ratio(ranks_file, output_dir)
 
 
