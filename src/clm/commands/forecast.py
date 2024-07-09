@@ -43,8 +43,7 @@ def add_args(parser):
     return parser
 
 
-def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None):
-    set_seed(seed)
+def forecast(test_file, sample_file, output_file, max_molecules=None):
 
     output_dir = os.path.dirname(output_file)
     if output_dir:
@@ -167,10 +166,10 @@ def forecast(test_file, sample_file, output_file, seed=None, max_molecules=None)
 
 
 def main(args):
+    set_seed(args.seed)
     forecast(
         test_file=args.test_file,
         sample_file=args.sample_file,
         output_file=args.output_file,
-        seed=args.seed,
         max_molecules=args.max_mols,
     )
