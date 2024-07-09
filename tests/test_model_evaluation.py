@@ -69,7 +69,7 @@ def test_calculate_outcomes(tmp_path):
         / "snakemake_output/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_unique_masses.csv",
         # For LOTUS, train/test "_all.smi" files are the same
         train_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
-        output_file=output_file
+        output_file=output_file,
     )
 
     # % unique for bin "1-1" (if present) should be 1.0 (since all molecules are unique)
@@ -205,7 +205,6 @@ def test_write_outcome_distr(tmp_path):
 
 def test_outcome_distr(tmp_path):
     output_file = tmp_path / "outcome_distr.csv"
-    set_seed(0)
     outcomes = calculate_outcome_distr(
         sample_file=test_dir
         / "snakemake_output/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
@@ -213,7 +212,7 @@ def test_outcome_distr(tmp_path):
         train_file=test_dir
         / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         pubchem_file=test_dir / "PubChem_truncated.tsv",
-        output_file=output_file
+        output_file=output_file,
     )
 
     true_outcomes = read_csv_file(test_dir / "outcome_distr.csv")
@@ -225,7 +224,7 @@ def test_add_carbon(tmp_path):
     add_carbon(
         input_file=test_dir
         / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
-        output_file=tmp_path / "add_carbon.csv"
+        output_file=tmp_path / "add_carbon.csv",
     )
 
     assert_checksum_equals(tmp_path / "add_carbon.csv", test_dir / "add_carbon.csv")

@@ -98,13 +98,7 @@ def match_molecules(row, dataset, data_type):
 
 
 def write_formula_prior_CV(
-    ranks_file,
-    train_file,
-    test_file,
-    pubchem_file,
-    sample_file,
-    err_ppm,
-    chunk_size
+    ranks_file, train_file, test_file, pubchem_file, sample_file, err_ppm, chunk_size
 ):
     train = generate_df(train_file, chunk_size)
     train = train.assign(size=np.nan)
@@ -168,5 +162,5 @@ def main(args):
         pubchem_file=args.pubchem_file,
         sample_file=args.sample_file,
         err_ppm=args.err_ppm,
-        chunk_size=args.chunk_size
+        chunk_size=args.chunk_size,
     )

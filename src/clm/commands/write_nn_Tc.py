@@ -97,11 +97,7 @@ def prep_nn_tc(sample_file, pubchem_file, max_molecules):
 
 
 def write_nn_Tc(
-    query_file,
-    reference_file,
-    output_file,
-    pubchem_file=None,
-    max_molecules=None
+    query_file, reference_file, output_file, pubchem_file=None, max_molecules=None
 ):
     """
     Find nearest neighbor Tanimoto coefficient for each molecule in the query file
@@ -161,5 +157,5 @@ def main(args):
         reference_file=args.reference_file,
         output_file=args.output_file,
         pubchem_file=args.pubchem_file,
-        max_molecules=args.max_molecules
+        max_molecules=args.max_molecules,
     )
