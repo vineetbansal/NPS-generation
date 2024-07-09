@@ -108,9 +108,9 @@ def test_02_train_models_RNN(tmp_path):
 
 def test_03_sample_molecules_RNN(tmp_path):
     output_file = tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv"
+    set_seed(0)
     sample_molecules_RNN.sample_molecules_RNN(
         representation="SMILES",
-        seed=0,
         rnn_type="LSTM",
         embedding_size=32,
         hidden_size=256,
