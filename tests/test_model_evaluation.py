@@ -167,6 +167,7 @@ def test_write_freq_distribution(tmp_path):
 
 def test_train_discriminator(tmp_path):
     output_file = tmp_path / "train_discriminator.csv"
+    set_seed(0)
     outcomes = train_discriminator(
         train_file=test_dir
         / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",

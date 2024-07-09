@@ -52,7 +52,6 @@ def calculate_fingerprint(smile):
 
 
 def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100_000):
-    set_seed(seed)
 
     train_smiles = read_csv_file(train_file)
     sample_smiles = read_csv_file(sample_file)
@@ -117,6 +116,7 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
 
 
 def main(args):
+    set_seed(args.seed)
     train_discriminator(
         train_file=args.train_file,
         sample_file=args.sampled_file,
