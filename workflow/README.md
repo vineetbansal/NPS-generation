@@ -44,9 +44,13 @@ Before you can use the `clm` command on your personal machine, ensure that your 
    git clone https://github.com/skinniderlab/CLM.git
    cd clm
    ```
-2. In the activated environment, run the following command in your terminal to install the CLM package in editable mode with any optional dependenices
+2. In the activated environment, install the dependencies provided in `environment.yml`:
     ```
-    pip install -e .[dev]
+    conda env update --file environment.yml
+    ```
+3. In the activated environment, run the following command in your terminal to install the CLM package in editable mode.
+    ```
+    pip install -e .
     ```
 ## Snakemake workflow
 
