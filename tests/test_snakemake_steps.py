@@ -236,6 +236,7 @@ def test_07_write_structural_prior_CV(tmp_path):
 
 
 def test_08_write_formula_prior_CV(tmp_path):
+    set_seed(5831)
     write_formula_prior_CV.write_formula_prior_CV(
         ranks_file=tmp_path / "LOTUS_truncated_SMILES_0_CV_ranks_formula.csv",
         train_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
@@ -244,7 +245,6 @@ def test_08_write_formula_prior_CV(tmp_path):
         sample_file=test_dir
         / "0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv",
         err_ppm=10,
-        seed=5831,
         chunk_size=100000,
     )
     assert_checksum_equals(
