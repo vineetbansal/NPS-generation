@@ -209,6 +209,7 @@ def test_06_process_tabulated_molecules(tmp_path):
 
 def test_07_write_structural_prior_CV(tmp_path):
     temp_dir = tmp_path / "0/prior/structural_prior"
+    set_seed(5831)
     write_structural_prior_CV.write_structural_prior_CV(
         ranks_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_ranks_structure.csv",
         tc_file=temp_dir / "LOTUS_truncated_SMILES_0_CV_tc.csv",
@@ -220,7 +221,6 @@ def test_07_write_structural_prior_CV(tmp_path):
         carbon_file=test_dir
         / "0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv",
         err_ppm=10,
-        seed=5831,
         chunk_size=100000,
         top_n=1,
     )
@@ -256,6 +256,7 @@ def test_08_write_formula_prior_CV(tmp_path):
 
 def test_08_write_structural_prior_CV(tmp_path):
     temp_dir = tmp_path / "0/prior/structural_prior/add_carbon"
+    set_seed(5831)
     write_structural_prior_CV.write_structural_prior_CV(
         ranks_file=temp_dir
         / "LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv",
@@ -268,7 +269,6 @@ def test_08_write_structural_prior_CV(tmp_path):
         carbon_file=test_dir
         / "0/prior/inputs/train_LOTUS_truncated_SMILES_carbon_all.csv",
         err_ppm=10,
-        seed=5831,
         chunk_size=100000,
         top_n=1,
     )
