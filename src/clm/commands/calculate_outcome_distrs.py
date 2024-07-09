@@ -26,7 +26,6 @@ from clm.functions import (
     clean_mol,
     pct_rotatable_bonds,
     pct_stereocenters,
-    set_seed,
     write_to_csv_file,
     read_csv_file,
 )
@@ -75,10 +74,8 @@ def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file):
 
 
 def calculate_outcome_distr(
-    sample_file, max_mols, train_file, pubchem_file, output_file, seed=None
+    sample_file, max_mols, train_file, pubchem_file, output_file
 ):
-    set_seed(seed)
-
     # create results container
     res = []
 
