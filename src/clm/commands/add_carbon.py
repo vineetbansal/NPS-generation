@@ -25,8 +25,7 @@ def add_args(parser):
     return parser
 
 
-def add_carbon(input_file, output_file, seed=None):
-    set_seed(seed)
+def add_carbon(input_file, output_file):
     # make output directories
     os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
 
@@ -113,4 +112,5 @@ def add_carbon(input_file, output_file, seed=None):
 
 
 def main(args):
-    add_carbon(input_file=args.input_file, output_file=args.output_file, seed=args.seed)
+    set_seed(args.seed)
+    add_carbon(input_file=args.input_file, output_file=args.output_file)

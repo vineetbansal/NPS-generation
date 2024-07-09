@@ -17,7 +17,7 @@ from clm.commands.calculate_outcome_distrs import (
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
 from clm.plot.topk_tc import exact_tc_matches
-from clm.functions import assert_checksum_equals, read_csv_file, local_seed
+from clm.functions import assert_checksum_equals, read_csv_file, local_seed, set_seed
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
@@ -222,11 +222,11 @@ def test_outcome_distr(tmp_path):
 
 
 def test_add_carbon(tmp_path):
+    set_seed(0)
     add_carbon(
         input_file=test_dir
         / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
         output_file=tmp_path / "add_carbon.csv",
-        seed=0,
     )
 
     assert_checksum_equals(tmp_path / "add_carbon.csv", test_dir / "add_carbon.csv")
