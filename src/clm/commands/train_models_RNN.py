@@ -134,7 +134,6 @@ def sample_and_write_smiles(model, sample_mols, batch_size, smiles_file):
 
 def train_models_RNN(
     representation,
-    seed,
     rnn_type,
     embedding_size,
     hidden_size,
@@ -153,7 +152,6 @@ def train_models_RNN(
     model_file,
     loss_file,
 ):
-    set_seed(seed)
 
     os.makedirs(os.path.dirname(os.path.abspath(model_file)), exist_ok=True)
     os.makedirs(os.path.dirname(os.path.abspath(loss_file)), exist_ok=True)
@@ -220,9 +218,9 @@ def train_models_RNN(
 
 
 def main(args):
+    set_seed(args.seed)
     train_models_RNN(
         representation=args.representation,
-        seed=args.seed,
         rnn_type=args.rnn_type,
         embedding_size=args.embedding_size,
         hidden_size=args.hidden_size,

@@ -80,9 +80,9 @@ def test_01_create_training_sets(tmp_path):
 
 
 def test_02_train_models_RNN(tmp_path):
+    set_seed(0)
     train_models_RNN.train_models_RNN(
         representation="SMILES",
-        seed=0,
         rnn_type="LSTM",
         embedding_size=32,
         hidden_size=256,
