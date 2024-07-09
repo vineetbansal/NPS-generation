@@ -127,13 +127,13 @@ def test_write_nn_tc(tmp_path):
     query_file = test_dir / "input_write_nn_tc_query_file.csv"
     reference_file = test_dir / "input_write_nn_tc_reference_file.csv"
     output_file = tmp_path / "output_write_nn_tc.csv"
+    set_seed(0)
     outcomes = write_nn_Tc(
         query_file=query_file,
         reference_file=reference_file,
         pubchem_file=test_dir / "input_write_nn_tc_pubchem.tsv",
         max_molecules=100,
         output_file=output_file,
-        seed=0,
     )
     true_outcomes = read_csv_file(test_dir / "output_write_nn_tc.csv")
     pd.testing.assert_frame_equal(
