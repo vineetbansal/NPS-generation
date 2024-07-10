@@ -15,6 +15,7 @@ from clm.functions import (
     seed_type,
     read_file,
     read_csv_file,
+    write_to_csv_file,
 )
 
 
@@ -35,12 +36,10 @@ def add_carbon(input_file, output_file, seed=None):
         os.remove(output_file)
 
     # open buffer
-    f = open(output_file, "a+")
+    # f = open(output_file, "a+")
     # write header
     row = "\t".join(["input_smiles", "mutated_smiles", "mass", "formula", "inchikey"])
-    _ = f.write(row + "\n")
-    f.flush()
-
+    write_to_csv_file(output_file, row + "\n", "a+")
     # read the input SMILES
     smiles = read_file(input_file, smile_only=False)
 
@@ -98,8 +97,7 @@ def add_carbon(input_file, output_file, seed=None):
 
             # append to file
             row = "\t".join([input_smiles, mut_can, str(mass), formula, mut_inchi])
-            _ = f.write(row + "\n")
-            f.flush()
+            write_to_csv_file(output_file, row + "\n", "a+")
 
         # see if we can break
         # if len(output_smiles) > args.max_smiles:
