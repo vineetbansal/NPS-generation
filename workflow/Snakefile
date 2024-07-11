@@ -150,6 +150,7 @@ rule train_discriminator:
         '--train_file {input.train_file} '
         '--sampled_file {input.sampled_file} '
         '--output_file {output.output_file} '
+        '--seed {config[random_seed]} '
 
 
 rule plot_train_discriminator:
@@ -219,6 +220,7 @@ rule calculate_outcome_distrs:
         '--pubchem_file {input.pubchem_file} '
         '--max_mols 100000 '
         '--output_file {output.output_file} '
+        '--seed {config[random_seed]} '
 
 
 rule plot_outcome_distributions:
@@ -251,6 +253,7 @@ rule nn_tc_ever_v_never:
         '--query_file {input.query_file} '
         '--reference_file {input.reference_file} '
         '--output_file {output.output_file} '
+        '--seed {config[random_seed]} '
 
 
 rule plot_nn_tc_ever_v_never:
@@ -306,6 +309,7 @@ rule forecast:
         '--test-file {input.test_file} '
         '--sample-file {input.sample_file} '
         '--output-file {output.output_file} '
+        '--seed {config[random_seed]} '
 
 
 rule plot_forecast:

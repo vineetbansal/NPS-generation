@@ -17,7 +17,7 @@ from clm.commands.calculate_outcome_distrs import (
 from clm.commands.add_carbon import add_carbon
 from clm.commands.plot import plot
 from clm.plot.topk_tc import exact_tc_matches
-from clm.functions import assert_checksum_equals, read_csv_file, local_seed
+from clm.functions import assert_checksum_equals, read_csv_file, local_seed, set_seed
 
 base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
@@ -57,6 +57,7 @@ def test_prep_outcome_freq(tmp_path):
 
 
 def test_calculate_outcomes(tmp_path):
+    set_seed(12)
     output_file = tmp_path / "calculate_outcome.csv"
     outcomes = calculate_outcomes(
         sampled_file=test_dir
@@ -69,7 +70,6 @@ def test_calculate_outcomes(tmp_path):
         # For LOTUS, train/test "_all.smi" files are the same
         train_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
         output_file=output_file,
-        seed=12,
     )
 
     # % unique for bin "1-1" (if present) should be 1.0 (since all molecules are unique)
@@ -127,13 +127,13 @@ def test_write_nn_tc(tmp_path):
     query_file = test_dir / "input_write_nn_tc_query_file.csv"
     reference_file = test_dir / "input_write_nn_tc_reference_file.csv"
     output_file = tmp_path / "output_write_nn_tc.csv"
+    set_seed(0)
     outcomes = write_nn_Tc(
         query_file=query_file,
         reference_file=reference_file,
         pubchem_file=test_dir / "input_write_nn_tc_pubchem.tsv",
         max_molecules=100,
         output_file=output_file,
-        seed=0,
     )
     true_outcomes = read_csv_file(test_dir / "output_write_nn_tc.csv")
     pd.testing.assert_frame_equal(
@@ -167,6 +167,7 @@ def test_write_freq_distribution(tmp_path):
 
 def test_train_discriminator(tmp_path):
     output_file = tmp_path / "train_discriminator.csv"
+    set_seed(0)
     outcomes = train_discriminator(
         train_file=test_dir
         / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
@@ -214,7 +215,6 @@ def test_outcome_distr(tmp_path):
         / "snakemake_output/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         pubchem_file=test_dir / "PubChem_truncated.tsv",
         output_file=output_file,
-        seed=0,
     )
 
     true_outcomes = read_csv_file(test_dir / "outcome_distr.csv")
@@ -222,11 +222,11 @@ def test_outcome_distr(tmp_path):
 
 
 def test_add_carbon(tmp_path):
+    set_seed(0)
     add_carbon(
         input_file=test_dir
         / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
         output_file=tmp_path / "add_carbon.csv",
-        seed=0,
     )
 
     assert_checksum_equals(tmp_path / "add_carbon.csv", test_dir / "add_carbon.csv")
