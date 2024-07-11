@@ -57,6 +57,7 @@ def test_prep_outcome_freq(tmp_path):
 
 
 def test_calculate_outcomes(tmp_path):
+    set_seed(12)
     output_file = tmp_path / "calculate_outcome.csv"
     outcomes = calculate_outcomes(
         sampled_file=test_dir
@@ -69,7 +70,6 @@ def test_calculate_outcomes(tmp_path):
         # For LOTUS, train/test "_all.smi" files are the same
         train_file=test_dir / "test_LOTUS_SMILES_all_trunc.smi",
         output_file=output_file,
-        seed=12,
     )
 
     # % unique for bin "1-1" (if present) should be 1.0 (since all molecules are unique)
