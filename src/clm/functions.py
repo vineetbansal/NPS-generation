@@ -504,7 +504,7 @@ def write_to_csv_file(
             compression=compression,
         )
     else:
-        # logger.warning("Non-DataFrame input support will be removed soon")
+        logger.warning("Non-DataFrame input support will be removed soon")
         assert compression in (None, "gzip"), "Invalid compression type"
         if compression == "gzip":
             mode = "wb" if mode == "w" else "ab"  # binary mode for gzip
