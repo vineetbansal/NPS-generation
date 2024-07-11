@@ -1,7 +1,11 @@
+import gzip
+
 import pytest
 import seaborn as sns
 import pandas as pd
+import hashlib
 from clm.functions import read_file, read_csv_file, write_to_csv_file, local_seed
+from clm.commands.collapse_files import collapse_files
 
 
 def test_read_file_all(dataset):
@@ -198,3 +202,99 @@ def test_write_csv_compressed_iterable_append(tmp_path):
         pd.concat([pd.DataFrame(data), pd.DataFrame(data)]).reset_index(drop=True),
         df,
     )
+
+
+def test_collapse_files1(tmp_path):
+    iris = sns.load_dataset("iris")
+    write_to_csv_file(tmp_path / "iris1.csv.gz", iris)
+    write_to_csv_file(tmp_path / "iris2.csv.gz", iris)
+
+    collapse_files(
+        [
+            tmp_path / "iris1.csv.gz",
+            tmp_path / "iris2.csv.gz",
+        ],
+        tmp_path / "collapsed.csv",
+        has_header=True,
+    )
+
+    output_lines = open(tmp_path / "collapsed.csv").readlines()
+    assert (
+        output_lines[0] == "sepal_length,sepal_width,petal_length,petal_width,species\n"
+    )
+    assert output_lines[1] == "4.3,3.0,1.1,0.1,setosa\n"
+
+    assert len(output_lines) == 150
+
+
+def test_collapse_files2(tmp_path):
+    iris = sns.load_dataset("iris")
+    write_to_csv_file(tmp_path / "iris1.csv.gz", iris)
+    write_to_csv_file(tmp_path / "iris2.csv.gz", iris)
+
+    collapse_files(
+        [
+            tmp_path / "iris1.csv.gz",
+            tmp_path / "iris2.csv.gz",
+        ],
+        tmp_path / "collapsed.csv.gz",
+        has_header=True,
+    )
+
+    checksum = hashlib.md5(
+        "".join(
+            [
+                line.decode("utf8")
+                for line in gzip.open(tmp_path / "collapsed.csv.gz", "r").readlines()
+            ]
+        ).encode("utf8")
+    ).hexdigest()
+    assert checksum == "d0d4de624374a8d48d52b8bd3b68f099"
+
+
+def test_collapse_files3(tmp_path):
+    iris = sns.load_dataset("iris")
+    write_to_csv_file(tmp_path / "iris1.csv", iris)
+    write_to_csv_file(tmp_path / "iris2.csv", iris)
+
+    collapse_files(
+        [
+            tmp_path / "iris1.csv",
+            tmp_path / "iris2.csv",
+        ],
+        tmp_path / "collapsed.csv",
+        has_header=True,
+    )
+
+    output_lines = open(tmp_path / "collapsed.csv").readlines()
+    assert (
+        output_lines[0] == "sepal_length,sepal_width,petal_length,petal_width,species\n"
+    )
+    assert output_lines[1] == "4.3,3.0,1.1,0.1,setosa\n"
+
+    assert len(output_lines) == 150
+
+
+def test_collapse_files4(tmp_path):
+    iris = sns.load_dataset("iris")
+    write_to_csv_file(tmp_path / "iris1.csv", iris)
+    write_to_csv_file(tmp_path / "iris2.csv", iris)
+
+    collapse_files(
+        [
+            tmp_path / "iris1.csv",
+            tmp_path / "iris2.csv",
+        ],
+        tmp_path / "collapsed.csv.gz",
+        has_header=True,
+    )
+
+    checksum = hashlib.md5(
+        "".join(
+            [
+                line.decode("utf8")
+                for line in gzip.open(tmp_path / "collapsed.csv.gz", "r").readlines()
+            ]
+        ).encode("utf8")
+    ).hexdigest()
+    assert checksum == "d0d4de624374a8d48d52b8bd3b68f099"

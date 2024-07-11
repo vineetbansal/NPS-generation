@@ -132,40 +132,20 @@ rule collapse_train_test_data:
     input:
         train_file = expand(PATHS['train0_file'], fold=range(FOLDS), allow_missing=True),
         test_file = expand(PATHS['test0_file'], fold=range(FOLDS), allow_missing=True),
+        carbon_file = expand(PATHS['carbon_file'], fold=range(FOLDS), allow_missing=True)
     output:
         train_file = PATHS['train_all_file'],
         test_file = PATHS['test_all_file'],
-    resources:
-        mem_mb=20000,
-        runtime=10,
-    shell:
-        # Read input files, sort them, remove duplicates and write them out
-        # Note: We use python instead of sort | uniq > to avoid locale specific issues
-        # on the command line, and get a deterministic sort
-        # Get header from first file and ignore it in the rest
-        'python -c "import sys; lines = [open(sys.argv[1]).readline()] + sorted(set(line for file_path in sorted(sys.argv[1:]) for i, line in enumerate(open(file_path)) if i>0)); sys.stdout.writelines(lines)" {input.train_file} > {output.train_file} && '
-        'python -c "import sys; lines = [open(sys.argv[1]).readline()] + sorted(set(line for file_path in sorted(sys.argv[1:]) for i, line in enumerate(open(file_path)) if i>0)); sys.stdout.writelines(lines)" {input.test_file} > {output.test_file}'
-
-rule collapse_train_test_data_carbon_files:
-    """
-    Generate single carbon files, out
-    of all the folds we generated in the `create_training_sets` step. This
-    would of course only be valuable to do if --enum-factor for the
-    `create_training_sets` was > 0, otherwise we might as well use the output
-    file from `preprocess` in both cases.
-    """
-    conda: "clm"
-    input:
-        carbon_file = expand(PATHS['carbon_file'], fold=range(FOLDS), allow_missing=True)
-    output:
         carbon_file = PATHS['carbon_all_file']
     resources:
         mem_mb=20000,
         runtime=10,
     shell:
-        'clm collapse_carbon_files '
-        '--carbon_files {input.carbon_file} '
-        '--output_file {output.carbon_file} '
+        # Read input files, sort them, remove duplicates and write them out
+        clm collapse_files --input_files {input.train_file} --output_file {output.train_file} --has_header
+        clm collapse_files --input_files {input.test_file} --output_file {output.test_file} --has_header
+        clm collapse_files --input_files {input.carbon_file} --output_file {output.carbon_file} --has_header
+
 
 rule train_models_RNN:
     """
