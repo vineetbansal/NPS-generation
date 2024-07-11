@@ -26,9 +26,10 @@ from clm.functions import (
     clean_mol,
     pct_rotatable_bonds,
     pct_stereocenters,
-    set_seed,
     write_to_csv_file,
     read_csv_file,
+    set_seed,
+    seed_type,
 )
 
 # suppress Chem.MolFromSmiles error output
@@ -44,6 +45,13 @@ def add_args(parser):
     parser.add_argument("--pubchem_file", type=str, help="Path to the PubChem file")
     parser.add_argument(
         "--output_file", type=str, help="Path to the save the output file"
+    )
+    parser.add_argument(
+        "--seed",
+        type=seed_type,
+        default=None,
+        nargs="?",
+        help="Random seed for reproducibility",
     )
     return parser
 
@@ -75,10 +83,8 @@ def write_outcome_distr(sample_file, max_mols, train_file, pubchem_file):
 
 
 def calculate_outcome_distr(
-    sample_file, max_mols, train_file, pubchem_file, output_file, seed=None
+    sample_file, max_mols, train_file, pubchem_file, output_file
 ):
-    set_seed(seed)
-
     # create results container
     res = []
 
@@ -209,6 +215,7 @@ def calculate_outcome_distr(
 
 
 def main(args):
+    set_seed(args.seed)
     calculate_outcome_distr(
         sample_file=args.sample_file,
         max_mols=args.max_mols,
