@@ -38,7 +38,7 @@ def collapse_files(input_files, output_file, has_header=False):
 
 def main(args):
     collapse_files(
-        input_files=args.carbon_files,
+        input_files=args.input_files,
         output_file=args.output_file,
         has_header=args.has_header,
     )

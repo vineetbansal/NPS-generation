@@ -142,9 +142,9 @@ rule collapse_train_test_data:
         runtime=10,
     shell:
         # Read input files, sort them, remove duplicates and write them out
-        clm collapse_files --input_files {input.train_file} --output_file {output.train_file} --has_header
-        clm collapse_files --input_files {input.test_file} --output_file {output.test_file} --has_header
-        clm collapse_files --input_files {input.carbon_file} --output_file {output.carbon_file} --has_header
+        'clm collapse_files --input_files {input.train_file} --output_file {output.train_file} --has_header && '
+        'clm collapse_files --input_files {input.test_file} --output_file {output.test_file} --has_header && '
+        'clm collapse_files --input_files {input.carbon_file} --output_file {output.carbon_file} --has_header '
 
 
 rule train_models_RNN:

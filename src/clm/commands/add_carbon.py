@@ -38,7 +38,7 @@ def add_carbon(input_file, output_file):
     # f = open(output_file, "a+")
     # write header
     row = "\t".join(["input_smiles", "mutated_smiles", "mass", "formula", "inchikey"])
-    write_to_csv_file(output_file, row + "\n", "a+")
+    write_to_csv_file(output_file, [row + "\n"], "a+")
     # read the input SMILES
     smiles = read_file(input_file, smile_only=False)
 
@@ -96,7 +96,7 @@ def add_carbon(input_file, output_file):
 
             # append to file
             row = "\t".join([input_smiles, mut_can, str(mass), formula, mut_inchi])
-            write_to_csv_file(output_file, row + "\n", "a+")
+            write_to_csv_file(output_file, [row + "\n"], "a+")
 
         # see if we can break
         # if len(output_smiles) > args.max_smiles:
@@ -104,7 +104,7 @@ def add_carbon(input_file, output_file):
 
     # write unique SMILES
     uniq_smiles = read_csv_file(output_file, delimiter="\t").mutated_smiles.unique()
-    filename, ext = os.path.splitext(output_file)
+    filename = output_file.split(os.extsep)[0]
     uniq_file = filename + "-unique.smi"
     write_smiles(uniq_smiles, uniq_file)
 
