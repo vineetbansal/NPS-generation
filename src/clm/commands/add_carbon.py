@@ -104,7 +104,7 @@ def add_carbon(input_file, output_file):
 
     # write unique SMILES
     uniq_smiles = read_csv_file(output_file, delimiter="\t").mutated_smiles.unique()
-    filename = output_file.split(os.extsep)[0]
+    filename = str(output_file).split(os.extsep)[0]
     uniq_file = filename + "-unique.smi"
     write_smiles(uniq_smiles, uniq_file)
 
