@@ -28,6 +28,14 @@ clm.commands.calculate\_outcomes module
    :undoc-members:
    :show-inheritance:
 
+clm.commands.collapse\_files module
+-----------------------------------
+
+.. automodule:: clm.commands.collapse_files
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 clm.commands.collect\_tabulated\_molecules module
 -------------------------------------------------
 
