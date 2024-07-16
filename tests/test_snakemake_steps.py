@@ -80,7 +80,6 @@ def test_01_create_training_sets(tmp_path):
 
 
 def test_02_train_models_RNN(tmp_path):
-    set_seed(0)
     train_models_RNN.train_models_RNN(
         representation="SMILES",
         rnn_type="LSTM",
@@ -108,7 +107,6 @@ def test_02_train_models_RNN(tmp_path):
 
 def test_03_sample_molecules_RNN(tmp_path):
     output_file = tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv"
-    set_seed(0)
     sample_molecules_RNN.sample_molecules_RNN(
         representation="SMILES",
         rnn_type="LSTM",

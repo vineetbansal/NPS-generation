@@ -127,7 +127,6 @@ def test_write_nn_tc(tmp_path):
     query_file = test_dir / "input_write_nn_tc_query_file.csv"
     reference_file = test_dir / "input_write_nn_tc_reference_file.csv"
     output_file = tmp_path / "output_write_nn_tc.csv"
-    set_seed(0)
     outcomes = write_nn_Tc(
         query_file=query_file,
         reference_file=reference_file,
@@ -167,7 +166,6 @@ def test_write_freq_distribution(tmp_path):
 
 def test_train_discriminator(tmp_path):
     output_file = tmp_path / "train_discriminator.csv"
-    set_seed(0)
     outcomes = train_discriminator(
         train_file=test_dir
         / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
@@ -222,7 +220,6 @@ def test_outcome_distr(tmp_path):
 
 
 def test_add_carbon(tmp_path):
-    set_seed(0)
     add_carbon(
         input_file=test_dir
         / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
