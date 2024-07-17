@@ -33,16 +33,16 @@ wildcard_constraints:
 # -----------------------------------------------------------------------------
 rule data:
     input:
-        ranks_file_formula=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_formula.csv.gz",
-            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        ranks_file_structure=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_structure.csv.gz",
-            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        tc_file=expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_tc.csv.gz",
-            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
-        ranks_file_overall = expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_min{min_freq}_all_{metric}_CV_ranks_structure.csv.gz",
-            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, min_freq=MIN_FREQS, metric=METRICS),
-        tc_file_overall = expand("{OUTPUT_DIR}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_min{min_freq}_all_{metric}_CV_tc.csv.gz",
-            OUTPUT_DIR=OUTPUT_DIR, enum_factor=ENUM_FACTORS,dataset=DATASET,repr=REPRESENTATIONS,min_freq=MIN_FREQS,metric=METRICS)
+        ranks_file_formula=expand(config['paths']['formula_ranks_file'],
+            output_dir=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
+        ranks_file_structure=expand(config['paths']['cv_ranks_file'],
+            output_dir=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
+        tc_file=expand(config['paths']['cv_tc_file'],
+            output_dir=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, fold=range(FOLDS)),
+        ranks_file_overall = expand(config['paths']['overall_ranks_file'],
+            output_dir=OUTPUT_DIR, enum_factor=ENUM_FACTORS, dataset=DATASET, repr=REPRESENTATIONS_NO_SELFIES, min_freq=MIN_FREQS, metric=METRICS),
+        tc_file_overall = expand(config['paths']['overall_tc_file'],
+            output_dir=OUTPUT_DIR, enum_factor=ENUM_FACTORS,dataset=DATASET,repr=REPRESENTATIONS,min_freq=MIN_FREQS,metric=METRICS)
 
 
 rule preprocess:
