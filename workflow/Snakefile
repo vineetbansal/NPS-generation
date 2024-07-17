@@ -67,7 +67,7 @@ rule calculate_outcomes:
         invalid_smiles=config['paths']['collect_invalid_smiles'],
         train_file=config['paths']['train0_file'],
     output:
-        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv.gz",
+        output_file="{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_calculate_outcomes.csv.gz",
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -85,10 +85,10 @@ rule calculate_outcomes:
 rule plot_calculate_outcomes:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv.gz",
+        expand("{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_calculate_outcomes.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/calculate_outcomes"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/calculate_outcomes"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -105,7 +105,7 @@ rule write_nn_tc:
         reference_file=config['paths']['train0_file'],
         pubchem_file=PATHS['pubchem_tsv_file'],
     output:
-        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_nn_tc.csv.gz",
+        output_file="{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_write_nn_tc.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -121,10 +121,10 @@ rule write_nn_tc:
 rule plot_write_nn_tc:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_nn_tc.csv.gz",
+        expand("{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_write_nn_tc.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/write_nn_tc"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/write_nn_tc"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -141,7 +141,7 @@ rule train_discriminator:
         train_file=config['paths']['train0_file'],
         sampled_file=config['paths']['collect_tabulated_output']
     output:
-        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_train_discriminator.csv.gz",
+        output_file="{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_train_discriminator.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -156,10 +156,10 @@ rule train_discriminator:
 rule plot_train_discriminator:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_train_discriminator.csv.gz",
+        expand("{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_train_discriminator.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/train_discriminator"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/train_discriminator"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -175,7 +175,7 @@ rule freq_distribution:
         sampled_file=config['paths']['collect_tabulated_output'],
         test_file=config['paths']['test0_file'],
     output:
-        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_freq_distribution.csv.gz",
+        output_file="{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_freq_distribution.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -189,10 +189,10 @@ rule freq_distribution:
 rule plot_freq_distribution:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_freq_distribution.csv.gz",
+        expand("{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_freq_distribution.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/freq_distribution"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/freq_distribution"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -209,7 +209,7 @@ rule calculate_outcome_distrs:
         train_file=config['paths']['train0_file'],
         pubchem_file=PATHS['pubchem_tsv_file'],
     output:
-        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv.gz",
+        output_file="{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_calculate_outcome_distrs.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -226,10 +226,10 @@ rule calculate_outcome_distrs:
 rule plot_outcome_distributions:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv.gz",
+        expand("{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_calculate_outcome_distrs.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/calculate_outcome_distrs"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/calculate_outcome_distrs"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -244,7 +244,7 @@ rule nn_tc_ever_v_never:
         query_file=config['paths']['test0_file'],
         reference_file=config['paths']['train0_file']
     output:
-        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
+        output_file="{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_nn_tc_ever_v_never.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -259,14 +259,14 @@ rule nn_tc_ever_v_never:
 rule plot_nn_tc_ever_v_never:
     conda: "clm"
     input:
-        nn_tc_file = expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
+        nn_tc_file = expand("{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_{fold}_nn_tc_ever_v_never.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True),
         rank_files = expand(config['paths']['cv_ranks_file'],
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True),
         ranks_file = expand(config['paths']['overall_ranks_file'],
             min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True),
     output:
-        directory(f"{{output_dir}}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/nn_tc_ever_v_never"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -283,7 +283,7 @@ rule plot_topk_tc:
         expand(config['paths']['overall_tc_file'],
             min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        directory(f"{{output_dir}}/model_evaluation/plot/{{enum_factor}}/topk_tc"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/topk_tc"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -300,7 +300,7 @@ rule forecast:
         sample_file=expand(config['paths']['process_tabulated_output'],
             min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_forecast.csv",
+        output_file="{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_forecast.csv",
     resources:
         mem_mb=64000,
         runtime=30,
@@ -315,10 +315,10 @@ rule forecast:
 rule plot_forecast:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_forecast.csv",
+        expand("{output_dir}/model_evaluation/{enum_factor}/{dataset}_{repr}_forecast.csv",
             dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/forecast"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/forecast"),
     resources:
         mem_mb=64000,
         runtime=30,
@@ -336,7 +336,7 @@ rule plot_topk:
         tc_file=expand(config['paths']['overall_tc_file'],
         min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        directory(f"{{output_dir}}/model_evaluation/plot/{{enum_factor}}/topk"),
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/topk"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -354,7 +354,7 @@ rule plot_structural_prior_min_freq:
         tc_files = expand(config['paths']['overall_tc_file'],
             metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True)
     output:
-        directory(f"{{output_dir}}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq")
+        directory("{output_dir}/model_evaluation/plot/{enum_factor}/structural_prior_min_freq")
     resources:
         mem_mb=64000,
         runtime=30,
