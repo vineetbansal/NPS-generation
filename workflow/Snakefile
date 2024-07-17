@@ -62,12 +62,12 @@ rule calculate_outcomes:
     """
     conda: "clm"
     input:
-        sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        known_smiles=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/known_{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        invalid_smiles=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/invalid_{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        sampled_file=config['paths']['collect_tabulated_output'],
+        known_smiles=config['paths']['collect_known_smiles'],
+        invalid_smiles=config['paths']['collect_invalid_smiles'],
+        train_file=config['paths']['train0_file'],
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv.gz",
+        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcomes.csv.gz",
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -101,11 +101,11 @@ rule plot_calculate_outcomes:
 rule write_nn_tc:
     conda: "clm"
     input:
-        query_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        query_file=config['paths']['collect_tabulated_output'],
+        reference_file=config['paths']['train0_file'],
         pubchem_file=PATHS['pubchem_tsv_file'],
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_nn_tc.csv.gz",
+        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_write_nn_tc.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -138,10 +138,10 @@ rule plot_write_nn_tc:
 rule train_discriminator:
     conda: "clm"
     input:
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
+        train_file=config['paths']['train0_file'],
+        sampled_file=config['paths']['collect_tabulated_output']
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_train_discriminator.csv.gz",
+        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_train_discriminator.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -172,10 +172,10 @@ rule plot_train_discriminator:
 rule freq_distribution:
     conda: "clm"
     input:
-        sampled_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        sampled_file=config['paths']['collect_tabulated_output'],
+        test_file=config['paths']['test0_file'],
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_freq_distribution.csv.gz",
+        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_freq_distribution.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -205,11 +205,11 @@ rule plot_freq_distribution:
 rule calculate_outcome_distrs:
     conda: "clm"
     input:
-        sample_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_{{fold}}_unique_masses.csv.gz",
-        train_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        sample_file=config['paths']['collect_tabulated_output'],
+        train_file=config['paths']['train0_file'],
         pubchem_file=PATHS['pubchem_tsv_file'],
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv.gz",
+        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_calculate_outcome_distrs.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -241,10 +241,10 @@ rule plot_outcome_distributions:
 rule nn_tc_ever_v_never:
     conda: "clm"
     input:
-        query_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test0_{{dataset}}_{{repr}}_{{fold}}.smi",
-        reference_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/train0_{{dataset}}_{{repr}}_{{fold}}.smi",
+        query_file=config['paths']['test0_file'],
+        reference_file=config['paths']['train0_file']
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
+        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
     resources:
         mem_mb=64000,
         runtime=1000,
@@ -261,12 +261,12 @@ rule plot_nn_tc_ever_v_never:
     input:
         nn_tc_file = expand(f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_{{fold}}_nn_tc_ever_v_never.csv.gz",
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True),
-        rank_files = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_{{fold}}_CV_ranks_structure.csv.gz",
+        rank_files = expand(config['paths']['cv_ranks_file'],
             dataset=DATASET, repr=REPRESENTATIONS, fold=range(FOLDS), allow_missing=True),
-        ranks_file = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_ranks_structure.csv.gz",
-            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True),
+        ranks_file = expand(config['paths']['overall_ranks_file'],
+            min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True),
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never"),
+        directory(f"{{output_dir}}/model_evaluation/plot/{{enum_factor}}/nn_tc_ever_v_never"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -280,10 +280,10 @@ rule plot_nn_tc_ever_v_never:
 rule plot_topk_tc:
     conda: "clm"
     input:
-        expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_tc.csv.gz",
-            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
+        expand(config['paths']['overall_tc_file'],
+            min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk_tc"),
+        directory(f"{{output_dir}}/model_evaluation/plot/{{enum_factor}}/topk_tc"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -296,11 +296,11 @@ rule plot_topk_tc:
 rule forecast:
     conda: "clm"
     input:
-        test_file=f"{OUTPUT_DIR}/{{enum_factor}}/prior/inputs/test_{{dataset}}_{{repr}}_all.smi",
-        sample_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/samples/{{dataset}}_{{repr}}_processed_min1_freq-avg.csv.gz",
-            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
+        test_file=config['paths']['test_all_file'],
+        sample_file=expand(config['paths']['process_tabulated_output'],
+            min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        output_file=f"{OUTPUT_DIR}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_forecast.csv",
+        output_file=f"{{output_dir}}/model_evaluation/{{enum_factor}}/{{dataset}}_{{repr}}_forecast.csv",
     resources:
         mem_mb=64000,
         runtime=30,
@@ -331,12 +331,12 @@ rule plot_forecast:
 rule plot_topk:
     conda: "clm"
     input:
-        rank_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_ranks_structure.csv.gz",
-            dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True),
-        tc_file=expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min1_all_freq-avg_CV_tc.csv.gz",
-        dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
+        rank_file=expand(config['paths']['overall_ranks_file'],
+            min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True),
+        tc_file=expand(config['paths']['overall_tc_file'],
+        min_freq=1, metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/topk"),
+        directory(f"{{output_dir}}/model_evaluation/plot/{{enum_factor}}/topk"),
     resources:
         mem_mb=256000,
         runtime=1000,
@@ -349,12 +349,12 @@ rule plot_topk:
 
 rule plot_structural_prior_min_freq:
     input:
-        rank_files = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min{{min_freq}}_all_freq-avg_CV_ranks_structure.csv.gz",
-            dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True),
-        tc_files = expand(f"{OUTPUT_DIR}/{{enum_factor}}/prior/structural_prior/{{dataset}}_{{repr}}_min{{min_freq}}_all_freq-avg_CV_tc.csv.gz",
-            dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True)
+        rank_files = expand(config['paths']['overall_ranks_file'],
+            metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True),
+        tc_files = expand(config['paths']['overall_tc_file'],
+            metric='freq-avg', dataset=DATASET, repr=REPRESENTATIONS, min_freq=MIN_FREQS, allow_missing=True)
     output:
-        directory(f"{OUTPUT_DIR}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq")
+        directory(f"{{output_dir}}/model_evaluation/plot/{{enum_factor}}/structural_prior_min_freq")
     resources:
         mem_mb=64000,
         runtime=30,
