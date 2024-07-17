@@ -29,7 +29,7 @@ model_params:
   dropout: 0
   batch_size: 64
   learning_rate: 0.001
-  max_epochs: 100
+  max_epochs: 99999
   patience: 50000
   log_every_steps: 100
   log_every_epochs: 1
