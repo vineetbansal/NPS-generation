@@ -113,7 +113,7 @@ rule add_carbon:
         carbon_file = PATHS['carbon_file']
     resources:
         mem_mb=20000,
-        runtime=10,
+        runtime=60,
     shell:
         'clm add_carbon '
         '--input_file {input.train0_file} '
@@ -139,7 +139,7 @@ rule collapse_train_test_data:
         carbon_file = PATHS['carbon_all_file']
     resources:
         mem_mb=20000,
-        runtime=10,
+        runtime=20,
     shell:
         # Read input files, sort them, remove duplicates and write them out
         'clm collapse_files --input_files {input.train_file} --output_file {output.train_file} --has_header && '
