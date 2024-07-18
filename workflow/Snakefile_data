@@ -163,7 +163,7 @@ rule train_models_RNN:
         loss_file=PATHS['loss_file']
     resources:
         mem_mb=32000,
-        runtime=15+MODEL_PARAMS["max_epochs"]*15,
+        runtime=4320,
         slurm_extra="--gres=gpu:1"
     shell:
         'clm train_models_RNN '
