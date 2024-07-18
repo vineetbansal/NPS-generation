@@ -48,9 +48,12 @@ structural_prior_min_freq:
   - 4
 random_seed: 5831
 paths:
+  # Modify these paths to match your system
   output_dir: data
   dataset: "../tests/test_data/LOTUS_truncated.txt"
   pubchem_tsv_file: "../tests/test_data/PubChem_truncated.tsv"
+
+  # The following paths can be modified, as long as all wildcards are preserved in each case
   preprocess_output: "{output_dir}/prior/raw/{dataset}.txt"
   train_file: "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_{fold}.smi"
   vocab_file: "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_{fold}.vocabulary"
@@ -58,7 +61,6 @@ paths:
   input_file: "{output_dir}/{enum_factor}/prior/samples/{dataset}_{repr}_{fold}_{train_seed}_{sample_seed}_samples.csv.gz"
   train0_file: "{output_dir}/{enum_factor}/prior/inputs/train0_{dataset}_{repr}_{fold}.smi"
   test0_file: "{output_dir}/{enum_factor}/prior/inputs/test0_{dataset}_{repr}_{fold}.smi"
-  sample_file: "{output_dir}/{enum_factor}/prior/samples/{dataset}_{repr}_{fold}_unique_masses.csv.gz"
   carbon_file: "{output_dir}/{enum_factor}/prior/inputs/train0_{dataset}_{repr}_{fold}_carbon.csv.gz"
   train_all_file: "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_all.smi"
   test_all_file: "{output_dir}/{enum_factor}/prior/inputs/test_{dataset}_{repr}_all.smi"

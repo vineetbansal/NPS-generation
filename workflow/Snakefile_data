@@ -76,7 +76,7 @@ rule create_training_sets:
     """
     conda: "clm"
     input:
-        "{output_dir}/prior/raw/{dataset}.txt"
+        config['paths']['preprocess_output']
     output:
         train_file = PATHS['train_file'],
         vocab_file = PATHS['vocab_file'],
