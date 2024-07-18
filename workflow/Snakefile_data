@@ -84,7 +84,7 @@ rule create_training_sets:
         test0_file = PATHS['test0_file']
     resources:
         mem_mb=20000,
-        runtime=10,
+        runtime=60,
     shell:
         'clm create_training_sets '
         '--input-file {input} '
