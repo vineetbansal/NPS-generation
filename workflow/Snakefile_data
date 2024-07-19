@@ -112,7 +112,7 @@ rule add_carbon:
     output:
         carbon_file = PATHS['carbon_file']
     resources:
-        mem_mb=20000,
+        mem_mb=48000,
         runtime=60,
     shell:
         'clm add_carbon '
