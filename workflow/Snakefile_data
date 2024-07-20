@@ -113,7 +113,7 @@ rule add_carbon:
         carbon_file = PATHS['carbon_file']
     resources:
         mem_mb=48000,
-        runtime=60,
+        runtime=720,
     shell:
         'clm add_carbon '
         '--input_file {input.train0_file} '
