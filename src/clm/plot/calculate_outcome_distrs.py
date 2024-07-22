@@ -103,8 +103,8 @@ def plot(outcome_files, output_dir):
     )
 
     value_map = {
-        "model": "Generated Molecules",
-        "train": "Known NPSs",
+        "model": "Generated molecules",
+        "train": "Training set",
         "pubchem": "Pubchem",
     }
 

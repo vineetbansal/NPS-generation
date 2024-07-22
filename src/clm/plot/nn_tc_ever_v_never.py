@@ -84,7 +84,7 @@ def plot_generated_ratio(ranks_file, output_dir):
         / (data["Ever Generated"] + data["Never Generated"])
         * 100
     )
-    plt.title(f"{percentage_generated:.2f}% of held-out metabolites generated")
+    plt.title(f"{percentage_generated:.2f}% of held-out molecules generated")
 
     file_name = Path(output_dir) / "ratio_ever_v_never"
     plt.savefig(file_name)
