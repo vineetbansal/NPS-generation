@@ -3,8 +3,6 @@ import pandas as pd
 from tqdm import tqdm
 
 from clm.functions import (
-    set_seed,
-    seed_type,
     clean_mol,
     generate_df,
     get_mass_range,
@@ -41,9 +39,6 @@ def add_args(parser):
         type=int,
         default=100000,
         help="Size of chunks for processing large files.",
-    )
-    parser.add_argument(
-        "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
     )
     return parser
 
@@ -154,7 +149,6 @@ def write_formula_prior_CV(
 
 
 def main(args):
-    set_seed(args.seed)
     write_formula_prior_CV(
         ranks_file=args.ranks_file,
         train_file=args.train_file,

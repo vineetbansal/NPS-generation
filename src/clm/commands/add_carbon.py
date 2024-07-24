@@ -11,8 +11,6 @@ from tqdm import tqdm
 from clm.functions import (
     clean_mol,
     write_smiles,
-    set_seed,
-    seed_type,
     read_file,
     read_csv_file,
     write_to_csv_file,
@@ -22,7 +20,6 @@ from clm.functions import (
 def add_args(parser):
     parser.add_argument("--input_file", type=str)
     parser.add_argument("--output_file", type=str)
-    parser.add_argument("--seed", type=seed_type)
     return parser
 
 
@@ -110,5 +107,4 @@ def add_carbon(input_file, output_file):
 
 
 def main(args):
-    set_seed(args.seed)
     add_carbon(input_file=args.input_file, output_file=args.output_file)

@@ -8,8 +8,6 @@ from tqdm import tqdm
 from clm.functions import (
     compute_fingerprint,
     compute_fingerprints,
-    set_seed,
-    seed_type,
     clean_mol,
     generate_df,
     get_mass_range,
@@ -69,9 +67,6 @@ def add_args(parser):
     )
     parser.add_argument(
         "--top_n", type=int, default=1, help="Max. number of top ranks to save for Tc."
-    )
-    parser.add_argument(
-        "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
     )
     return parser
 
@@ -293,7 +288,6 @@ def write_structural_prior_CV(
 
 
 def main(args):
-    set_seed(args.seed)
     write_structural_prior_CV(
         ranks_file=args.ranks_file,
         tc_file=args.tc_file,

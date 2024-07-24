@@ -6,8 +6,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 from clm.functions import (
-    set_seed,
-    seed_type,
     clean_mol,
     write_to_csv_file,
     compute_fingerprint,
@@ -31,9 +29,6 @@ def add_args(parser):
         help="Total number of molecules to sample.",
     )
     parser.add_argument("--output_file", type=str)
-    parser.add_argument(
-        "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
-    )
     return parser
 
 
@@ -116,7 +111,6 @@ def train_discriminator(train_file, sample_file, output_file, seed, max_mols=100
 
 
 def main(args):
-    set_seed(args.seed)
     train_discriminator(
         train_file=args.train_file,
         sample_file=args.sampled_file,
