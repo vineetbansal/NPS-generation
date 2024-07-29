@@ -234,7 +234,7 @@ rule tabulate_molecules:
         invalid_smiles_file = PATHS['invalid_smiles_file']
     resources:
         mem_mb=32000,
-        runtime=lambda wildcards: 15+MODEL_PARAMS["sample_mols"]*(int(wildcards["enum_factor"])+1)//100000,
+        runtime=2880,
     shell:
         'clm tabulate_molecules '
         '--input_file {input.input_file} '
