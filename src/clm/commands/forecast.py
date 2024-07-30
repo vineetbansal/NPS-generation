@@ -10,7 +10,7 @@ from sklearn.metrics import (
 )
 import logging
 from rdkit import rdBase
-from clm.functions import set_seed, seed_type, read_csv_file
+from clm.functions import read_csv_file
 
 # suppress rdkit errors
 rdBase.DisableLog("rdApp.error")
@@ -27,13 +27,6 @@ def add_args(parser):
     )
     parser.add_argument(
         "--output-file", type=str, required=True, help="File path of output file"
-    )
-    parser.add_argument(
-        "--seed",
-        type=seed_type,
-        default=None,
-        nargs="?",
-        help="Random seed for reproducibility",
     )
     parser.add_argument(
         "--max-mols",
@@ -166,7 +159,6 @@ def forecast(test_file, sample_file, output_file, max_molecules=None):
 
 
 def main(args):
-    set_seed(args.seed)
     forecast(
         test_file=args.test_file,
         sample_file=args.sample_file,

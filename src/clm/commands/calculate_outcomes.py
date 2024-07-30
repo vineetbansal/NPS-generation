@@ -18,8 +18,6 @@ from rdkit.Contrib.NP_Score import npscorer
 from tqdm import tqdm
 
 from clm.functions import (
-    seed_type,
-    set_seed,
     clean_mol,
     write_to_csv_file,
     compute_fingerprint,
@@ -60,9 +58,6 @@ def add_args(parser):
         default=None,
     )
     parser.add_argument("--output_file", type=str)
-    parser.add_argument(
-        "--seed", type=seed_type, default=None, nargs="?", help="Random seed"
-    )
     return parser
 
 
@@ -348,7 +343,6 @@ def calculate_outcomes(
 
 
 def main(args):
-    set_seed(args.seed)
     calculate_outcomes(
         train_file=args.train_file,
         sampled_file=args.sampled_file,

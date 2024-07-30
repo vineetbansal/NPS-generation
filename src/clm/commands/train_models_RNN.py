@@ -11,7 +11,7 @@ from rdkit import rdBase
 from clm.datasets import SmilesDataset, SelfiesDataset
 from clm.models import RNN
 from clm.loggers import EarlyStopping, track_loss, print_update
-from clm.functions import set_seed, seed_type, read_file, write_smiles
+from clm.functions import read_file, write_smiles
 
 # suppress Chem.MolFromSmiles error output
 rdBase.DisableLog("rdApp.error")
@@ -24,14 +24,6 @@ def add_args(parser):
         type=str,
         default="SMILES",
         help="Molecular representation format (one of: SMILES/SELFIES)",
-    )
-
-    parser.add_argument(
-        "--seed",
-        type=seed_type,
-        default=None,
-        nargs="?",
-        help="Random seed for reproducibility",
     )
 
     parser.add_argument(
@@ -218,7 +210,6 @@ def train_models_RNN(
 
 
 def main(args):
-    set_seed(args.seed)
     train_models_RNN(
         representation=args.representation,
         rnn_type=args.rnn_type,

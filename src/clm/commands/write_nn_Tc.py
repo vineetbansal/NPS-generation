@@ -1,12 +1,10 @@
 import pandas as pd
 from rdkit.DataStructs import FingerprintSimilarity
 from clm.functions import (
-    set_seed,
     clean_mol,
     write_to_csv_file,
     compute_fingerprint,
     read_csv_file,
-    seed_type,
 )
 import logging
 
@@ -30,9 +28,6 @@ def add_args(parser):
         type=str,
         required=True,
         help="Path to the save the output file",
-    )
-    parser.add_argument(
-        "--seed", type=seed_type, default=None, nargs="?", help="Random seed."
     )
 
     return parser
@@ -151,7 +146,6 @@ def write_nn_Tc(
 
 
 def main(args):
-    set_seed(args.seed)
     write_nn_Tc(
         query_file=args.query_file,
         reference_file=args.reference_file,

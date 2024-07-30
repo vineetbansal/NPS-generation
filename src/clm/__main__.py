@@ -2,6 +2,7 @@ import logging
 import argparse
 import os
 import clm
+from clm.functions import seed_type, set_seed
 from clm.commands import (
     preprocess,
     create_training_sets,
@@ -65,6 +66,7 @@ def main():
         this_parser.add_argument(
             "-v", "--verbose", action="store_true", help="Increase verbosity"
         )
+        this_parser.add_argument("--seed", type=seed_type, default=0)
         module.add_args(this_parser)
         this_parser.set_defaults(func=module.main)
 
@@ -72,7 +74,10 @@ def main():
     if args.verbose:
         logger.setLevel(logging.DEBUG)
 
+    # Set numpy/torch seed for reproducibility and log CLM version
+    set_seed(args.seed)
     logger.info(f"CLM v{clm.__version__}")
+
     args.func(args)
 
 

@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from clm.datasets import Vocabulary, SelfiesVocabulary
 from clm.models import RNN
-from clm.functions import set_seed, seed_type, write_to_csv_file
+from clm.functions import write_to_csv_file
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +18,6 @@ def add_args(parser):
         type=str,
         default="SMILES",
         help="Molecular representation format (one of: SMILES/SELFIES)",
-    )
-
-    parser.add_argument(
-        "--seed",
-        type=seed_type,
-        default=None,
-        nargs="?",
-        help="Random seed for reproducibility",
     )
 
     parser.add_argument(
@@ -120,7 +112,6 @@ def sample_molecules_RNN(
 
 
 def main(args):
-    set_seed(args.seed)
     sample_molecules_RNN(
         representation=args.representation,
         rnn_type=args.rnn_type,
