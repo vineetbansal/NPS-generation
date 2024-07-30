@@ -94,6 +94,7 @@ rule plot_calculate_outcomes:
         runtime=1000,
     shell:
         'clm plot calculate_outcomes '
+        '--seed {config[random_seed]} '
         '--outcome_files {input} '
         '--output_dir {output} '
 
@@ -111,6 +112,7 @@ rule write_nn_tc:
         runtime=1000,
     shell:
         'clm write_nn_Tc '
+        '--seed {config[random_seed]} '
         '--query_file {input.query_file} '
         '--reference_file {input.reference_file} '
         '--pubchem_file {input.pubchem_file} '
@@ -130,6 +132,7 @@ rule plot_write_nn_tc:
         runtime=1000,
     shell:
         'clm plot write_nn_tc '
+        '--seed {config[random_seed]} '
         '--outcome_files {input} '
         '--output_dir {output} '
 
@@ -165,6 +168,7 @@ rule plot_train_discriminator:
         runtime=1000,
     shell:
         'clm plot train_discriminator '
+        '--seed {config[random_seed]} '
         '--outcome_files {input} '
         '--output_dir {output} '
 
@@ -181,6 +185,7 @@ rule freq_distribution:
         runtime=1000,
     shell:
         'clm write_freq_distribution '
+        '--seed {config[random_seed]} '
         '--sampled_file {input.sampled_file} '
         '--test_file {input.test_file} '
         '--output_file {output.output_file} '
@@ -198,6 +203,7 @@ rule plot_freq_distribution:
         runtime=1000,
     shell:
         'clm plot freq_distribution '
+        '--seed {config[random_seed]} '
         '--outcome_files {input} '
         '--output_dir {output} '
 
@@ -235,6 +241,7 @@ rule plot_outcome_distributions:
         runtime=1000,
     shell:
         'clm plot calculate_outcome_distrs '
+        '--seed {config[random_seed]} '
         '--outcome_files {input} '
         '--output_dir {output} '
 
@@ -272,6 +279,7 @@ rule plot_nn_tc_ever_v_never:
         runtime=1000,
     shell:
         'clm plot nn_tc_ever_v_never '
+        '--seed {config[random_seed]} '
         '--outcome_files {input.nn_tc_file} '
         '--rank_files {input.rank_files} '
         '--ranks_file {input.ranks_file} '
@@ -289,6 +297,7 @@ rule plot_topk_tc:
         runtime=1000,
     shell:
         'clm plot topk_tc '
+        '--seed {config[random_seed]} '
         '--outcome_files {input} '
         '--output_dir {output} '
 
@@ -324,6 +333,7 @@ rule plot_forecast:
         runtime=30,
     shell:
         'clm plot forecast '
+        '--seed {config[random_seed]} '
         '--outcome_files {input} '
         '--output_dir {output} '
 
@@ -342,6 +352,7 @@ rule plot_topk:
         runtime=1000,
     shell:
         'clm plot topk '
+        '--seed {config[random_seed]} '
         '--ranks_file {input.rank_file} '
         '--tc_file {input.tc_file} '
         '--output_dir {output} '
@@ -360,6 +371,7 @@ rule plot_structural_prior_min_freq:
         runtime=30,
     shell:
         'clm plot structural_prior_min_freq '
+        '--seed {config[random_seed]} '
         '--tc_files {input.tc_files} '
         '--rank_files {input.rank_files} '
         '--output_dir {output} '

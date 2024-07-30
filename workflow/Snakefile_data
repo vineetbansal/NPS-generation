@@ -62,6 +62,7 @@ rule preprocess:
         runtime=30,
     shell:
         'clm preprocess '
+        '--seed {config[random_seed]} '
         '--input-file {input} '
         '--output-file {output} '
         '--max-input-smiles {config[max_input_smiles]} '
@@ -142,9 +143,9 @@ rule collapse_train_test_data:
         runtime=20,
     shell:
         # Read input files, sort them, remove duplicates and write them out
-        'clm collapse_files --input_files {input.train_file} --output_file {output.train_file} --has_header && '
-        'clm collapse_files --input_files {input.test_file} --output_file {output.test_file} --has_header && '
-        'clm collapse_files --input_files {input.carbon_file} --output_file {output.carbon_file} --has_header '
+        'clm collapse_files --seed {config[random_seed]} --input_files {input.train_file} --output_file {output.train_file} --has_header && '
+        'clm collapse_files --seed {config[random_seed]} --input_files {input.test_file} --output_file {output.test_file} --has_header && '
+        'clm collapse_files --seed {config[random_seed]} --input_files {input.carbon_file} --output_file {output.carbon_file} --has_header '
 
 
 rule train_models_RNN:
@@ -237,6 +238,7 @@ rule tabulate_molecules:
         runtime=lambda wildcards: 15+MODEL_PARAMS["sample_mols"]*(int(wildcards["enum_factor"])+1)//100000,
     shell:
         'clm tabulate_molecules '
+        '--seed {config[random_seed]} '
         '--input_file {input.input_file} '
         '--train_file {input.train_file} '
         '--representation {wildcards.repr} '
@@ -262,6 +264,7 @@ rule collect_tabulated_molecules:
         runtime=15+MODEL_PARAMS["sample_mols"]//1000000,
     shell:
         'clm collect_tabulated_molecules '
+        '--seed {config[random_seed]} '
         '--input_files {input.input_files} '
         '--output_file {output.output_file} '
         '--known_smiles {input.known_smiles_file} '
@@ -291,6 +294,7 @@ rule process_tabulated_molecules:
         runtime=15+MODEL_PARAMS["sample_mols"]//100000,
     shell:
         'clm process_tabulated_molecules '
+        '--seed {config[random_seed]} '
         '--input_file {input.input_file} '
         '--cv_file {input.cv_file} '
         '--output_file {output.output_file} '
