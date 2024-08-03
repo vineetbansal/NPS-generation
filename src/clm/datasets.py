@@ -4,6 +4,7 @@ Datasets used by PyTorch for language modelling of chemical structures.
 
 import numpy as np
 import re
+import random
 import selfies as sf
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -17,7 +18,14 @@ class SmilesDataset(Dataset):
     A dataset of chemical structures, provided in SMILES format.
     """
 
-    def __init__(self, smiles, max_len=None, vocab_file=None, training_split=0.9):
+    def __init__(
+        self,
+        smiles,
+        max_len=None,
+        vocab_file=None,
+        training_split=0.9,
+        include_masses=False,
+    ):
         """
         Can be initiated from either a list of SMILES, or a line-delimited
         file.
@@ -59,7 +67,8 @@ class SmilesDataset(Dataset):
         self.validation_set = self.smiles[border:]
 
         # define collate function
-        self.collate = SmilesCollate(self.vocabulary)
+        self.include_masses = include_masses
+        self.collate = CombinedSmilesCollate(self.vocabulary, self.include_masses)
 
     def __len__(self):
         return len(self.training_set)
@@ -84,6 +93,29 @@ class SmilesDataset(Dataset):
             + str(len(self.vocabulary))
             + " characters"
         )
+
+
+class CombinedSmilesCollate:
+    def __init__(self, vocabulary, included_masses):
+        self.smiles_collate = SmilesCollate(vocabulary)
+        self.mass_collate = MassCollate()
+        self.included_masses = included_masses
+
+    def __call__(self, encoded):
+        padded, lengths = self.smiles_collate(encoded)
+        if self.included_masses:
+            masses = self.mass_collate(encoded)
+            return padded, lengths, masses
+
+        return padded, lengths
+
+
+class MassCollate:
+    def __call__(self, encoded):
+        masses = torch.tensor(
+            [random.randint(1, 10) for _ in range(len(encoded))]
+        ).float()
+        return masses
 
 
 class SmilesCollate:
@@ -117,7 +149,14 @@ class SelfiesDataset(Dataset):
     A dataset of chemical structures, provided in SELFIES format.
     """
 
-    def __init__(self, selfies, max_len=None, vocab_file=None, training_split=0.9):
+    def __init__(
+        self,
+        selfies,
+        max_len=None,
+        vocab_file=None,
+        training_split=0.9,
+        include_masses=False,
+    ):
         """
         Can be initiated from either a list of SELFIES, or a line-delimited
         file.
@@ -157,7 +196,8 @@ class SelfiesDataset(Dataset):
         self.validation_set = self.selfies[border:]
 
         # define collate function
-        self.collate = SmilesCollate(self.vocabulary)
+        self.include_masses = include_masses
+        self.collate = CombinedSmilesCollate(self.vocabulary, self.include_masses)
 
     def __len__(self):
         return len(self.training_set)

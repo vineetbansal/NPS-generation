@@ -1,0 +1,71 @@
+Config file config/config.yaml is extended by additional config specified via the command line.
+Config file config/config.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Conda environments: ignored
+Job stats:
+job                     count
+--------------------  -------
+create_training_sets        3
+preprocess                  1
+total                       4
+
+Select jobs to execute...
+
+[Fri Aug  2 21:17:45 2024]
+rule preprocess:
+    input: ../tests/test_data/LOTUS_truncated.txt
+    output: data/prior/raw/LOTUS_truncated.txt
+    jobid: 5
+    reason: Missing output files: data/prior/raw/LOTUS_truncated.txt
+    wildcards: output_dir=data, dataset=LOTUS_truncated
+    resources: tmpdir=/var/folders/w6/y9r66vqd61g86rkqqgwxjvqm0000gn/T, mem_mb=12000, mem_mib=11445, runtime=30
+
+[Fri Aug  2 21:17:52 2024]
+Finished job 5.
+1 of 64 steps (2%) done
+Select jobs to execute...
+
+[Fri Aug  2 21:17:52 2024]
+rule create_training_sets:
+    input: data/prior/raw/LOTUS_truncated.txt
+    output: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi
+    jobid: 7
+    reason: Missing output files: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi; Input files updated by another job: data/prior/raw/LOTUS_truncated.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/w6/y9r66vqd61g86rkqqgwxjvqm0000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Fri Aug  2 21:17:55 2024]
+Finished job 7.
+2 of 64 steps (3%) done
+Select jobs to execute...
+
+[Fri Aug  2 21:17:55 2024]
+rule create_training_sets:
+    input: data/prior/raw/LOTUS_truncated.txt
+    output: data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi
+    jobid: 4
+    reason: Missing output files: data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi; Input files updated by another job: data/prior/raw/LOTUS_truncated.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/w6/y9r66vqd61g86rkqqgwxjvqm0000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Fri Aug  2 21:17:57 2024]
+Finished job 4.
+3 of 64 steps (5%) done
+Select jobs to execute...
+
+[Fri Aug  2 21:17:57 2024]
+rule create_training_sets:
+    input: data/prior/raw/LOTUS_truncated.txt
+    output: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    jobid: 6
+    reason: Missing output files: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary; Input files updated by another job: data/prior/raw/LOTUS_truncated.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/w6/y9r66vqd61g86rkqqgwxjvqm0000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Fri Aug  2 21:18:00 2024]
+Finished job 6.
+4 of 64 steps (6%) done
+Complete log: .snakemake/log/2024-08-02T211745.492447.snakemake.log
