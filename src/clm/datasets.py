@@ -24,7 +24,7 @@ class SmilesDataset(Dataset):
         max_len=None,
         vocab_file=None,
         training_split=0.9,
-        include_masses=False,
+        conditional_rnn=False,
     ):
         """
         Can be initiated from either a list of SMILES, or a line-delimited
@@ -67,8 +67,8 @@ class SmilesDataset(Dataset):
         self.validation_set = self.smiles[border:]
 
         # define collate function
-        self.include_masses = include_masses
-        self.collate = CombinedSmilesCollate(self.vocabulary, self.include_masses)
+        self.conditional_rnn = conditional_rnn
+        self.collate = CombinedSmilesCollate(self.vocabulary, self.conditional_rnn)
 
     def __len__(self):
         return len(self.training_set)
@@ -155,7 +155,7 @@ class SelfiesDataset(Dataset):
         max_len=None,
         vocab_file=None,
         training_split=0.9,
-        include_masses=False,
+        conditional_rnn=False,
     ):
         """
         Can be initiated from either a list of SELFIES, or a line-delimited
@@ -196,8 +196,8 @@ class SelfiesDataset(Dataset):
         self.validation_set = self.selfies[border:]
 
         # define collate function
-        self.include_masses = include_masses
-        self.collate = CombinedSmilesCollate(self.vocabulary, self.include_masses)
+        self.conditional_rnn = conditional_rnn
+        self.collate = CombinedSmilesCollate(self.vocabulary, self.conditional_rnn)
 
     def __len__(self):
         return len(self.training_set)

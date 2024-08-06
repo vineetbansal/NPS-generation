@@ -702,7 +702,7 @@ class MassConditionalRNN(nn.Module):
         seqs = torch.cat(sequences, 1)
         if return_smiles:
             smiles = [self.vocabulary.decode(seq.cpu().numpy()) for seq in seqs]
-            return smiles
+            return smiles, [0] * len(smiles)  # TODO
         else:
             return sequences
 

@@ -69,7 +69,7 @@ def sample_molecules_RNN(
     vocab_file,
     model_file,
     output_file,
-    include_masses=False,
+    conditional_rnn=False,
 ):
     os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
 
@@ -80,7 +80,7 @@ def sample_molecules_RNN(
     else:
         vocab = Vocabulary(vocab_file=vocab_file)
 
-    if include_masses:
+    if conditional_rnn:
         model = MassConditionalRNN(
             vocab,
             rnn_type=rnn_type,
@@ -111,26 +111,20 @@ def sample_molecules_RNN(
     open(output_file, "w").close()
 
     masses = None
-    if include_masses:
-        masses = torch.randint(1, 11, (128,))
+    if conditional_rnn:
+        masses = torch.randint(1, 11, (sample_mols,))  # TODO
 
     with tqdm(total=sample_mols) as pbar:
         for i in range(0, sample_mols, batch_size):
             end_idx = min(batch_size, sample_mols - i)
-            if include_masses:
+            if conditional_rnn:
                 batch_masses = masses[i:end_idx]
-                sampled_smiles = model.sample(batch_masses)
-                print(sampled_smiles)
+                sampled_smiles, losses = model.sample(batch_masses)
             else:
-
                 sampled_smiles, losses = model.sample(end_idx, return_losses=True)
-                df = pd.DataFrame(
-                    zip(losses, sampled_smiles), columns=["loss", "smiles"]
-                )
-
-                write_to_csv_file(output_file, mode="w" if i == 0 else "a+", info=df)
-
-                pbar.update(batch_size)
+            df = pd.DataFrame(zip(losses, sampled_smiles), columns=["loss", "smiles"])
+            write_to_csv_file(output_file, mode="w" if i == 0 else "a+", info=df)
+            pbar.update(batch_size)
 
 
 def main(args):

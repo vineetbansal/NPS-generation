@@ -93,18 +93,23 @@ def add_args(parser):
         "--loss_file", type=str, help="File path to save the training loss data"
     )
 
+    parser.add_argument(
+        "--conditional_rnn",
+        action="store_true",
+    )
+
     return parser
 
 
-def load_dataset(representation, input_file, vocab_file, include_masses):
+def load_dataset(representation, input_file, vocab_file, conditional_rnn):
     inputs = read_file(input_file, smile_only=True)
     if representation == "SELFIES":
         return SelfiesDataset(
-            selfies=inputs, vocab_file=vocab_file, include_masses=include_masses
+            selfies=inputs, vocab_file=vocab_file, conditional_rnn=conditional_rnn
         )
     else:
         return SmilesDataset(
-            smiles=inputs, vocab_file=vocab_file, include_masses=include_masses
+            smiles=inputs, vocab_file=vocab_file, conditional_rnn=conditional_rnn
         )
 
 
@@ -147,14 +152,14 @@ def train_models_RNN(
     smiles_file,
     model_file,
     loss_file,
-    include_masses=False,
+    conditional_rnn=False,
 ):
 
     os.makedirs(os.path.dirname(os.path.abspath(model_file)), exist_ok=True)
     os.makedirs(os.path.dirname(os.path.abspath(loss_file)), exist_ok=True)
 
-    dataset = load_dataset(representation, input_file, vocab_file, include_masses)
-    if include_masses:
+    dataset = load_dataset(representation, input_file, vocab_file, conditional_rnn)
+    if conditional_rnn:
 
         model = MassConditionalRNN(
             dataset.vocabulary,
@@ -197,7 +202,7 @@ def train_models_RNN(
                     loop_count,
                     value=[loss.item(), validation_loss.item()],
                 )
-                if include_masses:
+                if conditional_rnn:
                     print_update(
                         model,
                         epoch,
@@ -219,8 +224,8 @@ def train_models_RNN(
 
         if early_stop.stop:
             break
-    if include_masses:
-        torch.save(model.state_dict(), model_file)
+    if conditional_rnn:
+        torch.save(model.state_dict(), model_file)  # TODO - why do we need this?
 
     if log_every_epochs or log_every_steps:
         track_loss(
@@ -257,4 +262,5 @@ def main(args):
         smiles_file=args.smiles_file,
         model_file=args.model_file,
         loss_file=args.loss_file,
+        conditional_rnn=args.conditional_rnn,
     )
