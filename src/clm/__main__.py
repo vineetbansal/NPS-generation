@@ -22,8 +22,6 @@ from clm.commands import (
     add_carbon,
     forecast,
     plot,
-    mass_rnn_train_model,
-    mass_rnn_sample,
 )
 
 
@@ -53,8 +51,6 @@ def main():
         add_carbon,
         forecast,
         plot,
-        mass_rnn_train_model,
-        mass_rnn_sample,
     )
 
     subparsers = parser.add_subparsers(title="Choose a command")
