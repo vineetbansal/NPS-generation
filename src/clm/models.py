@@ -644,7 +644,7 @@ class MassConditionalRNN(nn.Module):
 
         return loss
 
-    def sample(self, masses, max_len=250, return_smiles=True):
+    def sample(self, masses, max_len=250, return_smiles=True, return_losses=False):
         # get start/stop tokens
         start_token = self.vocabulary.dictionary["SOS"]
         stop_token = self.vocabulary.dictionary["EOS"]
@@ -702,8 +702,12 @@ class MassConditionalRNN(nn.Module):
         seqs = torch.cat(sequences, 1)
         if return_smiles:
             smiles = [self.vocabulary.decode(seq.cpu().numpy()) for seq in seqs]
-            return smiles, [0] * len(smiles)  # TODO
+            if return_losses:
+                return smiles, [0] * len(smiles)  # TODO
+            else:
+                return smiles
         else:
+            assert not return_losses
             return sequences
 
     def init_hidden(self, masses):

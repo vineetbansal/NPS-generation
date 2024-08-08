@@ -145,7 +145,7 @@ def test_03_sample_molecules_RNN(tmp_path):
         sample_mols=100,
         vocab_file=test_dir
         / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
-        model_file=test_dir / "LOTUS_truncated_SMILES_0_0_model.pt",
+        model_file=test_dir / "0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt",
         output_file=output_file,
     )
     # Samples and their associated loss values can vary between platforms

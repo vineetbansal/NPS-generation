@@ -119,7 +119,7 @@ def sample_molecules_RNN(
             end_idx = min(batch_size, sample_mols - i)
             if conditional_rnn:
                 batch_masses = masses[i:end_idx]
-                sampled_smiles, losses = model.sample(batch_masses)
+                sampled_smiles, losses = model.sample(batch_masses, return_losses=True)
             else:
                 sampled_smiles, losses = model.sample(end_idx, return_losses=True)
             df = pd.DataFrame(zip(losses, sampled_smiles), columns=["loss", "smiles"])
