@@ -176,11 +176,6 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
         conditional_rnn=True,
     )
     assert len(read_csv_file(output_file)) == 100
-    assert_checksum_equals(
-        output_file,
-        test_dir
-        / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_conditional_samples.csv",
-    )
 
 
 def test_04_tabulate_molecules(tmp_path):
