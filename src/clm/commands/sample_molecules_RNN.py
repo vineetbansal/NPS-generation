@@ -112,16 +112,16 @@ def sample_molecules_RNN(
 
     masses = None
     if conditional_rnn:
-        masses = torch.randint(1, 11, (sample_mols,))  # TODO
+        masses = torch.randint(1, 11, (sample_mols,))
 
     with tqdm(total=sample_mols) as pbar:
         for i in range(0, sample_mols, batch_size):
-            end_idx = min(batch_size, sample_mols - i)
+            end_idx = i + min(batch_size, sample_mols - i)
             if conditional_rnn:
                 batch_masses = masses[i:end_idx]
                 sampled_smiles, losses = model.sample(batch_masses, return_losses=True)
             else:
-                sampled_smiles, losses = model.sample(end_idx, return_losses=True)
+                sampled_smiles, losses = model.sample(end_idx - i, return_losses=True)
             df = pd.DataFrame(zip(losses, sampled_smiles), columns=["loss", "smiles"])
             write_to_csv_file(output_file, mode="w" if i == 0 else "a+", info=df)
             pbar.update(batch_size)

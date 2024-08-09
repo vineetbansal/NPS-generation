@@ -703,7 +703,7 @@ class MassConditionalRNN(nn.Module):
         if return_smiles:
             smiles = [self.vocabulary.decode(seq.cpu().numpy()) for seq in seqs]
             if return_losses:
-                return smiles, [0] * len(smiles)  # TODO
+                return smiles, [0] * len(smiles)
             else:
                 return smiles
         else:

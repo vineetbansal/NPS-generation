@@ -224,8 +224,6 @@ def train_models_RNN(
 
         if early_stop.stop:
             break
-    if conditional_rnn:
-        torch.save(model.state_dict(), model_file)  # TODO - why do we need this?
 
     if log_every_epochs or log_every_steps:
         track_loss(

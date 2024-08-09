@@ -4,9 +4,10 @@ Datasets used by PyTorch for language modelling of chemical structures.
 
 import numpy as np
 import re
-import random
 import selfies as sf
 import torch
+from rdkit import Chem
+from rdkit.Chem import Descriptors
 from torch.nn.utils.rnn import pad_sequence
 from itertools import chain
 from torch.utils.data import Dataset
@@ -66,6 +67,8 @@ class SmilesDataset(Dataset):
         self.training_set = self.smiles[:border]
         self.validation_set = self.smiles[border:]
 
+        self.training_masses = self.calculate_masses(self.training_set)
+
         # define collate function
         self.conditional_rnn = conditional_rnn
         self.collate = CombinedSmilesCollate(self.vocabulary, self.conditional_rnn)
@@ -73,17 +76,40 @@ class SmilesDataset(Dataset):
     def __len__(self):
         return len(self.training_set)
 
+    def calculate_masses(self, smiles):
+        """
+        Calculate the molecular masses for each SMILES string in the dataset.
+
+        Args:
+            smiles (list): List of SMILES strings.
+
+        Returns:
+            list: List of molecular masses corresponding to each SMILES string.
+        """
+        masses = []
+        for sm in smiles:
+            mol = Chem.MolFromSmiles(sm)
+            if mol is not None:
+                mass = Descriptors.MolWt(mol)
+                masses.append(mass)
+            else:
+                masses.append(None)  # or handle invalid SMILES appropriately
+        return masses  # Test cases
+
     def __getitem__(self, idx):
         smiles = self.training_set[idx]
+        mass = self.training_masses[idx]
         tokenized = self.vocabulary.tokenize(smiles)
         encoded = self.vocabulary.encode(tokenized)
-        return encoded
+        return encoded, mass
 
     def get_validation(self, n_smiles):
         smiles = np.random.choice(self.validation_set, n_smiles)
         tokenized = [self.vocabulary.tokenize(sm) for sm in smiles]
         encoded = [self.vocabulary.encode(tk) for tk in tokenized]
-        return self.collate(encoded)
+        masses = self.calculate_masses(smiles)
+        batch = list(zip(encoded, masses))
+        return self.collate(batch)
 
     def __str__(self):
         return (
@@ -96,26 +122,17 @@ class SmilesDataset(Dataset):
 
 
 class CombinedSmilesCollate:
-    def __init__(self, vocabulary, included_masses):
+    def __init__(self, vocabulary, conditional_rnn):
         self.smiles_collate = SmilesCollate(vocabulary)
-        self.mass_collate = MassCollate()
-        self.included_masses = included_masses
+        self.conditional_rnn = conditional_rnn
 
-    def __call__(self, encoded):
+    def __call__(self, batch):
+        encoded, masses = zip(*batch)
         padded, lengths = self.smiles_collate(encoded)
-        if self.included_masses:
-            masses = self.mass_collate(encoded)
+        if self.conditional_rnn:
+            masses = torch.tensor(masses).float()
             return padded, lengths, masses
-
         return padded, lengths
-
-
-class MassCollate:
-    def __call__(self, encoded):
-        masses = torch.tensor(
-            [random.randint(1, 10) for _ in range(len(encoded))]
-        ).float()
-        return masses
 
 
 class SmilesCollate:

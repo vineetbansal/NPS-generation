@@ -155,7 +155,10 @@ def test_03_sample_molecules_RNN(tmp_path):
 
 
 def test_03_sample_molecules_RNN_conditional(tmp_path):
-    output_file = tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv"
+    output_file = (
+        tmp_path
+        / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_conditional_samples.csv"
+    )
     sample_molecules_RNN.sample_molecules_RNN(
         representation="SMILES",
         rnn_type="LSTM",
@@ -167,13 +170,17 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
         sample_mols=100,
         vocab_file=test_dir
         / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
-        model_file=test_dir / "../LOTUS_truncated_SMILES_0_0_conditional_model.pt",
+        model_file=test_dir
+        / "0/prior/models/LOTUS_truncated_SMILES_0_0_conditional_model.pt",
         output_file=output_file,
         conditional_rnn=True,
     )
-    # todo: write an assert that checks that the smiles we got are the ones
-    #  we saved in LOTUS_truncated_SMILES_0_0_0_conditional_samples.csv
-    assert True
+    assert len(read_csv_file(output_file)) == 100
+    assert_checksum_equals(
+        output_file,
+        test_dir
+        / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_conditional_samples.csv",
+    )
 
 
 def test_04_tabulate_molecules(tmp_path):
