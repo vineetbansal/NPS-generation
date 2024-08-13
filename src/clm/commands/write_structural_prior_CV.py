@@ -241,7 +241,7 @@ def write_structural_prior_CV(
         inputs["train"] = train.assign(source="train")
 
     if carbon_file:
-        addcarbon = read_csv_file(carbon_file, delimiter=r"\s")
+        addcarbon = read_csv_file(carbon_file)
 
         # Rename carbon's column names to coincide with other inputs and drop input smiles
         addcarbon.rename(columns={"mutated_smiles": "smiles"}, inplace=True)

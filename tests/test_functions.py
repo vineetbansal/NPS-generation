@@ -150,20 +150,6 @@ def test_write_csv_compressed_dataframe(tmp_path):
     pd.testing.assert_frame_equal(iris, df)
 
 
-def test_write_csv_uncompressed_iterable(tmp_path):
-    data = ["foo", "bar", "baz"]
-    write_to_csv_file(tmp_path / "data.csv", data, string_format="{}\n")
-    df = read_csv_file(tmp_path / "data.csv", header=None)
-    pd.testing.assert_frame_equal(pd.DataFrame(data), df)
-
-
-def test_write_csv_compressed_iterable(tmp_path):
-    data = ["foo", "bar", "baz"]
-    write_to_csv_file(tmp_path / "data.csv.gz", data, string_format="{}\n")
-    df = read_csv_file(tmp_path / "data.csv.gz", header=None)
-    pd.testing.assert_frame_equal(pd.DataFrame(data), df)
-
-
 def test_write_csv_uncompressed_dataframe_append(tmp_path):
     iris = sns.load_dataset("iris")
     iris2 = iris.copy()
@@ -180,28 +166,6 @@ def test_write_csv_compressed_dataframe_append(tmp_path):
     write_to_csv_file(tmp_path / "iris.csv.gz", iris2, mode="a+")
     df = read_csv_file(tmp_path / "iris.csv.gz")
     pd.testing.assert_frame_equal(pd.concat([iris, iris2]).reset_index(drop=True), df)
-
-
-def test_write_csv_uncompressed_iterable_append(tmp_path):
-    data = ["foo", "bar", "baz"]
-    write_to_csv_file(tmp_path / "data.csv", data, string_format="{}\n")
-    write_to_csv_file(tmp_path / "data.csv", data, string_format="{}\n", mode="a+")
-    df = read_csv_file(tmp_path / "data.csv", header=None)
-    pd.testing.assert_frame_equal(
-        pd.concat([pd.DataFrame(data), pd.DataFrame(data)]).reset_index(drop=True),
-        df,
-    )
-
-
-def test_write_csv_compressed_iterable_append(tmp_path):
-    data = ["foo", "bar", "baz"]
-    write_to_csv_file(tmp_path / "data.csv.gz", data, string_format="{}\n")
-    write_to_csv_file(tmp_path / "data.csv.gz", data, string_format="{}\n", mode="a+")
-    df = read_csv_file(tmp_path / "data.csv.gz", header=None)
-    pd.testing.assert_frame_equal(
-        pd.concat([pd.DataFrame(data), pd.DataFrame(data)]).reset_index(drop=True),
-        df,
-    )
 
 
 def test_collapse_files1(tmp_path):

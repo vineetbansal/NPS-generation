@@ -6,6 +6,7 @@ import numpy as np
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from tqdm import tqdm
+import pandas as pd
 
 # import functions
 from clm.functions import (
@@ -31,11 +32,8 @@ def add_carbon(input_file, output_file):
     if os.path.exists(output_file):
         os.remove(output_file)
 
-    # open buffer
-    # f = open(output_file, "a+")
-    # write header
-    row = "\t".join(["input_smiles", "mutated_smiles", "mass", "formula", "inchikey"])
-    write_to_csv_file(output_file, [row + "\n"], "a+")
+    data = []
+
     # read the input SMILES
     smiles = read_file(input_file, smile_only=False)
 
@@ -92,15 +90,21 @@ def add_carbon(input_file, output_file):
             formula = rdMolDescriptors.CalcMolFormula(mut_mol)
 
             # append to file
-            row = "\t".join([input_smiles, mut_can, str(mass), formula, mut_inchi])
-            write_to_csv_file(output_file, [row + "\n"], "a+")
+            data.append([input_smiles, mut_can, str(mass), formula, mut_inchi])
 
         # see if we can break
         # if len(output_smiles) > args.max_smiles:
         #     break
 
+    df = pd.DataFrame(
+        columns=["input_smiles", "mutated_smiles", "mass", "formula", "inchikey"],
+        dtype=str,
+        data=data,
+    )
+    write_to_csv_file(output_file, df)
+
     # write unique SMILES
-    uniq_smiles = read_csv_file(output_file, delimiter="\t").mutated_smiles.unique()
+    uniq_smiles = read_csv_file(output_file).mutated_smiles.unique()
     filename = str(output_file).split(os.extsep)[0]
     uniq_file = filename + "-unique.smi"
     write_smiles(uniq_smiles, uniq_file)
