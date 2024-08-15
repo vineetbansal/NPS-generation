@@ -135,7 +135,11 @@ def test_02_train_models_RNN_conditional(tmp_path):
     # TODO: Model losses are platform dependent
     match (platform.system(), socket.gethostname()):
         case ("Darwin", _):
-            assert True  # TODO: Add mac checksum file
+            assert_checksum_equals(
+                loss_file,
+                test_dir
+                / "0/prior/models/LOTUS_truncated_SMILES_0_0_conditional_loss_darwin.csv",
+            )
         case ("Linux", "t15p"):
             assert_checksum_equals(
                 loss_file,
@@ -189,10 +193,13 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
     )
     assert len(read_csv_file(output_file)) == 100
 
-    # TODO: sampled molecules are platform dependent
     match (platform.system(), socket.gethostname()):
         case ("Darwin", _):
-            assert True  # TODO: Add mac checksum file
+            assert_checksum_equals(
+                output_file,
+                test_dir
+                / "0/prior/samples/LOTUS_truncated_SMILES_0_0_0_conditional_samples_darwin.csv",
+            )
         case ("Linux", "t15p"):
             assert_checksum_equals(
                 output_file,
