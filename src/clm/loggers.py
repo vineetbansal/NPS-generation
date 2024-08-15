@@ -61,7 +61,12 @@ class EarlyStopping:
 
 
 def track_loss(
-    output_file, epoch, batch_no, value, outcome=("training loss", "validation loss")
+    output_file,
+    epoch,
+    batch_no,
+    value,
+    outcome=("training loss", "validation loss"),
+    writer=None,
 ):
     sched = pd.DataFrame(
         {
@@ -71,6 +76,10 @@ def track_loss(
             "value": value,
         }
     )
+
+    if writer is not None:
+        for _outcome, _value in zip(outcome, value):
+            writer.add_scalar(_outcome, _value, batch_no)
 
     # write training schedule (write header if file does not exist)
     if not os.path.isfile(output_file) or batch_no == 0:

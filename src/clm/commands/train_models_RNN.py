@@ -4,6 +4,7 @@ import os.path
 import torch
 from torch.optim import Adam
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from rdkit import rdBase
@@ -157,6 +158,7 @@ def train_models_RNN(
 
     os.makedirs(os.path.dirname(os.path.abspath(model_file)), exist_ok=True)
     os.makedirs(os.path.dirname(os.path.abspath(loss_file)), exist_ok=True)
+    summary_writer = SummaryWriter(comment="_conditional" if conditional_rnn else "")
 
     dataset = load_dataset(representation, input_file, vocab_file, conditional_rnn)
 
@@ -206,6 +208,7 @@ def train_models_RNN(
                     epoch + 1,
                     loop_count,
                     value=[loss.item(), validation_loss.item()],
+                    writer=summary_writer,
                 )
                 if conditional_rnn:
                     print_update(
@@ -234,9 +237,10 @@ def train_models_RNN(
         track_loss(
             loss_file,
             epoch=[None],
-            batch_no=[early_stop.step_at_best],
+            batch_no=early_stop.step_at_best,
             value=[early_stop.best_loss],
             outcome=["training loss"],
+            writer=summary_writer,
         )
 
     model.load_state_dict(torch.load(model_file))
