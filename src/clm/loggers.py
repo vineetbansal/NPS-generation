@@ -80,7 +80,13 @@ def track_loss(
 
 
 def print_update(
-    model, epoch, batch_idx, training_loss, validation_loss, n_smiles=64, masses=None
+    model,
+    epoch,
+    batch_idx,
+    training_loss,
+    validation_loss,
+    n_smiles=64,
+    combined_features=None,
 ):
     # print message
     tqdm.write("*" * 50)
@@ -92,9 +98,9 @@ def print_update(
     )
 
     # sample a batch of SMILES and print them
-    if masses is not None:
+    if combined_features is not None:
         # masses = torch.tensor(masses) # Masses are already a tensor
-        smiles = model.sample(masses, return_smiles=True)
+        smiles = model.sample(combined_features, return_smiles=True)
     else:
         smiles = model.sample(n_smiles, return_smiles=True)
 
