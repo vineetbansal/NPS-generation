@@ -9,7 +9,12 @@ from tqdm import tqdm
 
 from rdkit import rdBase
 
-from clm.datasets import SmilesDataset, SelfiesDataset
+from clm.datasets import (
+    SmilesDataset,
+    SelfiesDataset,
+    SmilesCollate,
+    SmilesDescriptorsCollate,
+)
 from clm.models import RNN, ConditionalRNN
 from clm.loggers import EarlyStopping, track_loss, print_update
 from clm.functions import read_file, write_smiles
@@ -103,15 +108,14 @@ def add_args(parser):
 
 
 def load_dataset(representation, input_file, vocab_file, conditional_rnn):
+    dataset_class, collate_class = {
+        ("SMILES", False): (SmilesDataset, SmilesCollate),
+        ("SMILES", True): (SmilesDataset, SmilesDescriptorsCollate),
+        ("SELFIES", False): (SelfiesDataset, SmilesCollate),
+    }[(representation, conditional_rnn)]
+
     inputs = read_file(input_file, smile_only=True)
-    if representation == "SELFIES":
-        return SelfiesDataset(
-            selfies=inputs, vocab_file=vocab_file, conditional_rnn=conditional_rnn
-        )
-    else:
-        return SmilesDataset(
-            smiles=inputs, vocab_file=vocab_file, conditional_rnn=conditional_rnn
-        )
+    return dataset_class(inputs, vocab_file=vocab_file, collate_class=collate_class)
 
 
 def training_step(batch, model, optim, dataset, batch_size):
@@ -169,9 +173,6 @@ def train_models_RNN(
     )
 
     if conditional_rnn:
-        batch = next(iter(loader))
-        _, _, descriptors = batch
-        num_descriptors = descriptors.shape[1]
         model = ConditionalRNN(
             dataset.vocabulary,
             rnn_type=rnn_type,
@@ -179,7 +180,7 @@ def train_models_RNN(
             embedding_size=embedding_size,
             hidden_size=hidden_size,
             dropout=dropout,
-            num_descriptors=num_descriptors,
+            num_descriptors=dataset.collate.n_descriptors,
         )
     else:
         model = RNN(
