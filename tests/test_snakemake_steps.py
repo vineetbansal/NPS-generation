@@ -134,7 +134,7 @@ def test_02_train_models_RNN_conditional(tmp_path):
 
     # TODO: Model losses are platform dependent
     match (platform.system(), socket.gethostname()):
-        case ("Darwin", _):
+        case ("Darwin", "Adityas-MacBook-Pro.local"):
             assert_checksum_equals(
                 loss_file,
                 test_dir
@@ -195,7 +195,7 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
 
     # Sampled molecules are platform dependent
     match (platform.system(), socket.gethostname()):
-        case ("Darwin", _):
+        case ("Darwin", "Adityas-MacBook-Pro.local"):
             assert_checksum_equals(
                 output_file,
                 test_dir
