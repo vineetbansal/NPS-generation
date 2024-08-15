@@ -1,6 +1,7 @@
 from pathlib import Path
 import pandas as pd
 import platform
+import socket
 
 from clm.commands import (
     preprocess,
@@ -132,10 +133,10 @@ def test_02_train_models_RNN_conditional(tmp_path):
     )
 
     # TODO: Model losses are platform dependent
-    match platform.system():
-        case "Darwin":
+    match (platform.system(), socket.gethostname()):
+        case ("Darwin", _):
             assert True  # TODO: Add mac checksum file
-        case "Linux":
+        case ("Linux", "t15p"):
             assert_checksum_equals(
                 loss_file,
                 test_dir
@@ -189,10 +190,10 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
     assert len(read_csv_file(output_file)) == 100
 
     # TODO: sampled molecules are platform dependent
-    match platform.system():
-        case "Darwin":
+    match (platform.system(), socket.gethostname()):
+        case ("Darwin", _):
             assert True  # TODO: Add mac checksum file
-        case "Linux":
+        case ("Linux", "t15p"):
             assert_checksum_equals(
                 output_file,
                 test_dir
