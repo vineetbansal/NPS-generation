@@ -9,7 +9,8 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 from itertools import chain
 from torch.utils.data import Dataset
-from clm.functions import read_file, calculate_descriptors
+from rdkit.Chem import Descriptors
+from clm.functions import read_file, clean_mol
 
 
 class SmilesDataset(Dataset):
@@ -68,7 +69,7 @@ class SmilesDataset(Dataset):
         # define collate function
         self.conditional_rnn = conditional_rnn
         if self.conditional_rnn:
-            self.training_descriptors = calculate_descriptors(self.training_set)
+            self.training_descriptors = self.calculate_descriptors(self.training_set)
 
         self.collate = CombinedSmilesCollate(self.vocabulary, self.conditional_rnn)
 
@@ -84,12 +85,25 @@ class SmilesDataset(Dataset):
             return encoded, descriptors
         return encoded
 
+    @staticmethod
+    def calculate_descriptors(self, smiles):
+        # functions that take in a molecule and return a scalar
+        descriptor_fns = [Descriptors.ExactMolWt, Descriptors.MolLogP]
+        values = []
+        for sm in smiles:
+            if mol := clean_mol(sm, raise_error=False):
+                value = [fn(mol) for fn in descriptor_fns]
+            else:
+                value = [0] * len(descriptor_fns)
+            values.append(value)
+        return values
+
     def get_validation(self, n_smiles):
         smiles = np.random.choice(self.validation_set, n_smiles)
         tokenized = [self.vocabulary.tokenize(sm) for sm in smiles]
         encoded = [self.vocabulary.encode(tk) for tk in tokenized]
         if self.conditional_rnn:
-            descriptors = calculate_descriptors(smiles)
+            descriptors = self.calculate_descriptors(smiles)
             batch = list(zip(encoded, descriptors))
             return self.collate(batch)
         return self.collate(encoded)

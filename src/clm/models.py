@@ -3,12 +3,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from clm.functions import calculate_descriptors
 
 
 class RNN(nn.Module):
     def __init__(
         self,
+        dataset,
         vocabulary,
         rnn_type="LSTM",
         n_layers=3,
@@ -20,6 +20,8 @@ class RNN(nn.Module):
 
         # detect device
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        self.dataset = dataset
 
         # vocabulary
         self.vocabulary = vocabulary
@@ -669,7 +671,7 @@ class ConditionalRNN(nn.Module):
         # optionally, also calculate difference from input masses []
         if self.gamma > 0:
             smiles = self.sample(descriptors)
-            calc_descriptors = calculate_descriptors(smiles)
+            calc_descriptors = self.dataset.calculate_descriptors(smiles)
             calc_descriptors = torch.Tensor(calc_descriptors).to(self.device)
             descriptor_loss = descriptors - calc_descriptors
             descriptor_mean_loss = descriptor_loss.mean(dim=0)
