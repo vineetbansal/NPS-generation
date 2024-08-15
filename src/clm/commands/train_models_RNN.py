@@ -9,7 +9,7 @@ from tqdm import tqdm
 from rdkit import rdBase
 
 from clm.datasets import SmilesDataset, SelfiesDataset
-from clm.models import RNN, MassConditionalRNN
+from clm.models import RNN, ConditionalRNN
 from clm.loggers import EarlyStopping, track_loss, print_update
 from clm.functions import read_file, write_smiles
 
@@ -159,15 +159,25 @@ def train_models_RNN(
     os.makedirs(os.path.dirname(os.path.abspath(loss_file)), exist_ok=True)
 
     dataset = load_dataset(representation, input_file, vocab_file, conditional_rnn)
-    if conditional_rnn:
 
-        model = MassConditionalRNN(
+    logger.info(dataset.vocabulary.dictionary)
+
+    loader = DataLoader(
+        dataset, batch_size=batch_size, shuffle=True, collate_fn=dataset.collate
+    )
+
+    if conditional_rnn:
+        batch = next(iter(loader))
+        _, _, descriptors = batch
+        num_descriptors = descriptors.shape[1]
+        model = ConditionalRNN(
             dataset.vocabulary,
             rnn_type=rnn_type,
             n_layers=n_layers,
             embedding_size=embedding_size,
             hidden_size=hidden_size,
             dropout=dropout,
+            num_descriptors=num_descriptors,
         )
     else:
         model = RNN(
@@ -179,11 +189,6 @@ def train_models_RNN(
             dropout=dropout,
         )
 
-    logger.info(dataset.vocabulary.dictionary)
-
-    loader = DataLoader(
-        dataset, batch_size=batch_size, shuffle=True, collate_fn=dataset.collate
-    )
     optim = Adam(model.parameters(), betas=(0.9, 0.999), eps=1e-08, lr=learning_rate)
     early_stop = EarlyStopping(patience=patience)
 

@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 from clm.datasets import Vocabulary, SelfiesVocabulary
-from clm.models import RNN, MassConditionalRNN
+from clm.models import RNN, ConditionalRNN
 from clm.functions import write_to_csv_file
 
 logger = logging.getLogger(__name__)
@@ -80,14 +80,26 @@ def sample_molecules_RNN(
     else:
         vocab = Vocabulary(vocab_file=vocab_file)
 
+    descriptors = None
+
     if conditional_rnn:
-        model = MassConditionalRNN(
+        mass_range = (144.0786, 986.5087)
+        logP_range = (-1.4688, 9.9990)
+
+        masses = (
+            torch.rand(sample_mols) * (mass_range[1] - mass_range[0]) + mass_range[0]
+        )
+        logP = torch.rand(sample_mols) * (logP_range[1] - logP_range[0]) + logP_range[0]
+
+        descriptors = torch.stack((masses, logP), dim=1)
+        model = ConditionalRNN(
             vocab,
             rnn_type=rnn_type,
             n_layers=n_layers,
             embedding_size=embedding_size,
             hidden_size=hidden_size,
             dropout=dropout,
+            num_descriptors=descriptors.shape[1],
         )
     else:
         model = RNN(
@@ -110,16 +122,14 @@ def sample_molecules_RNN(
     # Erase file contents if there are any
     open(output_file, "w").close()
 
-    masses = None
-    if conditional_rnn:
-        masses = torch.randint(1, 11, (sample_mols,))
-
     with tqdm(total=sample_mols) as pbar:
         for i in range(0, sample_mols, batch_size):
             end_idx = i + min(batch_size, sample_mols - i)
             if conditional_rnn:
-                batch_masses = masses[i:end_idx]
-                sampled_smiles, losses = model.sample(batch_masses, return_losses=True)
+                batch_descriptors = descriptors[i:end_idx, :]
+                sampled_smiles, losses = model.sample(
+                    batch_descriptors, return_losses=True
+                )
             else:
                 sampled_smiles, losses = model.sample(end_idx - i, return_losses=True)
             df = pd.DataFrame(zip(losses, sampled_smiles), columns=["loss", "smiles"])

@@ -3,8 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from rdkit.Chem import Descriptors
-from clm.functions import clean_mol
+from clm.functions import calculate_descriptors
 
 
 class RNN(nn.Module):
@@ -489,7 +488,7 @@ class Transformer(nn.Module):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
 
-class MassConditionalRNN(nn.Module):
+class ConditionalRNN(nn.Module):
     def __init__(
         self,
         vocabulary,
@@ -499,31 +498,49 @@ class MassConditionalRNN(nn.Module):
         hidden_size=512,
         dropout=0,
         gamma=-1,
-        mass_emb=True,
-        mass_emb_l=False,
-        mass_dec=False,
-        mass_dec_l=False,
-        mass_h=False,
+        num_descriptors=2,
+        conditional_emb=True,
+        conditional_emb_l=False,
+        conditional_dec=False,
+        conditional_dec_l=False,
+        conditional_h=False,
     ):
-        super(MassConditionalRNN, self).__init__()
+        super(ConditionalRNN, self).__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.vocabulary = vocabulary
         self.vocabulary_size = len(self.vocabulary)
         self.gamma = gamma
-        self.mass_emb = mass_emb
-        self.mass_emb_l = mass_emb_l
-        self.mass_dec = mass_dec
-        self.mass_dec_l = mass_dec_l
-        self.mass_h = mass_h
-        # set up input/output sizes for RNN
+        self.conditional_emb = conditional_emb
+        self.conditional_emb_l = conditional_emb_l
+        self.conditional_dec = conditional_dec
+        self.conditional_dec_l = conditional_dec_l
+        self.conditional_h = conditional_h
         self.embedding_size = embedding_size
         self.hidden_size = hidden_size
-        rnn_input_size = (
-            self.embedding_size if self.mass_emb_l else int(self.mass_emb)
-        ) + self.embedding_size
-        rnn_output_size = (
-            self.embedding_size if self.mass_dec_l else int(self.mass_dec)
-        ) + self.hidden_size
+
+        # set up input/output sizes for RNN
+        rnn_input_size = self.embedding_size  # Default: embedding size
+        rnn_output_size = self.hidden_size  # Default: hidden size
+        self.num_descriptors = num_descriptors
+        # Determine rnn_input_size based on the conditions for conditional_emb_l and conditional_emb
+        if self.conditional_emb_l and not self.conditional_emb:
+            rnn_input_size = (
+                self.embedding_size + self.embedding_size
+            )  # Only add self.embedding_size
+        elif not self.conditional_emb_l and self.conditional_emb:
+            rnn_input_size = (
+                self.embedding_size + self.num_descriptors
+            )  # Add num_descriptors to self.embedding_size
+
+        # Determine rnn_output_size based on the conditions for conditional_dec_l and conditional_dec
+        if self.conditional_dec_l and not self.conditional_dec:
+            rnn_output_size = (
+                self.hidden_size + self.embedding_size
+            )  # Only add self.embedding_size
+        elif not self.conditional_dec_l and self.conditional_dec:
+            rnn_output_size = (
+                self.hidden_size + self.num_descriptors
+            )  # Add num_descriptors to self.hidden_size
 
         self.padding_idx = self.vocabulary.dictionary["<PAD>"]
         padding_t = torch.tensor(self.padding_idx).to(self.device)
@@ -545,21 +562,29 @@ class MassConditionalRNN(nn.Module):
             ignore_index=self.padding_idx, reduction="none"
         )
         # instantiate hidden states
-        if self.mass_h:
+        if self.conditional_h:
             self.mass_to_hs = []
             self.mass_to_cs = []
             for layer in range(self.n_layers):
-                self.mass_to_hs.append(nn.Linear(1, self.hidden_size))
-                self.mass_to_cs.append(nn.Linear(1, self.hidden_size))
+                self.mass_to_hs.append(
+                    nn.Linear(self.num_descriptors, self.hidden_size)
+                )
+                self.mass_to_cs.append(
+                    nn.Linear(self.num_descriptors, self.hidden_size)
+                )
             # mass_to_h compatibility with cuda
             self.mass_to_hs = nn.ModuleList(self.mass_to_hs)
             self.mass_to_cs = nn.ModuleList(self.mass_to_cs)
-        # full mass embedding instead of 1d scalar
-        if self.mass_emb_l:
-            self.mass_to_emb = nn.Linear(1, self.embedding_size)
+        # full descriptor embedding instead of 1d scalar
+        if self.conditional_emb_l:
+            self.conditional_to_emb = nn.Linear(
+                self.num_descriptors, self.embedding_size
+            )
         # same for decoder
-        if self.mass_dec_l:
-            self.mass_to_dec = nn.Linear(1, self.embedding_size)
+        if self.conditional_dec_l:
+            self.conditional_to_dec = nn.Linear(
+                self.num_descriptors, self.embedding_size
+            )
         # self.init_weights()
         if torch.cuda.is_available():
             self.cuda()
@@ -569,9 +594,9 @@ class MassConditionalRNN(nn.Module):
 
     def loss(self, batch):
         # extract the elements of a single minibatch
-        (padded, lengths, masses) = batch
+        (padded, lengths, descriptors) = batch
         # move to the gpu
-        padded, masses = padded.to(self.device), masses.to(self.device)
+        padded, descriptors = padded.to(self.device), descriptors.to(self.device)
 
         # embed the padded sequence, along with the masses
         embedded = self.embedding(padded)
@@ -579,39 +604,56 @@ class MassConditionalRNN(nn.Module):
         if self.dropout.p > 0:
             embedded = self.dropout(embedded)
         # cat masses along dimension of emb_size
-        # mass repeating: max_len x batch_size x 1
-        masses_repeating = masses.repeat(max(lengths), 1).unsqueeze(dim=2)
-        if self.mass_emb_l:
-            mass_embedding = self.mass_to_emb(masses_repeating.float())
-            # mass_embedding: max_len x batch_size x emb_size
-            embedded = torch.cat([embedded, mass_embedding], axis=2).float()
-        elif self.mass_emb:
-            embedded = torch.cat([embedded, masses_repeating], axis=2).float()
-        # -> embedded: max_len x batch_size x emb_size + 1
+        # combined features repeating: max_len x batch_size x 1
+        combined_features_repeating = descriptors.unsqueeze(0).repeat(
+            max(lengths), 1, 1
+        )
 
-        # now pack the embedded sequences
+        if self.conditional_emb_l:
+            combined_embedding_features = self.conditional_to_emb(
+                combined_features_repeating.float()
+            )
+            # mass_embedding: max_len x batch_size x emb_size
+            embedded = torch.cat(
+                [embedded, combined_embedding_features], axis=2
+            ).float()
+            # pass
+        elif self.conditional_emb:
+            embedded = torch.cat(
+                [embedded, combined_features_repeating], axis=2
+            ).float()
+        # -> embedded: max_len x batch_size x (emb_size + number of features)
+
+        # now pack the embedded sequences [packed : sum of len x embedding_size]
         packed = pack_padded_sequence(embedded, lengths, enforce_sorted=False)
         # optionally, instantiate h_0/c_0 from mass
-        if self.mass_h:
-            h_0, c_0 = self.init_hidden(masses)
+        if self.conditional_h:
+            h_0, c_0 = self.init_hidden(descriptors)
             # states: num_layers x batch_size x hidden_size
             packed_output, hidden = self.rnn(packed, (h_0, c_0))
+            # sum(len)x hidden_size
         else:
             packed_output, hidden = self.rnn(packed)
         # unpack the output
+
         padded_output, output_lens = pad_packed_sequence(packed_output)
         # -> packed_output: max_len x batch_size x hidden_size
-
         # run LSTM output through decoder
         if self.dropout.p > 0:
             padded_output = self.dropout(padded_output)
         # cat masses along dimension of emb_size
-        if self.mass_dec_l:
-            mass_embedding = self.mass_to_dec(masses_repeating.float())
-            padded_output = torch.cat([padded_output, mass_embedding], axis=2).float()
-        elif self.mass_dec:
-            padded_output = torch.cat([padded_output, masses_repeating], axis=2).float()
-        # -> padded_output: max_len x batch_size x hidden_size + 1
+        if self.conditional_dec_l:
+            combined_embedding_features = self.conditional_to_dec(
+                combined_features_repeating.float()
+            )
+            padded_output = torch.cat(
+                [padded_output, combined_embedding_features], axis=2
+            ).float()
+        elif self.conditional_dec:
+            padded_output = torch.cat(
+                [padded_output, combined_features_repeating], axis=2
+            ).float()
+        # -> padded_output: max_len x batch_size x (hidden_size + number of features)
         decoded = self.decoder(padded_output)
         # -> decoded: max_len x batch_size x vocab_len
 
@@ -624,34 +666,28 @@ class MassConditionalRNN(nn.Module):
 
         loss = loss.mean()
 
-        # optionally, also calculate difference from input masses
+        # optionally, also calculate difference from input masses []
         if self.gamma > 0:
-            smiles = self.sample(masses)
-            calc_masses = []
-            for sm in smiles:
-                try:
-                    mol = clean_mol(sm)
-                    mass = Descriptors.ExactMolWt(mol)
-                    calc_masses.append(mass)
-                except ValueError:
-                    calc_masses.append(0)
+            smiles = self.sample(descriptors)
+            calc_descriptors = calculate_descriptors(smiles)
+            calc_descriptors = torch.Tensor(calc_descriptors).to(self.device)
+            descriptor_loss = descriptors - calc_descriptors
+            descriptor_mean_loss = descriptor_loss.mean(dim=0)
 
-            calc_masses = torch.Tensor(calc_masses).to(self.device)
-            mass_loss = masses - calc_masses
-            mass_loss = mass_loss.mean()
-
-            loss = loss + self.gamma * mass_loss
+            loss = loss + (self.gamma * descriptor_mean_loss.sum())
 
         return loss
 
-    def sample(self, masses, max_len=250, return_smiles=True, return_losses=False):
+    def sample(
+        self, combined_features, max_len=250, return_smiles=True, return_losses=False
+    ):
         # get start/stop tokens
         start_token = self.vocabulary.dictionary["SOS"]
         stop_token = self.vocabulary.dictionary["EOS"]
         # move masses to device
-        masses = masses.to(self.device)
+        combined_features = combined_features.to(self.device)
         # create start token tensor
-        n_sequences = len(masses)
+        n_sequences = len(combined_features)
         inputs = (
             torch.empty(n_sequences)
             .fill_(start_token)
@@ -660,9 +696,9 @@ class MassConditionalRNN(nn.Module):
             .to(self.device)
         )
         # initialize hidden state
-        if self.mass_h:
+        if self.conditional_h:
             hidden = self.init_hidden(
-                masses
+                combined_features
             )  # Initializing hidden state based on number of layers
         else:
             hidden = torch.zeros(self.n_layers, n_sequences, self.hidden_size).to(
@@ -670,24 +706,26 @@ class MassConditionalRNN(nn.Module):
             ), torch.zeros(self.n_layers, n_sequences, self.hidden_size).to(self.device)
 
         # repeat masses
-        masses = masses.view(1, n_sequences, 1)
+        combined_features = combined_features.view(
+            1, n_sequences, combined_features.shape[1]
+        )
         # sample sequences
         finished = torch.zeros(n_sequences).byte().to(self.device)
         sequences = []
         for step in range(max_len):
             embedded = self.embedding(inputs)
-            if self.mass_emb_l:
-                mass_embedding = self.mass_to_emb(masses.float())
-                embedded = torch.cat([embedded, mass_embedding], axis=2).float()
-            elif self.mass_emb:
-                embedded = torch.cat([embedded, masses], axis=2).float()
+            if self.conditional_emb_l:
+                combined_embedding = self.conditional_to_emb(combined_features.float())
+                embedded = torch.cat([embedded, combined_embedding], axis=2).float()
+            elif self.conditional_emb:
+                embedded = torch.cat([embedded, combined_features], axis=2).float()
 
             output, hidden = self.rnn(embedded, hidden)
-            if self.mass_dec_l:
-                mass_embedding = self.mass_to_dec(masses.float())
-                output = torch.cat([output, mass_embedding], axis=2).float()
-            elif self.mass_dec:
-                output = torch.cat([output, masses], axis=2).float()
+            if self.conditional_dec_l:
+                combined_embedding = self.conditional_to_dec(combined_features.float())
+                output = torch.cat([output, combined_embedding], axis=2).float()
+            elif self.conditional_dec:
+                output = torch.cat([output, combined_features], axis=2).float()
 
             logits = self.decoder(output)
             prob = F.softmax(logits, dim=2)
@@ -703,24 +741,26 @@ class MassConditionalRNN(nn.Module):
         if return_smiles:
             smiles = [self.vocabulary.decode(seq.cpu().numpy()) for seq in seqs]
             if return_losses:
-                return smiles, [0] * len(smiles)
+                return smiles, [0] * len(smiles)  # Update for the loss
             else:
                 return smiles
         else:
             assert not return_losses
             return sequences
 
-    def init_hidden(self, masses):
+    def init_hidden(self, combined_features):
         h_0s = []
         c_0s = []
         for layer in range(self.n_layers):
             mass_to_h = self.mass_to_hs[layer]
             mass_to_c = self.mass_to_cs[layer]
-            h_0 = mass_to_h(masses.unsqueeze(1).float())
-            c_0 = mass_to_c(masses.unsqueeze(1).float())
+            h_0 = mass_to_h(combined_features.float())
+            c_0 = mass_to_c(combined_features.float())
             h_0s.append(h_0)
             c_0s.append(c_0)
         # stack into correct dimensionality
         h_0 = torch.stack(h_0s)
         c_0 = torch.stack(c_0s)
         return h_0, c_0
+
+    # stacked: num layer x max_len x batch_size x hidden_size
