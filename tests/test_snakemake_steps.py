@@ -193,7 +193,6 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
     )
     assert len(read_csv_file(output_file)) == 100
 
-    # Sampled molecules are platform dependent
     match (platform.system(), socket.gethostname()):
         case ("Darwin", "Adityas-MacBook-Pro.local"):
             assert_checksum_equals(

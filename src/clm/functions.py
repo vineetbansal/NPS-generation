@@ -54,20 +54,6 @@ def clean_mol(
     return mol
 
 
-def calculate_descriptors(smiles):
-    descriptors = []
-    for sm in smiles:
-        try:
-            mol = clean_mol(sm)
-            mass = Descriptors.ExactMolWt(mol)
-            log_p = Descriptors.MolLogP(mol)
-        except ValueError:
-            mass = 0
-            log_p = 0
-        descriptors.append([mass, log_p])
-    return descriptors
-
-
 def clean_mols(
     all_smiles,
     *,

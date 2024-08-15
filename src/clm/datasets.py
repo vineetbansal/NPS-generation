@@ -9,7 +9,61 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 from itertools import chain
 from torch.utils.data import Dataset
-from clm.functions import read_file, calculate_descriptors
+from rdkit.Chem import Descriptors
+from clm.functions import read_file, clean_mol
+
+
+class SmilesCollate:
+    """
+    Collate a list of SMILES tensors, with variable lengths, into a tensor.
+
+    Code adapted from: https://www.codefull.org/2018/11/use-pytorchs-\
+    dataloader-with-variable-length-sequences-for-lstm-gru/
+
+    Args:
+        batch (list): a list of numeric tensors, each derived from a single
+        SMILES string, where the value at each position in the tensor
+        is the index of the SMILES token in the vocabulary dictionary
+
+    Return:
+        a tensor of dimension (batch_size, seq_len) containing encoded and
+          padded sequences
+    """
+
+    def __init__(self, vocabulary):
+        self.padding_token = vocabulary.dictionary["<PAD>"]
+
+    def __call__(self, smiles_encoded):
+        _, encoded = zip(*smiles_encoded)
+        padded = pad_sequence(encoded, padding_value=self.padding_token)
+        lengths = [len(seq) for seq in encoded]
+        return padded, lengths
+
+
+class SmilesDescriptorsCollate(SmilesCollate):
+    # functions that take in a molecule and return a scalar
+    descriptor_fns = [Descriptors.ExactMolWt, Descriptors.MolLogP]
+
+    @classmethod
+    def get_descriptors(cls, smiles):
+        values = []
+        for sm in smiles:
+            if mol := clean_mol(sm, raise_error=False):
+                value = [fn(mol) for fn in cls.descriptor_fns]
+            else:
+                value = [0] * len(cls.descriptor_fns)
+            values.append(value)
+        return values
+
+    @property
+    def n_descriptors(self):
+        return len(self.descriptor_fns)
+
+    def __call__(self, smiles_encoded):
+        padded, lengths = super().__call__(smiles_encoded)
+        smiles, _ = zip(*smiles_encoded)
+        descriptors = self.get_descriptors(smiles)
+        return padded, lengths, torch.tensor(descriptors)
 
 
 class SmilesDataset(Dataset):
@@ -23,7 +77,7 @@ class SmilesDataset(Dataset):
         max_len=None,
         vocab_file=None,
         training_split=0.9,
-        conditional_rnn=False,
+        collate_class=SmilesCollate,
     ):
         """
         Can be initiated from either a list of SMILES, or a line-delimited
@@ -65,12 +119,7 @@ class SmilesDataset(Dataset):
         self.training_set = self.smiles[:border]
         self.validation_set = self.smiles[border:]
 
-        # define collate function
-        self.conditional_rnn = conditional_rnn
-        if self.conditional_rnn:
-            self.training_descriptors = calculate_descriptors(self.training_set)
-
-        self.collate = CombinedSmilesCollate(self.vocabulary, self.conditional_rnn)
+        self.collate = collate_class(self.vocabulary)
 
     def __len__(self):
         return len(self.training_set)
@@ -79,20 +128,13 @@ class SmilesDataset(Dataset):
         smiles = self.training_set[idx]
         tokenized = self.vocabulary.tokenize(smiles)
         encoded = self.vocabulary.encode(tokenized)
-        if self.conditional_rnn:
-            descriptors = self.training_descriptors[idx]
-            return encoded, descriptors
-        return encoded
+        return smiles, encoded
 
     def get_validation(self, n_smiles):
         smiles = np.random.choice(self.validation_set, n_smiles)
         tokenized = [self.vocabulary.tokenize(sm) for sm in smiles]
         encoded = [self.vocabulary.encode(tk) for tk in tokenized]
-        if self.conditional_rnn:
-            descriptors = calculate_descriptors(smiles)
-            batch = list(zip(encoded, descriptors))
-            return self.collate(batch)
-        return self.collate(encoded)
+        return self.collate(list(zip(smiles, encoded)))
 
     def __str__(self):
         return (
@@ -102,47 +144,6 @@ class SmilesDataset(Dataset):
             + str(len(self.vocabulary))
             + " characters"
         )
-
-
-class CombinedSmilesCollate:
-    def __init__(self, vocabulary, conditional_rnn):
-        self.smiles_collate = SmilesCollate(vocabulary)
-        self.conditional_rnn = conditional_rnn
-
-    def __call__(self, batch):
-        if self.conditional_rnn:
-            encoded, descriptors = zip(*batch)
-            padded, lengths = self.smiles_collate(encoded)
-            descriptors = torch.tensor(descriptors).float()
-            return padded, lengths, descriptors
-        padded, lengths = self.smiles_collate(batch)
-        return padded, lengths
-
-
-class SmilesCollate:
-    """
-    Collate a list of SMILES tensors, with variable lengths, into a tensor.
-
-    Code adapted from: https://www.codefull.org/2018/11/use-pytorchs-\
-    dataloader-with-variable-length-sequences-for-lstm-gru/
-
-    Args:
-        batch (list): a list of numeric tensors, each derived from a single
-        SMILES string, where the value at each position in the tensor
-        is the index of the SMILES token in the vocabulary dictionary
-
-    Return:
-        a tensor of dimension (batch_size, seq_len) containing encoded and
-          padded sequences
-    """
-
-    def __init__(self, vocabulary):
-        self.padding_token = vocabulary.dictionary["<PAD>"]
-
-    def __call__(self, encoded):
-        padded = pad_sequence(encoded, padding_value=self.padding_token)
-        lengths = [len(seq) for seq in encoded]
-        return padded, lengths
 
 
 class SelfiesDataset(Dataset):
@@ -156,7 +157,7 @@ class SelfiesDataset(Dataset):
         max_len=None,
         vocab_file=None,
         training_split=0.9,
-        conditional_rnn=False,
+        collate_class=SmilesCollate,
     ):
         """
         Can be initiated from either a list of SELFIES, or a line-delimited
@@ -196,9 +197,7 @@ class SelfiesDataset(Dataset):
         self.training_set = self.selfies[:border]
         self.validation_set = self.selfies[border:]
 
-        # define collate function
-        self.conditional_rnn = conditional_rnn
-        self.collate = CombinedSmilesCollate(self.vocabulary, self.conditional_rnn)
+        self.collate = collate_class(self.vocabulary)
 
     def __len__(self):
         return len(self.training_set)
@@ -213,7 +212,7 @@ class SelfiesDataset(Dataset):
         selfies = np.random.choice(self.validation_set, n_selfies)
         tokenized = [self.vocabulary.tokenize(sf) for sf in selfies]
         encoded = [self.vocabulary.encode(tk) for tk in tokenized]
-        return self.collate(encoded)
+        return list(zip(selfies, encoded))
 
     def __str__(self):
         return (

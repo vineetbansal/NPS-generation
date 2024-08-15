@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from clm.functions import calculate_descriptors
+from clm.datasets import SmilesDescriptorsCollate
 
 
 class RNN(nn.Module):
@@ -669,7 +669,7 @@ class ConditionalRNN(nn.Module):
         # optionally, also calculate difference from input masses []
         if self.gamma > 0:
             smiles = self.sample(descriptors)
-            calc_descriptors = calculate_descriptors(smiles)
+            calc_descriptors = SmilesDescriptorsCollate.get_descriptors(smiles)
             calc_descriptors = torch.Tensor(calc_descriptors).to(self.device)
             descriptor_loss = descriptors - calc_descriptors
             descriptor_mean_loss = descriptor_loss.mean(dim=0)

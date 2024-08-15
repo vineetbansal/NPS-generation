@@ -4,11 +4,17 @@ import os.path
 import torch
 from torch.optim import Adam
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from rdkit import rdBase
 
-from clm.datasets import SmilesDataset, SelfiesDataset
+from clm.datasets import (
+    SmilesDataset,
+    SelfiesDataset,
+    SmilesCollate,
+    SmilesDescriptorsCollate,
+)
 from clm.models import RNN, ConditionalRNN
 from clm.loggers import EarlyStopping, track_loss, print_update
 from clm.functions import read_file, write_smiles
@@ -102,15 +108,14 @@ def add_args(parser):
 
 
 def load_dataset(representation, input_file, vocab_file, conditional_rnn):
+    dataset_class, collate_class = {
+        ("SMILES", False): (SmilesDataset, SmilesCollate),
+        ("SMILES", True): (SmilesDataset, SmilesDescriptorsCollate),
+        ("SELFIES", False): (SelfiesDataset, SmilesCollate),
+    }[(representation, conditional_rnn)]
+
     inputs = read_file(input_file, smile_only=True)
-    if representation == "SELFIES":
-        return SelfiesDataset(
-            selfies=inputs, vocab_file=vocab_file, conditional_rnn=conditional_rnn
-        )
-    else:
-        return SmilesDataset(
-            smiles=inputs, vocab_file=vocab_file, conditional_rnn=conditional_rnn
-        )
+    return dataset_class(inputs, vocab_file=vocab_file, collate_class=collate_class)
 
 
 def training_step(batch, model, optim, dataset, batch_size):
@@ -157,6 +162,7 @@ def train_models_RNN(
 
     os.makedirs(os.path.dirname(os.path.abspath(model_file)), exist_ok=True)
     os.makedirs(os.path.dirname(os.path.abspath(loss_file)), exist_ok=True)
+    summary_writer = SummaryWriter(comment="_conditional" if conditional_rnn else "")
 
     dataset = load_dataset(representation, input_file, vocab_file, conditional_rnn)
 
@@ -167,9 +173,6 @@ def train_models_RNN(
     )
 
     if conditional_rnn:
-        batch = next(iter(loader))
-        _, _, descriptors = batch
-        num_descriptors = descriptors.shape[1]
         model = ConditionalRNN(
             dataset.vocabulary,
             rnn_type=rnn_type,
@@ -177,7 +180,7 @@ def train_models_RNN(
             embedding_size=embedding_size,
             hidden_size=hidden_size,
             dropout=dropout,
-            num_descriptors=num_descriptors,
+            num_descriptors=dataset.collate.n_descriptors,
         )
     else:
         model = RNN(
@@ -206,6 +209,7 @@ def train_models_RNN(
                     epoch + 1,
                     loop_count,
                     value=[loss.item(), validation_loss.item()],
+                    writer=summary_writer,
                 )
                 if conditional_rnn:
                     print_update(
@@ -234,9 +238,10 @@ def train_models_RNN(
         track_loss(
             loss_file,
             epoch=[None],
-            batch_no=[early_stop.step_at_best],
+            batch_no=early_stop.step_at_best,
             value=[early_stop.best_loss],
             outcome=["training loss"],
+            writer=summary_writer,
         )
 
     model.load_state_dict(torch.load(model_file))
