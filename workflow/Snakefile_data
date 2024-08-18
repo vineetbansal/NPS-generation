@@ -186,7 +186,7 @@ rule train_models_RNN:
         '--vocab_file {input.vocab_file} '
         '--model_file {output.model_file} '
         '--loss_file {output.loss_file} '
-
+        f'{"--conditional_rnn" if config["model_params"]["conditional_rnn"] else ""} '
 
 rule sample_molecules_RNN:
     """

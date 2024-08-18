@@ -9,7 +9,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 from itertools import chain
 from torch.utils.data import Dataset
-from rdkit.Chem import Descriptors
+from rdkit.Chem import Descriptors, rdMolDescriptors, QED
 from clm.functions import read_file, clean_mol
 
 
@@ -41,8 +41,16 @@ class SmilesCollate:
 
 
 class SmilesDescriptorsCollate(SmilesCollate):
+
     # functions that take in a molecule and return a scalar
-    descriptor_fns = [Descriptors.ExactMolWt, Descriptors.MolLogP]
+    descriptor_fns = [
+        Descriptors.MolLogP,
+        Descriptors.TPSA,
+        Descriptors.ExactMolWt,
+        rdMolDescriptors.CalcNumHBA,
+        rdMolDescriptors.CalcNumHBD,
+        QED.qed,
+    ]
 
     @classmethod
     def get_descriptors(cls, smiles):
