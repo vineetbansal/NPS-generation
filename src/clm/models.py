@@ -741,7 +741,8 @@ class ConditionalRNN(nn.Module):
         if return_smiles:
             smiles = [self.vocabulary.decode(seq.cpu().numpy()) for seq in seqs]
             if return_losses:
-                return smiles, [0] * len(smiles)  # Update for the loss
+                losses = self.loss_fn(logits.squeeze(), inputs.squeeze())
+                return smiles, losses
             else:
                 return smiles
         else:
