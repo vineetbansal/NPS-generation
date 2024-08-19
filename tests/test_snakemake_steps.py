@@ -108,13 +108,15 @@ def test_02_train_models_RNN(tmp_path):
 
 
 def test_02_train_models_RNN_conditional(tmp_path):
-    loss_file = tmp_path / "LOTUS_truncated_SMILES_0_0_conditional_loss.csv"
+    loss_file = (
+        tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_0_conditional_loss.csv"
+    )
     train_models_RNN.train_models_RNN(
         representation="SMILES",
         rnn_type="LSTM",
-        embedding_size=128,
-        hidden_size=512,
-        n_layers=6,
+        embedding_size=32,
+        hidden_size=256,
+        n_layers=3,
         dropout=0,
         batch_size=64,
         learning_rate=0.001,
@@ -126,7 +128,7 @@ def test_02_train_models_RNN_conditional(tmp_path):
         input_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         vocab_file=test_dir
         / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
-        model_file=tmp_path / "LOTUS_truncated_SMILES_0_0_conditional_model.pt",
+        model_file="LOTUS_truncated_SMILES_0_0_conditional_model.pt",
         loss_file=loss_file,
         smiles_file=None,
         conditional_rnn=True,
@@ -178,9 +180,9 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
     sample_molecules_RNN.sample_molecules_RNN(
         representation="SMILES",
         rnn_type="LSTM",
-        embedding_size=128,
-        hidden_size=512,
-        n_layers=6,
+        embedding_size=32,
+        hidden_size=256,
+        n_layers=3,
         dropout=0,
         batch_size=64,
         sample_mols=100,
