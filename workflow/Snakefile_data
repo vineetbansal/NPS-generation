@@ -161,7 +161,8 @@ rule train_models_RNN:
         vocab_file = PATHS['vocab_file']
     output:
         model_file=PATHS['model_file'],
-        loss_file=PATHS['loss_file']
+        loss_file=PATHS['loss_file'],
+        minmax_descriptor_file= PATHS['minmax_file'] if config["model_params"]["conditional_rnn"] else None
     resources:
         mem_mb=32000,
         runtime=4320,
@@ -186,7 +187,8 @@ rule train_models_RNN:
         '--vocab_file {input.vocab_file} '
         '--model_file {output.model_file} '
         '--loss_file {output.loss_file} '
-
+        f'{"--conditional_rnn" if config["model_params"]["conditional_rnn"] else ""} '
+        '--minmax_descriptor_file {output.minmax_descriptor_file}'
 
 rule sample_molecules_RNN:
     """
@@ -196,7 +198,8 @@ rule sample_molecules_RNN:
     conda: "clm"
     input:
         model_file = PATHS['model_file'],
-        vocab_file = PATHS['vocab_file']
+        vocab_file = PATHS['vocab_file'],
+        minmax_descriptor_file = PATHS['minmax_file'] if config["model_params"]["conditional_rnn"] else None
     output:
         output_file = PATHS['input_file']
     resources:
@@ -217,6 +220,8 @@ rule sample_molecules_RNN:
         '--vocab_file {input.vocab_file} '
         '--model_file {input.model_file} '
         '--output_file {output.output_file} '
+        f'{"--conditional_rnn" if config["model_params"]["conditional_rnn"] else ""}'
+        '--minmax_descriptor_file {input.minmax_descriptor_file}'
 
 
 rule tabulate_molecules:

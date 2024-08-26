@@ -102,15 +102,14 @@ def test_02_train_models_RNN(tmp_path):
         model_file=tmp_path / "LOTUS_truncated_SMILES_0_0_model.pt",
         loss_file=tmp_path / "LOTUS_truncated_SMILES_0_0_loss.csv",
         smiles_file=None,
+        minmax_descriptor_file=None,
     )
     # Model loss values can vary between platforms and architectures,
     # so we simply ensure that this step runs without errors.
 
 
 def test_02_train_models_RNN_conditional(tmp_path):
-    loss_file = (
-        tmp_path / "0/prior/samples/LOTUS_truncated_SMILES_0_0_conditional_loss.csv"
-    )
+    loss_file = tmp_path / "LOTUS_truncated_SMILES_0_0_conditional_loss.csv"
     train_models_RNN.train_models_RNN(
         representation="SMILES",
         rnn_type="LSTM",
@@ -128,10 +127,11 @@ def test_02_train_models_RNN_conditional(tmp_path):
         input_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
         vocab_file=test_dir
         / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
-        model_file="LOTUS_truncated_SMILES_0_0_conditional_model.pt",
+        model_file=tmp_path / "LOTUS_truncated_SMILES_0_0_conditional_model.pt",
         loss_file=loss_file,
         smiles_file=None,
         conditional_rnn=True,
+        minmax_descriptor_file=test_dir / "0/prior/inputs/samples_max_min.csv",
     )
 
     # TODO: Model losses are platform dependent
@@ -192,6 +192,7 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
         / "0/prior/models/LOTUS_truncated_SMILES_0_0_conditional_model.pt",
         output_file=output_file,
         conditional_rnn=True,
+        minmax_descriptor_file=test_dir / "0/prior/inputs/samples_max_min.csv",
     )
     assert len(read_csv_file(output_file)) == 100
 

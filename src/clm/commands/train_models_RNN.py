@@ -100,8 +100,13 @@ def add_args(parser):
     )
 
     parser.add_argument(
-        "--conditional_rnn",
-        action="store_true",
+        "--conditional_rnn", action="store_true", help="Activate Conditional RNN model"
+    )
+    parser.add_argument(
+        "--minmax_descriptor_file",
+        type=str,
+        default=None,
+        help="File path for storing min and max of all the descriptors which would be responsible as inputs for sampling",
     )
 
     return parser
@@ -158,6 +163,7 @@ def train_models_RNN(
     model_file,
     loss_file,
     conditional_rnn=False,
+    minmax_descriptor_file=None,
 ):
 
     os.makedirs(os.path.dirname(os.path.abspath(model_file)), exist_ok=True)
@@ -193,12 +199,25 @@ def train_models_RNN(
         )
 
     optim = Adam(model.parameters(), betas=(0.9, 0.999), eps=1e-08, lr=learning_rate)
-    early_stop = EarlyStopping(patience=patience)
+    if conditional_rnn:
+        early_stop = EarlyStopping(
+            patience=patience, n_descriptors=dataset.collate.n_descriptors
+        )
+    else:
+        early_stop = EarlyStopping(patience=patience, n_descriptors=None)
 
     for epoch in range(max_epochs):
         for batch_no, batch in tqdm(enumerate(loader), total=len(loader)):
             loss = training_step(batch, model, optim, dataset, batch_size)
             validation_loss = loss.detach()
+            if conditional_rnn:
+                _, _, descriptors = batch
+
+                batch_min = descriptors.min(dim=0).values
+                batch_max = descriptors.max(dim=0).values
+            else:
+                batch_min = None
+                batch_max = None
 
             loop_count = (epoch * len(loader)) + batch_no + 1
             if loop_count % log_every_steps == 0 or (
@@ -225,7 +244,14 @@ def train_models_RNN(
                     print_update(
                         model, epoch, batch_no + 1, loss.item(), validation_loss.item()
                     )
-            early_stop(validation_loss.item(), model, model_file, loop_count)
+            early_stop(
+                validation_loss.item(),
+                model,
+                model_file,
+                loop_count,
+                batch_min,
+                batch_max,
+            )
 
             if early_stop.stop:
                 logging.info("Early stopping triggered.")
@@ -245,6 +271,8 @@ def train_models_RNN(
         )
 
     model.load_state_dict(torch.load(model_file))
+    if minmax_descriptor_file:
+        early_stop.generate_csv(minmax_descriptor_file)
     model.eval()
     if smiles_file:
         sample_and_write_smiles(model, sample_mols, batch_size, smiles_file)
@@ -271,4 +299,5 @@ def main(args):
         model_file=args.model_file,
         loss_file=args.loss_file,
         conditional_rnn=args.conditional_rnn,
+        minmax_descriptor_file=args.minmax_descriptor_file,
     )

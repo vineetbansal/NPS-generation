@@ -499,10 +499,10 @@ class ConditionalRNN(nn.Module):
         dropout=0,
         gamma=-1,
         num_descriptors=2,
-        conditional_emb=True,
-        conditional_emb_l=False,
+        conditional_emb=False,
+        conditional_emb_l=True,
         conditional_dec=False,
-        conditional_dec_l=False,
+        conditional_dec_l=True,
         conditional_h=False,
     ):
         super(ConditionalRNN, self).__init__()
@@ -517,6 +517,26 @@ class ConditionalRNN(nn.Module):
         self.conditional_h = conditional_h
         self.embedding_size = embedding_size
         self.hidden_size = hidden_size
+
+        # Assert that conditional_emb_l and conditional_emb cannot both be true at the same time
+        assert not (
+            self.conditional_emb_l and self.conditional_emb and self.conditional_h
+        ), f"Both conditional_emb_l and conditional_emb cannot be true at the same time. Got: conditional_emb_l={self.conditional_emb_l}, conditional_emb={self.conditional_emb}"
+
+        # Assert that if conditional_emb_l is true, conditional_emb must be false, and vice versa
+        assert (
+            self.conditional_emb_l != self.conditional_emb
+        ) or self.conditional_h, f"Expected one of conditional_emb_l or conditional_emb to be true and the other false. Got: conditional_emb_l={self.conditional_emb_l}, conditional_emb={self.conditional_emb}"
+
+        # Assert that conditional_dec_l and conditional_dec cannot both be true at the same time
+        assert not (
+            self.conditional_dec_l and self.conditional_dec and self.conditional_h
+        ), f"Both conditional_dec_l and conditional_dec cannot be true at the same time. Got: conditional_dec_l={self.conditional_dec_l}, conditional_dec={self.conditional_dec}"
+
+        # Assert that if conditional_dec_l is true, conditional_dec must be false, and vice versa
+        assert (
+            self.conditional_dec_l != self.conditional_dec
+        ) or self.conditional_h, f"Expected one of conditional_dec_l or conditional_dec to be true and the other false. Got: conditional_dec_l={self.conditional_dec_l}, conditional_dec={self.conditional_dec}"
 
         # set up input/output sizes for RNN
         rnn_input_size = self.embedding_size  # Default: embedding size
@@ -613,11 +633,11 @@ class ConditionalRNN(nn.Module):
             combined_embedding_features = self.conditional_to_emb(
                 combined_features_repeating.float()
             )
-            # mass_embedding: max_len x batch_size x emb_size
+            # combined_embedding_features: max_len x batch_size x emb_size
             embedded = torch.cat(
                 [embedded, combined_embedding_features], axis=2
             ).float()
-            # pass
+            # embedded: max_len x batch_size x (2x emb_size)
         elif self.conditional_emb:
             embedded = torch.cat(
                 [embedded, combined_features_repeating], axis=2
@@ -684,6 +704,7 @@ class ConditionalRNN(nn.Module):
         # get start/stop tokens
         start_token = self.vocabulary.dictionary["SOS"]
         stop_token = self.vocabulary.dictionary["EOS"]
+        pad_token = self.vocabulary.dictionary["<PAD>"]
         # move masses to device
         combined_features = combined_features.to(self.device)
         # create start token tensor
@@ -709,8 +730,12 @@ class ConditionalRNN(nn.Module):
         combined_features = combined_features.view(
             1, n_sequences, combined_features.shape[1]
         )
+
+        loss = nn.NLLLoss(reduction="none", ignore_index=pad_token)
+
         # sample sequences
         finished = torch.zeros(n_sequences).byte().to(self.device)
+        log_probs = torch.zeros(n_sequences).to(self.device)
         sequences = []
         for step in range(max_len):
             embedded = self.embedding(inputs)
@@ -731,6 +756,11 @@ class ConditionalRNN(nn.Module):
             prob = F.softmax(logits, dim=2)
             inputs = torch.multinomial(prob.squeeze(0), num_samples=1).view(1, -1)
             sequences.append(inputs.view(-1, 1))
+            log_prob = F.log_softmax(logits.squeeze(0), dim=1)
+            losses = loss(log_prob, inputs.squeeze(0))
+            # zero losses if we are finished sampling
+            losses[finished.squeeze(0).bool()] = 0
+            log_probs += losses
             # track whether sampling is done for all molecules
             finished = torch.ge(finished + (inputs == stop_token), 1)
             if torch.prod(finished) == 1:
@@ -740,13 +770,18 @@ class ConditionalRNN(nn.Module):
         seqs = torch.cat(sequences, 1)
         if return_smiles:
             smiles = [self.vocabulary.decode(seq.cpu().numpy()) for seq in seqs]
-            if return_losses:
-                return smiles, [0] * len(smiles)  # Update for the loss
-            else:
-                return smiles
+            # if return_losses:
+            #     return smiles, [0] * len(smiles)  # Update for the loss
         else:
-            assert not return_losses
-            return sequences
+            # return smiles
+            smiles = sequences
+        # else:
+        #     assert not return_losses
+        #     return sequences
+        if return_losses:
+            return smiles, log_probs.detach().cpu().numpy()
+        else:
+            return smiles
 
     def init_hidden(self, combined_features):
         h_0s = []
