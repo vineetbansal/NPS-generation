@@ -198,10 +198,11 @@ rule sample_molecules_RNN:
     conda: "clm"
     input:
         model_file = PATHS['model_file'],
-        vocab_file = PATHS['vocab_file'],
-        minmax_descriptor_file = PATHS['minmax_file']
+        vocab_file = PATHS['vocab_file']
     output:
         output_file = PATHS['input_file']
+    params:
+        minmax_descriptor_file = PATHS['minmax_file']
     resources:
         mem_mb=12000,
         runtime=15+MODEL_PARAMS["sample_mols"]//10000,
@@ -221,7 +222,7 @@ rule sample_molecules_RNN:
         '--model_file {input.model_file} '
         '--output_file {output.output_file} '
         f'{"--conditional_rnn" if config["model_params"]["conditional_rnn"] else ""} '
-        f'{"--minmax_descriptor_file {input.minmax_descriptor_file}" if config["model_params"]["conditional_rnn"] else ""} '
+        f'{"--minmax_descriptor_file {params.minmax_descriptor_file}" if config["model_params"]["conditional_rnn"] else ""} '
 
 
 
