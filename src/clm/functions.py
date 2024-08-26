@@ -477,14 +477,7 @@ def get_mass_range(mass, err_ppm):
     return min_mass, max_mass
 
 
-def write_to_csv_file(
-    filepath,
-    info,
-    mode="w",
-    header=True,
-    columns=None,
-    string_format="{}",
-):
+def write_to_csv_file(filepath, info, mode="w", header=True, columns=None):
     assert mode in ("w", "a+"), "Invalid mode specified"
 
     # os.path.dirname(filepath) returns '' if filepath is just a filename.
@@ -504,19 +497,7 @@ def write_to_csv_file(
             compression=compression,
         )
     else:
-        assert compression in (None, "gzip"), "Invalid compression type"
-        if compression == "gzip":
-            mode = "wb" if mode == "w" else "ab"  # binary mode for gzip
-            open_fn = gzip.open
-        else:
-            open_fn = open
-
-        with open_fn(filepath, mode=mode) as f:
-            for row in info:
-                row = string_format.format(row)
-                if compression == "gzip":
-                    row = row.encode("utf8")
-                f.write(row)
+        raise RuntimeError("only DataFrame input is supported")
 
 
 def read_csv_file(filename, **kwargs):

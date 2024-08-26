@@ -271,7 +271,7 @@ def train_models_RNN(
         )
 
     model.load_state_dict(torch.load(model_file))
-    if minmax_descriptor_file:
+    if conditional_rnn and minmax_descriptor_file:
         early_stop.generate_csv(minmax_descriptor_file)
     model.eval()
     if smiles_file:

@@ -162,7 +162,7 @@ rule train_models_RNN:
     output:
         model_file=PATHS['model_file'],
         loss_file=PATHS['loss_file'],
-        minmax_descriptor_file= PATHS['minmax_file'] if config["model_params"]["conditional_rnn"] else None
+        minmax_descriptor_file= PATHS['minmax_file'] if config["model_params"]["conditional_rnn"]
     resources:
         mem_mb=32000,
         runtime=4320,
@@ -199,7 +199,7 @@ rule sample_molecules_RNN:
     input:
         model_file = PATHS['model_file'],
         vocab_file = PATHS['vocab_file'],
-        minmax_descriptor_file = PATHS['minmax_file'] if config["model_params"]["conditional_rnn"] else None
+        minmax_descriptor_file = PATHS['minmax_file'] if config["model_params"]["conditional_rnn"]
     output:
         output_file = PATHS['input_file']
     resources:
