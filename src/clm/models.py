@@ -770,14 +770,9 @@ class ConditionalRNN(nn.Module):
         seqs = torch.cat(sequences, 1)
         if return_smiles:
             smiles = [self.vocabulary.decode(seq.cpu().numpy()) for seq in seqs]
-            # if return_losses:
-            #     return smiles, [0] * len(smiles)  # Update for the loss
         else:
-            # return smiles
             smiles = sequences
-        # else:
-        #     assert not return_losses
-        #     return sequences
+
         if return_losses:
             return smiles, log_probs.detach().cpu().numpy()
         else:
