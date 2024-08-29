@@ -87,7 +87,7 @@ def test_calculate_outcomes(tmp_path):
         assert unique_2[0] == 0.5
 
     true_outcomes = read_csv_file(
-        test_dir / "calculate_outcome.csv", keep_default_na=False
+        test_dir / "calculate_outcome.csv", keep_default_na=True
     )
 
     # https://stackoverflow.com/questions/14224172

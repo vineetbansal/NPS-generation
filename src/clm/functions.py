@@ -295,11 +295,10 @@ def continuous_JSD(generated_dist, original_dist, tol=1e-10):
         return np.nan
     try:
         gen_kde = gaussian_kde(generated_dist)
+        org_kde = gaussian_kde(original_dist)
     except np.linalg.LinAlgError:
-        generated_dist += np.random.normal(0, 1e-5, len(generated_dist))
-        gen_kde = gaussian_kde(generated_dist)
+        return np.nan
 
-    org_kde = gaussian_kde(original_dist)
     vec = np.hstack([generated_dist, original_dist])
     x_eval = np.linspace(vec.min(), vec.max(), num=1000)
     P = gen_kde(x_eval) + tol
