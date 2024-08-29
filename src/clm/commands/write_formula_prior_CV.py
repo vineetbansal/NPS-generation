@@ -56,7 +56,7 @@ def match_molecules(row, dataset, data_type):
         ]
 
     match = (
-        match.sort_values("size", ascending=False)
+        match.sort_values("size", ascending=False, kind="stable")
         if data_type == "model"
         else match.sample(frac=1)
     )

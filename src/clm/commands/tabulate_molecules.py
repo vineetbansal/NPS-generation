@@ -76,7 +76,9 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     unique["size"] = (
         freqs.groupby(["inchikey", "mass", "formula"]).size().reset_index(drop=True)
     )
-    unique = unique.sort_values("size", ascending=False).reset_index(drop=True)
+    unique = unique.sort_values("size", ascending=False, kind="stable").reset_index(
+        drop=True
+    )
 
     write_to_csv_file(output_file, unique)
     # TODO: The following approach will result in multiple lines for each repeated smile

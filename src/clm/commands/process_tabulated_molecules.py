@@ -70,7 +70,7 @@ def process_tabulated_molecules(
             {"inchikey": list(uniq_inchikeys), "size": np.nanmean(data, axis=1)}
         )
 
-    data = data.sort_values(by="size", ascending=False).query("size > 0")
+    data = data.sort_values(by="size", ascending=False, kind="stable").query("size > 0")
 
     if not data.empty:
         # Add metadata (mass and formula)

@@ -99,7 +99,7 @@ def match_molecules(row, dataset, data_type, top_n=1):
 
     # Assign sequential ranks based on decreasing frequency of sampling
     match = (
-        match.sort_values("size", ascending=False)
+        match.sort_values("size", ascending=False, kind="stable")
         if data_type == "model"
         else match.sample(frac=1)
     )

@@ -45,7 +45,7 @@ def forecast(test_file, sample_file, output_file, max_molecules=None):
     test = read_csv_file(test_file)
     deepmet = read_csv_file(sample_file, nrows=max_molecules)
     deepmet = deepmet.assign(known=deepmet["inchikey"].isin(test["inchikey"]))
-    deepmet = deepmet.sort_values(by=["size"], ascending=False)
+    deepmet = deepmet.sort_values(by=["size"], ascending=False, kind="stable")
 
     # extract ROC/PR curves
     y = deepmet["known"].tolist()
