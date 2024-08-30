@@ -125,6 +125,7 @@ def test_02_train_models_RNN_conditional(tmp_path):
         log_every_epochs=1,
         sample_mols=100,
         input_file=test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
+        # input_file=test_dir / "0/prior/inputs/testing_sample.csv", # Testing with csv as input
         vocab_file=test_dir
         / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary",
         model_file=tmp_path / "LOTUS_truncated_SMILES_0_0_conditional_model.pt",
@@ -193,6 +194,7 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
         output_file=output_file,
         conditional_rnn=True,
         minmax_descriptor_file=test_dir / "0/prior/inputs/samples_max_min.csv",
+        # sample_descriptor_file=test_dir/ "0/prior/inputs/sample_descriptors.csv",#Testing with sample descriptors as input
     )
     assert len(read_csv_file(output_file)) == 100
 

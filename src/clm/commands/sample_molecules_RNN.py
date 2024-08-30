@@ -63,6 +63,13 @@ def add_args(parser):
         default=None,
         help="File path for storing min and max of all the descriptors which would be responsible as inputs for sampling",
     )
+    parser.add_argument(
+        "--sample_descriptor_file",
+        type=str,
+        default=None,
+        help="File path for sample descriptors",
+    )
+
     return parser
 
 
@@ -80,6 +87,7 @@ def sample_molecules_RNN(
     output_file,
     conditional_rnn=False,
     minmax_descriptor_file=None,
+    sample_descriptor_file=None,
 ):
     os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
 
@@ -90,26 +98,35 @@ def sample_molecules_RNN(
     else:
         vocab = Vocabulary(vocab_file=vocab_file)
 
-    # descriptors = None
+    descriptors = None
 
     if conditional_rnn:
-        descriptors_csv = read_csv_file(minmax_descriptor_file)
-        min_vals = descriptors_csv["min_val"].values
-        max_vals = descriptors_csv["max_val"].values
+        if sample_descriptor_file is None:
+            descriptors_csv = read_csv_file(minmax_descriptor_file)
+            min_vals = descriptors_csv["min_val"].values
+            max_vals = descriptors_csv["max_val"].values
 
-        descriptors = torch.rand((sample_mols, 6)) * (
-            torch.tensor(max_vals) - torch.tensor(min_vals)
-        ) + torch.tensor(min_vals)
-        # print(descriptors.shape)
-        # mass_range = (144.0786, 986.5087)
-        # logP_range = (-1.4688, 9.9990)
-        #
-        # masses = (
-        #     torch.rand(sample_mols) * (mass_range[1] - mass_range[0]) + mass_range[0]
-        # )
-        # logP = torch.rand(sample_mols) * (logP_range[1] - logP_range[0]) + logP_range[0]
-        #
-        # descriptors = torch.stack((masses, logP), dim=1)
+            descriptors = torch.rand((sample_mols, len(min_vals))) * (
+                torch.tensor(max_vals) - torch.tensor(min_vals)
+            ) + torch.tensor(min_vals)
+        else:
+            descriptor_input = read_csv_file(sample_descriptor_file, delimiter=",")
+            # Handle inchikey and smiles if present drop the columns
+            columns_dropped = ["smiles", "inchikey"]
+            descriptor_input = descriptor_input.drop(
+                columns=[
+                    col for col in columns_dropped if col in descriptor_input.columns
+                ]
+            )
+
+            # Handle the order of columns from a min_max_descriptor_file
+            descriptors_csv = read_csv_file(minmax_descriptor_file)
+            descriptor_col = descriptors_csv["descriptor"].values
+            descriptor_input = descriptor_input[descriptor_col]
+            descriptors = descriptor_input.values
+
+            descriptors = torch.tensor(descriptors, dtype=torch.float32)
+
         model = ConditionalRNN(
             vocab,
             rnn_type=rnn_type,
@@ -119,6 +136,7 @@ def sample_molecules_RNN(
             dropout=dropout,
             num_descriptors=descriptors.shape[1],
         )
+
     else:
         model = RNN(
             vocab,
@@ -170,4 +188,5 @@ def main(args):
         output_file=args.output_file,
         conditional_rnn=args.conditional_rnn,
         minmax_descriptor_file=args.minmax_descriptor_file,
+        sample_descriptor_file=args.sample_descriptor_file,
     )

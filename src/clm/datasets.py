@@ -30,11 +30,12 @@ class SmilesCollate:
           padded sequences
     """
 
-    def __init__(self, vocabulary):
+    def __init__(self, vocabulary, descriptors=None):
         self.padding_token = vocabulary.dictionary["<PAD>"]
+        self.descriptors = descriptors
 
     def __call__(self, smiles_encoded):
-        _, encoded = zip(*smiles_encoded)
+        _, encoded, _ = zip(*smiles_encoded)
         padded = pad_sequence(encoded, padding_value=self.padding_token)
         lengths = [len(seq) for seq in encoded]
         return padded, lengths
@@ -50,9 +51,21 @@ class SmilesDescriptorsCollate(SmilesCollate):
         rdMolDescriptors.CalcNumHBD,
         QED.qed,
     ]
+    descriptor_names = [
+        "Molecular Weight",
+        "Wildman– Crippen partition coefficient (LogP)",
+        "Topological polar surface area (TPSA)",
+        "Number of Hydrogen bonds acceptors (HBA)",
+        "Number of Hydrogen bonds donors (HBD)",
+        "Drug-likeness score (QED)",
+    ]
+
+    def __init__(self, vocabulary, descriptors=None):
+        super().__init__(vocabulary)
+        self.descriptors = descriptors
 
     @classmethod
-    def get_descriptors(cls, smiles):
+    def get_descriptors(cls, smiles):  # Generate descriptors dynamically
         values = []
         for sm in smiles:
             if mol := clean_mol(sm, raise_error=False):
@@ -64,13 +77,26 @@ class SmilesDescriptorsCollate(SmilesCollate):
 
     @property
     def n_descriptors(self):
+        if self.descriptors is not None:
+            return self.descriptors.shape[1]
         return len(self.descriptor_fns)
+
+    @property
+    def dynamic_descriptors(self):
+        return (
+            self.descriptor_names
+        )  # Column names for the dynamic descriptors [Avoid changing the order]
 
     def __call__(self, smiles_encoded):
         padded, lengths = super().__call__(smiles_encoded)
-        smiles, _ = zip(*smiles_encoded)
-        descriptors = self.get_descriptors(smiles)
-        return padded, lengths, torch.tensor(descriptors)
+        smiles, _, descriptors = zip(*smiles_encoded)
+        if descriptors is not None and not all(
+            desc is None for desc in descriptors
+        ):  # Checking if there was a file with descriptors being used or not
+            descriptors = torch.tensor(np.array(descriptors), dtype=torch.float32)
+        else:
+            descriptors = torch.tensor(self.get_descriptors(smiles))
+        return padded, lengths, descriptors
 
 
 class SmilesDataset(Dataset):
@@ -85,6 +111,7 @@ class SmilesDataset(Dataset):
         vocab_file=None,
         training_split=0.9,
         collate_class=SmilesCollate,
+        descriptors=None,
     ):
         """
         Can be initiated from either a list of SMILES, or a line-delimited
@@ -125,8 +152,19 @@ class SmilesDataset(Dataset):
         border = int(n_smiles * training_split)
         self.training_set = self.smiles[:border]
         self.validation_set = self.smiles[border:]
+        self.descriptors = False
+        # Check for descriptors if present create a training and test split
+        if descriptors is not None:
+            if isinstance(descriptors, np.ndarray) and not np.any(
+                np.isnan(descriptors)
+            ):
+                self.descriptors = True
+                self.descriptors_training_set = descriptors[:border]
+                self.descriptors_validation_set = descriptors[border:]
+            else:
+                self.descriptors = False
 
-        self.collate = collate_class(self.vocabulary)
+        self.collate = collate_class(self.vocabulary, descriptors=descriptors)
 
     def __len__(self):
         return len(self.training_set)
@@ -135,13 +173,26 @@ class SmilesDataset(Dataset):
         smiles = self.training_set[idx]
         tokenized = self.vocabulary.tokenize(smiles)
         encoded = self.vocabulary.encode(tokenized)
-        return smiles, encoded
+        if self.descriptors:
+            descriptors = self.descriptors_training_set[idx]
+        else:
+            descriptors = None
+        return smiles, encoded, descriptors
 
     def get_validation(self, n_smiles):
-        smiles = np.random.choice(self.validation_set, n_smiles)
+        n_smiles = min(n_smiles, len(self.validation_set))
+        idx = np.random.choice(
+            len(self.validation_set), n_smiles, replace=False
+        )  # Random choices based on the indexes
+        smiles = [self.validation_set[i] for i in idx]
+        # smiles = np.random.choice(self.validation_set, n_smiles)
         tokenized = [self.vocabulary.tokenize(sm) for sm in smiles]
         encoded = [self.vocabulary.encode(tk) for tk in tokenized]
-        return self.collate(list(zip(smiles, encoded)))
+        if self.descriptors:
+            descriptors = [self.descriptors_validation_set[i] for i in idx]
+        else:
+            descriptors = [None] * n_smiles
+        return self.collate(list(zip(smiles, encoded, descriptors)))
 
     def __str__(self):
         return (
