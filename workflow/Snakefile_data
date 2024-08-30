@@ -192,7 +192,7 @@ rule train_models_RNN:
         f'{"--conditional_dec" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_dec"] else ""} '
         f'{"--conditional_dec_l" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_dec_l"] else ""} '
         f'{"--conditional_h" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_h"] else ""} '
-        f'{"--minmax_descriptor_file {output.minmax_descriptor_file}" and config["model_params"]["conditional_rnn"] if config["model_params"]["conditional_rnn"] else ""} '
+        f'{"--minmax_descriptor_file {output.minmax_descriptor_file}" if config["model_params"]["conditional_rnn"] else ""} '
 
 rule sample_molecules_RNN:
     """
