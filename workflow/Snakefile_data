@@ -187,8 +187,12 @@ rule train_models_RNN:
         '--vocab_file {input.vocab_file} '
         '--model_file {output.model_file} '
         '--loss_file {output.loss_file} '
-        f'{"--conditional_rnn" if config["model_params"]["conditional_rnn"] else ""} '
-        f'{"--minmax_descriptor_file {output.minmax_descriptor_file}" if config["model_params"]["conditional_rnn"] else ""} '
+        f'{"--conditional_emb" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_emb"]  else ""} '
+        f'{"--conditional_emb_l" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_emb_l"] else ""} '
+        f'{"--conditional_dec" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_dec"] else ""} '
+        f'{"--conditional_dec_l" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_dec_l"] else ""} '
+        f'{"--conditional_h" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_h"] else ""} '
+        f'{"--minmax_descriptor_file {output.minmax_descriptor_file}" and config["model_params"]["conditional_rnn"] if config["model_params"]["conditional_rnn"] else ""} '
 
 rule sample_molecules_RNN:
     """
@@ -221,6 +225,11 @@ rule sample_molecules_RNN:
         '--vocab_file {input.vocab_file} '
         '--model_file {input.model_file} '
         '--output_file {output.output_file} '
+        f'{"--conditional_emb" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_emb"]  else ""} '
+        f'{"--conditional_emb_l" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_emb_l"] else ""} '
+        f'{"--conditional_dec" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_dec"] else ""} '
+        f'{"--conditional_dec_l" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_dec_l"] else ""} '
+        f'{"--conditional_h" if config["model_params"]["conditional_rnn"] and config["model_params"]["conditional_h"] else ""} '
         f'{"--conditional_rnn" if config["model_params"]["conditional_rnn"] else ""} '
         f'{"--minmax_descriptor_file {params.minmax_descriptor_file}" if config["model_params"]["conditional_rnn"] else ""} '
 

@@ -132,6 +132,11 @@ def test_02_train_models_RNN_conditional(tmp_path):
         loss_file=loss_file,
         smiles_file=None,
         conditional_rnn=True,
+        conditional_emb=False,
+        conditional_emb_l=True,
+        conditional_dec=False,
+        conditional_dec_l=True,
+        conditional_h=False,
         minmax_descriptor_file=test_dir / "0/prior/inputs/samples_max_min.csv",
     )
 
@@ -192,7 +197,12 @@ def test_03_sample_molecules_RNN_conditional(tmp_path):
         model_file=test_dir
         / "0/prior/models/LOTUS_truncated_SMILES_0_0_conditional_model.pt",
         output_file=output_file,
-        conditional_rnn=True,
+        conditional_rnn=True,  # Make sure the conditional_rnn,conditional_emb,conditional_emb_l, conditional_dec, conditional_dec_l have the same values present in test_02_train_models_RNN_conditional
+        conditional_emb=False,
+        conditional_emb_l=True,
+        conditional_dec=False,
+        conditional_dec_l=True,
+        conditional_h=False,
         minmax_descriptor_file=test_dir / "0/prior/inputs/samples_max_min.csv",
         # sample_descriptor_file=test_dir/ "0/prior/inputs/sample_descriptors.csv",#Testing with sample descriptors as input
     )

@@ -58,6 +58,31 @@ def add_args(parser):
         action="store_true",
     )
     parser.add_argument(
+        "--conditional_emb",
+        action="store_true",
+        help="Add descriptor with the input smiles without passing it through an embedding layer",
+    )
+    parser.add_argument(
+        "--conditional_emb_l",
+        action="store_true",
+        help="Pass the descriptors through an embedding layer and add descriptor with the input smiles",
+    )
+    parser.add_argument(
+        "--conditional_dec",
+        action="store_true",
+        help="Add descriptor with the rnn output without passing it through decoder layer",
+    )
+    parser.add_argument(
+        "--conditional_dec_l",
+        action="store_true",
+        help="Pass the descriptors through a decoder layer and add descriptor with the rnn output",
+    )
+    parser.add_argument(
+        "--conditional_h",
+        action="store_true",
+        help="Add descriptor in hidden and cell state",
+    )
+    parser.add_argument(
         "--minmax_descriptor_file",
         type=str,
         default=None,
@@ -86,6 +111,11 @@ def sample_molecules_RNN(
     model_file,
     output_file,
     conditional_rnn=False,
+    conditional_emb=False,
+    conditional_emb_l=True,
+    conditional_dec=False,
+    conditional_dec_l=True,
+    conditional_h=False,
     minmax_descriptor_file=None,
     sample_descriptor_file=None,
 ):
@@ -135,6 +165,11 @@ def sample_molecules_RNN(
             hidden_size=hidden_size,
             dropout=dropout,
             num_descriptors=descriptors.shape[1],
+            conditional_emb=conditional_emb,
+            conditional_emb_l=conditional_emb_l,
+            conditional_dec=conditional_dec,
+            conditional_dec_l=conditional_dec_l,
+            conditional_h=conditional_h,
         )
 
     else:
@@ -187,6 +222,11 @@ def main(args):
         model_file=args.model_file,
         output_file=args.output_file,
         conditional_rnn=args.conditional_rnn,
+        conditional_emb=args.conditional_emb,
+        conditional_emb_l=args.conditional_emb_l,
+        conditional_dec=args.conditional_dec,
+        conditional_dec_l=args.conditional_dec_l,
+        conditional_h=args.conditional_h,
         minmax_descriptor_file=args.minmax_descriptor_file,
         sample_descriptor_file=args.sample_descriptor_file,
     )

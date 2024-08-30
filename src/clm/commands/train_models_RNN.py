@@ -115,15 +115,17 @@ def add_args(parser):
     parser.add_argument(
         "--conditional_dec",
         action="store_true",
-        help="Add descriptor with the input smiles without passing it through an embedding layer",
+        help="Add descriptor with the rnn output without passing it through decoder layer",
     )
     parser.add_argument(
         "--conditional_dec_l",
         action="store_true",
-        help="Activate Conditional RNN model",
+        help="Pass the descriptors through a decoder layer and add descriptor with the rnn output",
     )
     parser.add_argument(
-        "--conditional_h", action="store_true", help="Activate Conditional RNN model"
+        "--conditional_h",
+        action="store_true",
+        help="Add descriptor in hidden and cell state",
     )
 
     parser.add_argument(
@@ -214,6 +216,11 @@ def train_models_RNN(
     model_file,
     loss_file,
     conditional_rnn=False,
+    conditional_emb=False,
+    conditional_emb_l=True,
+    conditional_dec=False,
+    conditional_dec_l=True,
+    conditional_h=False,
     minmax_descriptor_file=None,
 ):
 
@@ -240,6 +247,11 @@ def train_models_RNN(
             hidden_size=hidden_size,
             dropout=dropout,
             num_descriptors=dataset.collate.n_descriptors,
+            conditional_emb=conditional_emb,
+            conditional_emb_l=conditional_emb_l,
+            conditional_dec=conditional_dec,
+            conditional_dec_l=conditional_dec_l,
+            conditional_h=conditional_h,
         )
     else:
         model = RNN(
@@ -357,5 +369,10 @@ def main(args):
         model_file=args.model_file,
         loss_file=args.loss_file,
         conditional_rnn=args.conditional_rnn,
+        conditional_emb=args.conditional_emb,
+        conditional_emb_l=args.conditional_emb_l,
+        conditional_dec=args.conditional_dec,
+        conditional_dec_l=args.conditional_dec_l,
+        conditional_h=args.conditional_h,
         minmax_descriptor_file=args.minmax_descriptor_file,
     )
