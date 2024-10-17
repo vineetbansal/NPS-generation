@@ -70,7 +70,7 @@ def preprocess(
         smiles_file=input_file,
         max_lines=max_input_smiles,
         smile_only=True,
-    )
+    )["smiles"]
 
     def preprocess_chunk(
         input_smiles, neutralise=True, min_heavy_atoms=3, valid_atoms=None
