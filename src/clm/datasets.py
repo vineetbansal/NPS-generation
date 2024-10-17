@@ -204,7 +204,7 @@ class Vocabulary:
         """
         if vocab_file is not None:
             # read tokens from file, and add to vocabulary
-            self.characters = read_file(vocab_file)
+            self.characters = read_file(vocab_file)[0].to_list()
         else:
             # read SMILES
             if smiles is not None:

@@ -164,7 +164,7 @@ def create_training_sets(
     logger.info("reading input SMILES ...")
     smiles = read_file(
         smiles_file=input_file, smile_only=True, max_lines=max_input_smiles
-    )
+    )["smiles"]
 
     if min_tc > 0:
         logger.info(f"picking {n_molecules} molecules with min_tc={min_tc} ...")

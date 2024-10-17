@@ -155,12 +155,15 @@ def read_file(
     Args:
         smiles_file: Input file containing SMILES strings, or comma-separated file with "smiles" in the header.
         max_lines: Maximum number of lines to return.
-        smile_only: Whether to return only the SMILES strings.
+        smile_only: Unused; will be deprecated.
         stream: Whether to return a generator or a list.
         randomize: Whether to shuffle the lines in the file before reading.
 
     Returns:
-        An iterator or list of strings.
+        If stream is True
+            A generator that yields a dictionary
+        Otherwise
+            A pandas Dataframe of SMILES strings and properties.
     """
 
     def _read_file(
@@ -175,39 +178,29 @@ def read_file(
             open_fn = open
             mode = "r"
 
-        count = 0
         with open_fn(input_file, mode) as f:
             # Detect if we're dealing with a csv file with "smiles" in the header
             first_line = f.readline()
             first_line_tokens = next(csv.reader([first_line]))
             is_csv = "smiles" in first_line_tokens
 
-            if is_csv:
-                smile_idx = first_line_tokens.index("smiles")
-            else:
-                smile_idx = None
-                f.seek(0)  # go to beginning of file
-
-            for line in f:
-                tokens = next(csv.reader([line]))
-                if is_csv and smile_only:
-                    yield tokens[smile_idx]
-                else:
-                    yield line.strip()
-                count += 1
-                if max_lines is not None and count == max_lines:
-                    return
+        dataframe = pd.read_csv(
+            input_file, header=0 if is_csv else None, nrows=max_lines
+        )
+        return dataframe
 
     if randomize:
-        # if randomizing, we have to consume the generator and shuffle it
-        gen = _read_file(smiles_file, max_lines=None, smile_only=smile_only)
-        data = np.array(list(gen))
-        np.random.shuffle(data)
+        data = _read_file(smiles_file, max_lines=None, smile_only=smile_only)
+        indices = data.index.values
+        np.random.shuffle(indices)
+        data = data.iloc[indices]
         data = data[:max_lines]
-        return iter(data) if stream else data
+
     else:
-        gen = _read_file(smiles_file, max_lines, smile_only)
-        return gen if stream else np.array(list(gen))
+        data = _read_file(smiles_file, max_lines, smile_only)
+
+    data = data.to_dict("records")  # to list of dicts
+    return iter(data) if stream else pd.DataFrame(data)
 
 
 def write_smiles(smiles, smiles_file, mode="w", add_inchikeys=False):

@@ -46,7 +46,7 @@ def tabulate_molecules(input_file, train_file, representation, output_file):
     new_smiles = []
     invalid_smiles, known_smiles = defaultdict(int), defaultdict(int)
     for i, line in enumerate(tqdm(sampled_smiles)):
-        *_, smile = line.split(",")
+        *_, smile = line.values()
 
         # input file may have empty value for smile
         if smile.strip() == "":
