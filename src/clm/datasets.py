@@ -17,46 +17,56 @@ class SmilesDataset(Dataset):
     A dataset of chemical structures, provided in SMILES format.
     """
 
-    def __init__(self, smiles, max_len=None, vocab_file=None, training_split=0.9):
+    def __init__(self, data, max_len=None, vocab_file=None, training_split=0.9):
         """
         Can be initiated from either a list of SMILES, or a line-delimited
         file.
 
         Args:
-            smiles (list): the complete set of SMILES that constitute the
-              training dataset
-            smiles_file (string): line-delimited file containing the complete
-              set of SMILES that constitute the training dataset
+            data (pd.Dataframe): A Dataframe with (at least) a "smiles"
+              column, that constitutes the training dataset
             vocab_file (string): line-delimited file containing all tokens to
               be used in the vocabulary
             training_split (numeric): proportion of the dataset to withhold for
               validation loss calculation
         """
-
-        # shuffle the SMILES
-        self.smiles = smiles
-        np.random.shuffle(self.smiles)
+        # Maintain indices to the data
+        self.indices = np.arange(len(data))
 
         # create vocabulary or else read from file
         if vocab_file:
             self.vocabulary = Vocabulary(vocab_file=vocab_file)
         else:
-            self.vocabulary = Vocabulary(smiles=self.smiles)
+            self.vocabulary = Vocabulary(smiles=data["smiles"].tolist())
 
         # remove SMILES greater than max_len
         self.max_len = max_len
         if self.max_len is not None:
-            self.smiles = [
-                sm
-                for sm in self.smiles
-                if len(self.vocabulary.tokenize(sm)) <= self.max_len
-            ]
+            valid_indices = data.apply(
+                lambda row: len(self.vocabulary.tokenize(row["smiles"]))
+                <= self.max_len,
+                axis=1,
+            )
+            self.indices = self.indices[valid_indices]
+
+        # shuffle filtered indices, and create the `.data` Dataframe
+        np.random.shuffle(self.indices)
+        self.data = data.iloc[self.indices].reset_index(drop=True)
+
+        # maintain a list of descriptor columns that we have available
+        # (any numeric column that is not 'smiles' or 'inchikey')
+        # These are possibly useful property values to return on __getitem__
+        self.descriptor_names = [
+            c
+            for c in self.data.select_dtypes(include=np.number).columns
+            if c not in ("smiles", "inchikey")
+        ]
 
         # split out a validation set
-        n_smiles = len(self.smiles)
+        n_smiles = len(self.data)
         border = int(n_smiles * training_split)
-        self.training_set = self.smiles[:border]
-        self.validation_set = self.smiles[border:]
+        self.training_set = self.data[:border]
+        self.validation_set = self.data[border:]
 
         # define collate function
         self.collate = SmilesCollate(self.vocabulary)
@@ -65,16 +75,19 @@ class SmilesDataset(Dataset):
         return len(self.training_set)
 
     def __getitem__(self, idx):
-        smiles = self.training_set[idx]
-        tokenized = self.vocabulary.tokenize(smiles)
+        row = self.training_set.iloc[idx]
+        tokenized = self.vocabulary.tokenize(row["smiles"])
         encoded = self.vocabulary.encode(tokenized)
-        return encoded
+        return encoded, row[self.descriptor_names].to_numpy()
 
     def get_validation(self, n_smiles):
-        smiles = np.random.choice(self.validation_set, n_smiles)
+        selected_indices = np.random.choice(self.validation_set.index, n_smiles)
+        selected_data = self.validation_set.loc[selected_indices]
+        smiles = selected_data["smiles"]
+        descriptors = selected_data[self.descriptor_names].to_numpy()
         tokenized = [self.vocabulary.tokenize(sm) for sm in smiles]
         encoded = [self.vocabulary.encode(tk) for tk in tokenized]
-        return self.collate(encoded)
+        return self.collate(list(zip(encoded, descriptors)))
 
     def __str__(self):
         return (
@@ -106,10 +119,11 @@ class SmilesCollate:
     def __init__(self, vocabulary):
         self.padding_token = vocabulary.dictionary["<PAD>"]
 
-    def __call__(self, encoded):
+    def __call__(self, item):
+        encoded, descriptors = zip(*item)
         padded = pad_sequence(encoded, padding_value=self.padding_token)
         lengths = [len(seq) for seq in encoded]
-        return padded, lengths
+        return padded, lengths, descriptors
 
 
 class SelfiesDataset(Dataset):
@@ -117,22 +131,20 @@ class SelfiesDataset(Dataset):
     A dataset of chemical structures, provided in SELFIES format.
     """
 
-    def __init__(self, selfies, max_len=None, vocab_file=None, training_split=0.9):
+    def __init__(self, data, max_len=None, vocab_file=None, training_split=0.9):
         """
         Can be initiated from either a list of SELFIES, or a line-delimited
         file.
 
         Args:
-            selfies (list): the complete set of SELFIES that constitute the
-              training dataset
-            selfies_file (string): line-delimited file containing the complete
-              set of SELFIES that constitute the training dataset
+            data (pd.Dataframe): A Dataframe with (at least) a "smiles"
+              column, that constitutes the training dataset
             training_split (numeric): proportion of the dataset to withhold for
               validation loss calculation
         """
 
         # shuffle the SELFIES
-        self.selfies = selfies
+        self.selfies = data["smiles"]
         np.random.shuffle(self.selfies)
 
         # create vocabulary or else read from file
