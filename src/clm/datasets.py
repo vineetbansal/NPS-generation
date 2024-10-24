@@ -8,6 +8,7 @@ import selfies as sf
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from itertools import chain
+import pandas as pd
 from torch.utils.data import Dataset
 from clm.functions import read_file
 
@@ -61,6 +62,11 @@ class SmilesDataset(Dataset):
             for c in self.data.select_dtypes(include=np.number).columns
             if c not in ("smiles", "inchikey")
         ]
+        self.n_descriptors = len(self.descriptor_names)
+
+        # convert dtypes of descriptors to floats
+        for desc in self.descriptor_names:
+            self.data[desc] = self.data[desc].astype(float)
 
         # split out a validation set
         n_smiles = len(self.data)
@@ -78,13 +84,13 @@ class SmilesDataset(Dataset):
         row = self.training_set.iloc[idx]
         tokenized = self.vocabulary.tokenize(row["smiles"])
         encoded = self.vocabulary.encode(tokenized)
-        return encoded, row[self.descriptor_names].to_numpy()
+        return encoded, torch.Tensor(pd.to_numeric(row[self.descriptor_names]))
 
     def get_validation(self, n_smiles):
         selected_indices = np.random.choice(self.validation_set.index, n_smiles)
         selected_data = self.validation_set.loc[selected_indices]
         smiles = selected_data["smiles"]
-        descriptors = selected_data[self.descriptor_names].to_numpy()
+        descriptors = torch.Tensor(selected_data[self.descriptor_names].to_numpy())
         tokenized = [self.vocabulary.tokenize(sm) for sm in smiles]
         encoded = [self.vocabulary.encode(tk) for tk in tokenized]
         return self.collate(list(zip(encoded, descriptors)))
@@ -123,7 +129,7 @@ class SmilesCollate:
         encoded, descriptors = zip(*item)
         padded = pad_sequence(encoded, padding_value=self.padding_token)
         lengths = [len(seq) for seq in encoded]
-        return padded, lengths, descriptors
+        return padded, lengths, torch.stack(descriptors)
 
 
 class SelfiesDataset(Dataset):

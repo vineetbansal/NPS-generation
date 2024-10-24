@@ -193,7 +193,7 @@ def train_models_RNN(
             embedding_size=embedding_size,
             hidden_size=hidden_size,
             dropout=dropout,
-            num_descriptors=42,
+            num_descriptors=dataset.n_descriptors,
             conditional_emb=conditional_emb,
             conditional_emb_l=conditional_emb_l,
             conditional_dec=conditional_dec,
@@ -233,9 +233,13 @@ def train_models_RNN(
                     loop_count,
                     value=[loss.item(), validation_loss.item()],
                 )
-                print_update(
-                    model, epoch, batch_no + 1, loss.item(), validation_loss.item()
-                )
+
+                # TODO PR249: print_update doesn't work for ConditionalRNN
+                # yet (due to model.sample not being tested)
+                if not conditional:
+                    print_update(
+                        model, epoch, batch_no + 1, loss.item(), validation_loss.item()
+                    )
 
             early_stop(validation_loss.item(), model, model_file, loop_count)
 
