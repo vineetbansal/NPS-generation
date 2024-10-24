@@ -213,23 +213,34 @@ def read_file(
     return iter(data) if stream else pd.DataFrame(data)
 
 
-def write_smiles(smiles, smiles_file, mode="w", add_inchikeys=False):
+def write_smiles(smiles, smiles_file, add_inchikeys=False, extra_data=None):
     """
     Write a list of SMILES to a line-delimited file.
+    inchikeys are added if `add_inchikeys` is True.
+
+    If `add_inchikeys` is True AND `extra_data` (a pandas Dataframe) is
+    provided, it should have an "inchikey" field which is used to fetch
+    any additional metadata about the smile (i.e. any non "smiles" field in the
+    Dataframe) to write to the output `smiles_file`. Smiles that don't have
+    a corresponding inchikey in `extra_data` have `nan` values in these
+    newly-added columns.
     """
+
+    def get_inchikey(smile):
+        if mol := clean_mol(smile, raise_error=False):
+            return Chem.inchi.MolToInchiKey(mol)
+        else:
+            return ""
+
     os.makedirs(os.path.dirname(os.path.abspath(smiles_file)), exist_ok=True)
-    with open(smiles_file, mode) as f:
-        if add_inchikeys:
-            f.write("smiles,inchikey\n")
-        for sm in smiles:
-            f.write(sm)
-            if add_inchikeys:
-                if mol := clean_mol(sm, raise_error=False):
-                    inchikey = Chem.inchi.MolToInchiKey(mol)
-                else:
-                    inchikey = ""
-                f.write(f",{inchikey}")
-            f.write("\n")
+    df = pd.DataFrame(smiles, columns=["smiles"])
+    if add_inchikeys:
+        df["inchikey"] = df.apply(lambda row: get_inchikey(row["smiles"]), axis=1)
+        if extra_data is not None:
+            extra_data = extra_data.drop("smiles", axis=1, errors="ignore")
+            df = df.merge(extra_data, how="left", on="inchikey")
+
+    df.to_csv(smiles_file, sep=",", index=False)
 
 
 """
@@ -443,6 +454,12 @@ def pct_stereocenters(mol):
 
 def generate_df(smiles_file, chunk_size):
     smiles_df = read_csv_file(smiles_file)
+
+    # TODO PR249: Drop all columns except 'smiles' and 'inchikey'
+    smiles_df = smiles_df.drop(
+        [col for col in smiles_df.columns if col not in ("smiles", "inchikey")], axis=1
+    )
+
     smiles = smiles_df["smiles"].to_list()
     df = pd.DataFrame(columns=["smiles", "mass", "formula"])
 
