@@ -29,7 +29,7 @@ def test_00_preprocess(tmp_path):
         max_input_smiles=1000,
     )
     assert_checksum_equals(
-        tmp_path / "preprocessed.smi", test_dir / "prior/raw/LOTUS_truncated.txt"
+        tmp_path / "preprocessed.smi", test_dir / "prior/raw/LOTUS_truncated_sorted.txt"
     )
 
 

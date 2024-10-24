@@ -140,6 +140,9 @@ def preprocess(
             if pct_smiles < 0.01 / 100 or len(token_smiles) <= 10:
                 smiles = np.setdiff1d(smiles, token_smiles)
 
+    # TODO PR249: Remove eventually
+    smiles = sorted(smiles)
+
     write_smiles(smiles, output_file, mode="w", add_inchikeys=True)
 
 
