@@ -517,6 +517,12 @@ class ConditionalRNN(nn.Module):
         self.embedding_size = embedding_size
         self.hidden_size = hidden_size
 
+        self.num_descriptors = num_descriptors
+        # list of (min, max) tuples for each descriptor
+        self.descriptor_ranges = [(torch.inf, -torch.inf)] * self.num_descriptors
+        # TODO PR249 : cheat and remember seen descriptors
+        self.seen_descriptors = torch.empty(1000, self.num_descriptors)
+
         # Assert that conditional_emb_l and conditional_emb cannot both be true at the same time
         assert not (
             self.conditional_emb_l and self.conditional_emb and self.conditional_h
@@ -537,7 +543,7 @@ class ConditionalRNN(nn.Module):
         # set up input/output sizes for RNN
         rnn_input_size = self.embedding_size  # Default: embedding size
         rnn_output_size = self.hidden_size  # Default: hidden size
-        self.num_descriptors = num_descriptors
+
         # Determine rnn_input_size based on the conditions for conditional_emb_l and conditional_emb
         if self.conditional_emb_l and not self.conditional_emb:
             rnn_input_size = (
@@ -610,7 +616,7 @@ class ConditionalRNN(nn.Module):
 
     def loss(self, batch):
         # extract the elements of a single minibatch
-        (padded, lengths, descriptors) = batch
+        padded, lengths, descriptors = batch
         # move to the gpu
         padded, descriptors = padded.to(self.device), descriptors.to(self.device)
 
@@ -694,17 +700,34 @@ class ConditionalRNN(nn.Module):
 
             loss = loss + (self.gamma * descriptor_mean_loss.sum())
 
+        # update descriptor_range
+        for i in range(self.num_descriptors):
+            self.descriptor_ranges[i] = (
+                min(self.descriptor_ranges[i][0], torch.min(descriptors[:, i]).item()),
+                max(self.descriptor_ranges[i][1], torch.max(descriptors[:, i]).item()),
+            )
+        # TODO PR249 : cheat and remember seen descriptors
+        self.seen_descriptors = torch.cat(
+            (descriptors, self.seen_descriptors.to(descriptors.device)), dim=0
+        )[:1000].to(descriptors.device)
+
         return loss
 
-    def sample(
-        self, combined_features, max_len=250, return_smiles=True, return_losses=False
-    ):
+    def sample(self, n_sequences, max_len=250, return_smiles=True, return_losses=False):
         # get start/stop tokens
         start_token = self.vocabulary.dictionary["SOS"]
         stop_token = self.vocabulary.dictionary["EOS"]
         pad_token = self.vocabulary.dictionary["<PAD>"]
-        # move masses to device
-        combined_features = combined_features.to(self.device)
+
+        # sample from a uniform distribution using range in descriptor_ranges
+        # combined_features = torch.empty(n_sequences, self.num_descriptors)
+        # for i, (min_, max_) in enumerate(self.descriptor_ranges):
+        #     combined_features[:, i] = min_ + torch.rand(n_sequences) * (max_ - min_)
+        # combined_features = combined_features.to(self.device)
+
+        # TODO PR249 : serve up seen descriptors
+        combined_features = self.seen_descriptors[:n_sequences, :]
+
         # create start token tensor
         n_sequences = len(combined_features)
         inputs = (
