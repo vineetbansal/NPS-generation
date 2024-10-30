@@ -11,7 +11,7 @@ enum_factors:
 max_input_smiles: 1000
 model_params:
   conditional:
-    enabled: False
+    enabled: True
     emb: False
     emb_l: True
     dec: False
@@ -24,7 +24,7 @@ model_params:
   dropout: 0
   batch_size: 64
   learning_rate: 0.001
-  max_epochs: 3
+  max_epochs: 1000
   patience: 50000
   log_every_steps: 100
   log_every_epochs: 1

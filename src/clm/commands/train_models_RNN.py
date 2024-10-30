@@ -234,12 +234,9 @@ def train_models_RNN(
                     value=[loss.item(), validation_loss.item()],
                 )
 
-                # TODO PR249: print_update doesn't work for ConditionalRNN
-                # yet (due to model.sample not being tested)
-                if not conditional:
-                    print_update(
-                        model, epoch, batch_no + 1, loss.item(), validation_loss.item()
-                    )
+                print_update(
+                    model, epoch, batch_no + 1, loss.item(), validation_loss.item()
+                )
 
             early_stop(validation_loss.item(), model, model_file, loop_count)
 

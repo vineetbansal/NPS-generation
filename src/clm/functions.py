@@ -178,18 +178,25 @@ def read_file(
             open_fn = open
             mode = "r"
 
+        is_csv = has_header = False
+        sep = ","
         with open_fn(input_file, mode) as f:
             # Detect if we're dealing with a csv file with "smiles" in the header
             first_line = f.readline()
-            first_line_tokens = next(csv.reader([first_line]))
-            is_csv = "smiles" in first_line_tokens
+
+            for sep in (",", "\t", " "):
+                first_line_tokens = next(csv.reader([first_line], delimiter=sep))
+                has_header = "smiles" in first_line_tokens
+                is_csv = has_header or len(first_line_tokens) > 1
+                if is_csv:
+                    break
 
         # max_lines=0 is a shortcut for max_lines=None
         if max_lines == 0:
             max_lines = None
 
         dataframe = pd.read_csv(
-            input_file, header=0 if is_csv else None, nrows=max_lines
+            input_file, header=0 if has_header else None, nrows=max_lines, sep=sep
         )
 
         # Handle column dtypes that we know about
