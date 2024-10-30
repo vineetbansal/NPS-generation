@@ -246,8 +246,7 @@ def test_nn_tc_ever_never(tmp_path):
         output_file=output_file,
     )
     pd.testing.assert_frame_equal(
-        pd.read_csv(output_file),
-        pd.read_csv(test_dir / "output_nn_tc_ever_never.csv")
+        pd.read_csv(output_file), pd.read_csv(test_dir / "output_nn_tc_ever_never.csv")
     )
 
 
