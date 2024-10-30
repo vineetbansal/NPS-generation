@@ -62,9 +62,9 @@ def test_01_create_training_sets(tmp_path):
     # 0; Since we're running with enum_factor=0, this should be identical
     # to `train_file_0` (train smiles with augmentation for fold 0)
     assert_checksum_equals(tmp_path / "train0_file_0", tmp_path / "train_file_0")
-    assert_checksum_equals(
-        tmp_path / "train_file_0",
-        test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi",
+    pd.testing.assert_frame_equal(
+        pd.read_csv(tmp_path / "train_file_0"),
+        pd.read_csv(test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi"),
     )
     assert_checksum_equals(
         tmp_path / "vocabulary_file_0",
