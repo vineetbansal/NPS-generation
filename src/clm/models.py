@@ -95,7 +95,15 @@ class RNN(nn.Module):
 
         return loss.mean()
 
-    def sample(self, n_sequences, max_len=250, return_smiles=True, return_losses=False):
+    def sample(
+        self,
+        *,
+        n_sequences,
+        max_len=250,
+        return_smiles=True,
+        return_losses=False,
+        descriptors=None,
+    ):
         # get start/stop tokens
         start_token = self.vocabulary.dictionary["SOS"]
         stop_token = self.vocabulary.dictionary["EOS"]
@@ -425,7 +433,9 @@ class Transformer(nn.Module):
 
         return loss.mean()
 
-    def sample(self, n_sequences, return_smiles=True, return_losses=False):
+    def sample(
+        self, *, n_sequences, return_smiles=True, return_losses=False, descriptors=None
+    ):
         # get start/stop tokens
         start_token = self.vocabulary.dictionary["SOS"]
         stop_token = self.vocabulary.dictionary["EOS"]
@@ -518,10 +528,6 @@ class ConditionalRNN(nn.Module):
         self.hidden_size = hidden_size
 
         self.num_descriptors = num_descriptors
-        # list of (min, max) tuples for each descriptor
-        self.descriptor_ranges = [(torch.inf, -torch.inf)] * self.num_descriptors
-        # TODO PR249 : cheat and remember seen descriptors
-        self.seen_descriptors = torch.empty(1000, self.num_descriptors)
 
         # Assert that conditional_emb_l and conditional_emb cannot both be true at the same time
         assert not (
@@ -625,15 +631,13 @@ class ConditionalRNN(nn.Module):
         # -> embedded: max_len x batch_size x emb_size
         if self.dropout.p > 0:
             embedded = self.dropout(embedded)
-        # cat masses along dimension of emb_size
-        # combined features repeating: max_len x batch_size x 1
-        combined_features_repeating = descriptors.unsqueeze(0).repeat(
-            max(lengths), 1, 1
-        )
+        # cat descriptors along dimension of emb_size
+        # descriptors_repeating: max_len x batch_size x 1
+        descriptors_repeating = descriptors.unsqueeze(0).repeat(max(lengths), 1, 1)
 
         if self.conditional_emb_l:
             combined_embedding_features = self.conditional_to_emb(
-                combined_features_repeating.float()
+                descriptors_repeating.float()
             )
             # combined_embedding_features: max_len x batch_size x emb_size
             embedded = torch.cat(
@@ -641,9 +645,7 @@ class ConditionalRNN(nn.Module):
             ).float()
             # embedded: max_len x batch_size x (2x emb_size)
         elif self.conditional_emb:
-            embedded = torch.cat(
-                [embedded, combined_features_repeating], axis=2
-            ).float()
+            embedded = torch.cat([embedded, descriptors_repeating], axis=2).float()
         # -> embedded: max_len x batch_size x (emb_size + number of features)
 
         # now pack the embedded sequences [packed : sum of len x embedding_size]
@@ -666,14 +668,14 @@ class ConditionalRNN(nn.Module):
         # cat masses along dimension of emb_size
         if self.conditional_dec_l:
             combined_embedding_features = self.conditional_to_dec(
-                combined_features_repeating.float()
+                descriptors_repeating.float()
             )
             padded_output = torch.cat(
                 [padded_output, combined_embedding_features], axis=2
             ).float()
         elif self.conditional_dec:
             padded_output = torch.cat(
-                [padded_output, combined_features_repeating], axis=2
+                [padded_output, descriptors_repeating], axis=2
             ).float()
         # -> padded_output: max_len x batch_size x (hidden_size + number of features)
         decoded = self.decoder(padded_output)
@@ -700,36 +702,31 @@ class ConditionalRNN(nn.Module):
 
             loss = loss + (self.gamma * descriptor_mean_loss.sum())
 
-        # update descriptor_range
-        for i in range(self.num_descriptors):
-            self.descriptor_ranges[i] = (
-                min(self.descriptor_ranges[i][0], torch.min(descriptors[:, i]).item()),
-                max(self.descriptor_ranges[i][1], torch.max(descriptors[:, i]).item()),
-            )
-        # TODO PR249 : cheat and remember seen descriptors
-        self.seen_descriptors = torch.cat(
-            (descriptors, self.seen_descriptors.to(descriptors.device)), dim=0
-        )[:1000].to(descriptors.device)
-
         return loss
 
-    def sample(self, n_sequences, max_len=250, return_smiles=True, return_losses=False):
+    def sample(
+        self,
+        *,
+        descriptors=None,
+        n_sequences=None,
+        max_len=250,
+        return_smiles=True,
+        return_losses=False,
+    ):
+        assert (
+            descriptors is not None
+        ), "descriptors must be provided for sampling from a Conditional RNN model"
+        assert (
+            n_sequences is None or len(descriptors) == n_sequences
+        ), "When providing descriptor values, either omit n_sequences or make them conform to the number of descriptors"
+
         # get start/stop tokens
         start_token = self.vocabulary.dictionary["SOS"]
         stop_token = self.vocabulary.dictionary["EOS"]
         pad_token = self.vocabulary.dictionary["<PAD>"]
 
-        # sample from a uniform distribution using range in descriptor_ranges
-        # combined_features = torch.empty(n_sequences, self.num_descriptors)
-        # for i, (min_, max_) in enumerate(self.descriptor_ranges):
-        #     combined_features[:, i] = min_ + torch.rand(n_sequences) * (max_ - min_)
-        # combined_features = combined_features.to(self.device)
-
-        # TODO PR249 : serve up seen descriptors
-        combined_features = self.seen_descriptors[:n_sequences, :]
-
         # create start token tensor
-        n_sequences = len(combined_features)
+        n_sequences = len(descriptors)
         inputs = (
             torch.empty(n_sequences)
             .fill_(start_token)
@@ -740,7 +737,7 @@ class ConditionalRNN(nn.Module):
         # initialize hidden state
         if self.conditional_h:
             hidden = self.init_hidden(
-                combined_features
+                descriptors
             )  # Initializing hidden state based on number of layers
         else:
             hidden = torch.zeros(self.n_layers, n_sequences, self.hidden_size).to(
@@ -748,9 +745,7 @@ class ConditionalRNN(nn.Module):
             ), torch.zeros(self.n_layers, n_sequences, self.hidden_size).to(self.device)
 
         # repeat masses
-        combined_features = combined_features.view(
-            1, n_sequences, combined_features.shape[1]
-        )
+        descriptors = descriptors.view(1, n_sequences, descriptors.shape[1])
 
         loss = nn.NLLLoss(reduction="none", ignore_index=pad_token)
 
@@ -761,17 +756,17 @@ class ConditionalRNN(nn.Module):
         for step in range(max_len):
             embedded = self.embedding(inputs)
             if self.conditional_emb_l:
-                combined_embedding = self.conditional_to_emb(combined_features.float())
+                combined_embedding = self.conditional_to_emb(descriptors.float())
                 embedded = torch.cat([embedded, combined_embedding], axis=2).float()
             elif self.conditional_emb:
-                embedded = torch.cat([embedded, combined_features], axis=2).float()
+                embedded = torch.cat([embedded, descriptors], axis=2).float()
 
             output, hidden = self.rnn(embedded, hidden)
             if self.conditional_dec_l:
-                combined_embedding = self.conditional_to_dec(combined_features.float())
+                combined_embedding = self.conditional_to_dec(descriptors.float())
                 output = torch.cat([output, combined_embedding], axis=2).float()
             elif self.conditional_dec:
-                output = torch.cat([output, combined_features], axis=2).float()
+                output = torch.cat([output, descriptors], axis=2).float()
 
             logits = self.decoder(output)
             prob = F.softmax(logits, dim=2)
@@ -799,14 +794,14 @@ class ConditionalRNN(nn.Module):
         else:
             return smiles
 
-    def init_hidden(self, combined_features):
+    def init_hidden(self, descriptors):
         h_0s = []
         c_0s = []
         for layer in range(self.n_layers):
             mass_to_h = self.mass_to_hs[layer]
             mass_to_c = self.mass_to_cs[layer]
-            h_0 = mass_to_h(combined_features.float())
-            c_0 = mass_to_c(combined_features.float())
+            h_0 = mass_to_h(descriptors.float())
+            c_0 = mass_to_c(descriptors.float())
             h_0s.append(h_0)
             c_0s.append(c_0)
         # stack into correct dimensionality

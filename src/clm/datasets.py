@@ -83,7 +83,10 @@ class SmilesDataset(Dataset):
     def __getitem__(self, idx):
         row = self.training_set.iloc[idx]
         tokenized = self.vocabulary.tokenize(row["smiles"])
-        encoded = self.vocabulary.encode(tokenized)
+        try:
+            encoded = self.vocabulary.encode(tokenized)
+        except KeyError:  # some callers might only be interested in the descriptors
+            encoded = None
         return encoded, torch.Tensor(pd.to_numeric(row[self.descriptor_names]))
 
     def get_validation(self, n_smiles):
@@ -222,7 +225,7 @@ class Vocabulary:
         """
         if vocab_file is not None:
             # read tokens from file, and add to vocabulary
-            self.characters = read_file(vocab_file)[0].to_list()
+            self.characters = read_file(vocab_file)["smiles"].to_list()
         else:
             # read SMILES
             if smiles is not None:

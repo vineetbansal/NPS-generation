@@ -10,7 +10,7 @@ enum_factors:
 max_input_smiles: 0
 model_params:
   conditional:
-    enabled: True
+    enabled: False
     emb: False
     emb_l: True
     dec: False

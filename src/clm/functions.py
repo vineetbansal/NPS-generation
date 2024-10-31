@@ -6,6 +6,7 @@ import os
 import os.path
 import pandas as pd
 import warnings
+import pathlib
 from selfies import decoder
 from tqdm import tqdm
 from rdkit import Chem
@@ -198,6 +199,10 @@ def read_file(
         dataframe = pd.read_csv(
             input_file, header=0 if has_header else None, nrows=max_lines, sep=sep
         )
+
+        # Handle legacy files - no header, and a single column for the SMILE strings
+        if not has_header and len(dataframe.columns) == 1:
+            dataframe.columns = ["smiles"]
 
         # Handle column dtypes that we know about
         for column in ("smiles", "inchikey"):
@@ -597,3 +602,18 @@ def local_seed(seed):
         yield
     finally:
         np.random.set_state(current_state)
+
+
+def load_dataset(representation, input_file, vocab_file):
+    from clm.datasets import SmilesDataset, SelfiesDataset
+
+    # Detect if we're dealing with a single or multiple input files
+    multiple = not isinstance(input_file, (str, pathlib.Path))
+    if not multiple:
+        input_file = [input_file]
+    inputs = [read_file(f, smile_only=False) for f in input_file]
+    inputs = pd.concat(inputs, axis=0)
+    if representation == "SELFIES":
+        return SelfiesDataset(data=inputs, vocab_file=vocab_file)
+    else:
+        return SmilesDataset(data=inputs, vocab_file=vocab_file)

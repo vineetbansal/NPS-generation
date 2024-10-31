@@ -5,13 +5,10 @@ import torch
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
 from rdkit import rdBase
-
-from clm.datasets import SmilesDataset, SelfiesDataset
 from clm.models import RNN, ConditionalRNN
 from clm.loggers import EarlyStopping, track_loss, print_update
-from clm.functions import read_file, write_smiles
+from clm.functions import write_smiles, load_dataset
 
 # suppress Chem.MolFromSmiles error output
 rdBase.DisableLog("rdApp.error")
@@ -121,16 +118,7 @@ def add_args(parser):
         action="store_true",
         help="Add descriptor in hidden and cell state",
     )
-
     return parser
-
-
-def load_dataset(representation, input_file, vocab_file):
-    inputs = read_file(input_file, smile_only=False)
-    if representation == "SELFIES":
-        return SelfiesDataset(data=inputs, vocab_file=vocab_file)
-    else:
-        return SmilesDataset(data=inputs, vocab_file=vocab_file)
 
 
 def training_step(batch, model, optim, dataset, batch_size):
@@ -143,11 +131,17 @@ def training_step(batch, model, optim, dataset, batch_size):
     return validation_loss
 
 
-def sample_and_write_smiles(model, sample_mols, batch_size, smiles_file):
+def sample_and_write_smiles(model, sample_mols, batch_size, smiles_file, dataset=None):
     sampled_smiles = []
     with tqdm(total=sample_mols) as pbar:
         while len(sampled_smiles) < sample_mols:
-            new_smiles = model.sample(batch_size, return_smiles=True)
+            descriptors = None
+            if dataset is not None:
+                _, _, descriptors = dataset.get_validation(batch_size)
+                descriptors = descriptors.to(model.device)
+            new_smiles = model.sample(
+                n_sequences=batch_size, return_smiles=True, descriptors=descriptors
+            )
             sampled_smiles.extend(new_smiles)
             pbar.update(len(new_smiles))
     write_smiles(sampled_smiles, smiles_file)
@@ -235,7 +229,12 @@ def train_models_RNN(
                 )
 
                 print_update(
-                    model, epoch, batch_no + 1, loss.item(), validation_loss.item()
+                    model,
+                    epoch,
+                    batch_no + 1,
+                    loss.item(),
+                    validation_loss.item(),
+                    dataset=dataset,
                 )
 
             early_stop(validation_loss.item(), model, model_file, loop_count)
@@ -259,7 +258,7 @@ def train_models_RNN(
     model.load_state_dict(torch.load(model_file))
     model.eval()
     if smiles_file:
-        sample_and_write_smiles(model, sample_mols, batch_size, smiles_file)
+        sample_and_write_smiles(model, sample_mols, batch_size, smiles_file, dataset)
 
 
 def main(args):
