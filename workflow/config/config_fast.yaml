@@ -11,12 +11,12 @@ enum_factors:
 max_input_smiles: 1000
 model_params:
   conditional:
-    enabled: False
-    emb: False
-    emb_l: True
-    dec: False
-    dec_l: True
-    h: False
+    enabled: false
+    emb: false
+    emb_l: true
+    dec: false
+    dec_l: true
+    h: false
   rnn_type: LSTM
   embedding_size: 32
   hidden_size: 256

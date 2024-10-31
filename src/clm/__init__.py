@@ -1,10 +1,5 @@
 import logging.config
 
-# TODO PR249 : pandas is being obnoxious
-import warnings
-
-warnings.simplefilter(action="ignore", category=FutureWarning)
-
 # The _version.py file is managed by setuptools-scm
 #   and is not in version control.
 try:
