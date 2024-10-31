@@ -63,10 +63,10 @@ def add_args(parser):
         help="Add descriptor in hidden and cell state",
     )
     parser.add_argument(
-        "--heldout_train_files",
+        "--heldout_file",
         type=str,
         nargs="+",
-        help="Training files in heldout set. Useful for sampling from a Conditional RNN model",
+        help="Testing file in heldout set. Useful for sampling from a Conditional RNN model",
     )
 
     parser.add_argument("--batch_size", type=int, help="Batch size for training")
@@ -110,7 +110,7 @@ def sample_molecules_RNN(
     conditional_dec=False,
     conditional_dec_l=True,
     conditional_h=False,
-    heldout_train_files=None,
+    heldout_file=None,
 ):
     os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
 
@@ -124,11 +124,11 @@ def sample_molecules_RNN(
     heldout_dataset = None
     if conditional:
         assert (
-            heldout_train_files is not None
-        ), "heldout_train_files must be provided for conditional RNN Model"
+            heldout_file is not None
+        ), "heldout_file must be provided for conditional RNN Model"
         heldout_dataset = load_dataset(
             representation=representation,
-            input_file=heldout_train_files,
+            input_file=heldout_file,
             vocab_file=vocab_file,
         )
         model = ConditionalRNN(
@@ -204,5 +204,5 @@ def main(args):
         conditional_dec=args.conditional_dec,
         conditional_dec_l=args.conditional_dec_l,
         conditional_h=args.conditional_h,
-        heldout_train_files=args.heldout_train_files,
+        heldout_file=args.heldout_file,
     )

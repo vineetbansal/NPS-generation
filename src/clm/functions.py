@@ -467,7 +467,6 @@ def pct_stereocenters(mol):
 def generate_df(smiles_file, chunk_size):
     smiles_df = read_csv_file(smiles_file)
 
-    # TODO PR249: Drop all columns except 'smiles' and 'inchikey'
     smiles_df = smiles_df.drop(
         [col for col in smiles_df.columns if col not in ("smiles", "inchikey")], axis=1
     )

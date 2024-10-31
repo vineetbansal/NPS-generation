@@ -179,10 +179,7 @@ def test_03_sample_molecules_conditional_RNN(tmp_path):
         / "0/prior/models/LOTUS_truncated_SMILES_0_0_model_conditional.pt",
         output_file=output_file,
         conditional=True,
-        heldout_train_files=[
-            test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi",
-            test_dir / "0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi",
-        ],
+        heldout_file=test_dir / "0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi",
     )
     # Samples and their associated loss values can vary between platforms
     # and architectures, so we simply ensure that we have the requisite number
