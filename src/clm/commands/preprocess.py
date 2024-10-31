@@ -116,9 +116,6 @@ def preprocess(
             if has_token.sum() <= 10 or len(has_token) < 0.0001 * n_smiles:
                 data = data[~has_token]
 
-    # TODO PR249: Remove eventually
-    data = data.sort_values("smiles")
-
     data.to_csv(output_file, sep=",", index=False)
 
 
