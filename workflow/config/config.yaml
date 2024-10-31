@@ -1,12 +1,25 @@
 representations:
   - SMILES
-folds: 3
+folds: 10
 train_seeds:
   - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
 sample_seeds:
   - 0
 enum_factors:
   - 0
+  - 10
+  - 30
+  - 50
+  - 100
 max_input_smiles: 0
 model_params:
   conditional:
@@ -44,7 +57,7 @@ random_seed: 5831
 paths:
   # Modify these paths to match your system
   output_dir: data
-  dataset: "../../data/LOTUS.txt"
+  dataset: "../tests/test_data/LOTUS_truncated.txt"
   pubchem_tsv_file: "../tests/test_data/PubChem_truncated.tsv"
 
   # The following paths can be modified, as long as all wildcards are preserved in each case
