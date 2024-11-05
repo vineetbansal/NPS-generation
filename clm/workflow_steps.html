@@ -1,0 +1,181 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snakemake Workflow Steps &mdash; CLM  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Snakemake workflow" href="workflow.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            CLM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setting up the Environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Snakemake workflow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Snakemake Workflow Steps</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CLM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Snakemake Workflow Steps</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/clm/workflow_steps.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="snakemake-workflow-steps">
+<h1>Snakemake Workflow Steps<a class="headerlink" href="#snakemake-workflow-steps" title="Link to this heading"></a></h1>
+<p>This document describes the purpose of the individual steps in the <code class="docutils literal notranslate"><span class="pre">Snakemake</span></code> workflow. Note that certain model evaluation and figure-generation steps have been omitted from this discussion.</p>
+<p><img alt="Rulegraph" src="../_images/rulegraph.png" /></p>
+<section id="preprocess">
+<h2>preprocess<a class="headerlink" href="#preprocess" title="Link to this heading"></a></h2>
+<p>Read input smiles and save a file of “canonical” smiles. This entails conversion
+to molecules using <code class="docutils literal notranslate"><span class="pre">rdkit</span></code>, removing light fragments, neutralizing charges,
+filtering for valid elements, removing very rare tokens in the smiles vocabulary (and eliminating the corresponding molecules), and saving the resulting smiles.
+<a class="reference external" href="https://www.inchi-trust.org/technical-faq/#2.1">Inchikeys</a> are added to each individual smile, and any extra metadata for an input smile is saved in the output file.</p>
+</section>
+<section id="create-training-sets">
+<h2>create_training_sets<a class="headerlink" href="#create-training-sets" title="Link to this heading"></a></h2>
+<p>Split input smiles into separate files for train/test folds, while also creating
+<code class="docutils literal notranslate"><span class="pre">.vocabulary</span></code> files for the training smiles. The number of folds can be specified in the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file.
+The smiles can optionally be (and typically are) <a class="reference external" href="https://www.cheminformania.com/smiles-enumeration-as-data-augmentation-for-molecular-neural-networks/">augmented</a>
+by an <em>enum factor</em> (typically 10x to 100x) to increase the size of the training set, and subsequent
+steps of the pipeline are run for each enum factor in separate folders.</p>
+<p>When creating training sets, the prefix <code class="docutils literal notranslate"><span class="pre">train_</span></code> is used for files that might possibly be augmented, and <code class="docutils literal notranslate"><span class="pre">train0_</span></code> for the non-augmented files. The former are useful
+for training purposes, while the latter are useful for evaluation purposes. Similarly, the prefix <code class="docutils literal notranslate"><span class="pre">test_</span></code> or <code class="docutils literal notranslate"><span class="pre">test0_</span></code> is used for the test files.</p>
+<p>This step also optionally takes in a <code class="docutils literal notranslate"><span class="pre">min_tc</span></code> parameter to only consider smiles that are mutually similar (to a randomly selected seed smile).</p>
+<section id="add-carbon">
+<h3>add_carbon<a class="headerlink" href="#add-carbon" title="Link to this heading"></a></h3>
+<p>This step generates data for the <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S1740674920300159">AddCarbon</a> model by inserting a
+random carbon atom at a random point in training set SMILES. This is useful for model evaluation purposes later on (in the step <code class="docutils literal notranslate"><span class="pre">write_structural_prior_CV</span></code>).</p>
+</section>
+<section id="collapse-train-test-data">
+<h3>collapse_train_test_data<a class="headerlink" href="#collapse-train-test-data" title="Link to this heading"></a></h3>
+<p>This step generates single files for training and testing smiles respectively, out of all the folds we generated in the <code class="docutils literal notranslate"><span class="pre">create_training_sets</span></code> step. This is useful
+for the <code class="docutils literal notranslate"><span class="pre">write_structural_prior_CV_overall</span></code> step, explained later.</p>
+</section>
+</section>
+<section id="train-models-rnn">
+<h2>train_models_RNN<a class="headerlink" href="#train-models-rnn" title="Link to this heading"></a></h2>
+<p>This step trains one or more (the number of <code class="docutils literal notranslate"><span class="pre">train_seeds</span></code> entries in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>) RNN models on an input fold. <strong>This is the most time and resource intensive step
+in the entire pipeline</strong>. The specifics of the model (number of layers/epochs/batch size etc). can be configured in the <code class="docutils literal notranslate"><span class="pre">model_params</span></code> section of the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file.</p>
+<p>Each training fold is internally split into train/validation split of 0.9. The trained model and loss files are written out.</p>
+</section>
+<section id="sample-molecules-rnn">
+<h2>sample_molecules_RNN<a class="headerlink" href="#sample-molecules-rnn" title="Link to this heading"></a></h2>
+<p>This step samples <code class="docutils literal notranslate"><span class="pre">sample_mols</span></code> (typically of the order of 10M) smiles from a trained model and fold, and saves to and output file. It is possible to sample multiple times
+from the same trained model using multiple <code class="docutils literal notranslate"><span class="pre">sample_seed</span></code> values.</p>
+</section>
+<section id="tabulate-molecules">
+<h2>tabulate_molecules<a class="headerlink" href="#tabulate-molecules" title="Link to this heading"></a></h2>
+<p>For sampled smiles from a model and a particular fold, this step adds the calculated molecular mass,
+formula and sampling frequency. Smiles that are found in training file for that particular fold are filtered out, based on a comparison of InchiKeys.</p>
+</section>
+<section id="collect-tabulated-molecules">
+<h2>collect_tabulated_molecules<a class="headerlink" href="#collect-tabulated-molecules" title="Link to this heading"></a></h2>
+<p>This is an aggregation step for all sampled smiles from all samples obtained across all <code class="docutils literal notranslate"><span class="pre">|train_seeds|</span></code> models in a fold,
+and adds aggregation metrics like sampling frequency.</p>
+</section>
+<section id="write-structural-prior-cv">
+<h2>write_structural_prior_CV<a class="headerlink" href="#write-structural-prior-cv" title="Link to this heading"></a></h2>
+<p>This step evaluates test smiles against the trained models <em>for each fold</em>, with the <code class="docutils literal notranslate"><span class="pre">PubChem</span></code> and <code class="docutils literal notranslate"><span class="pre">AddCarbon</span></code> model as baselines.</p>
+<p>For each fold, for each smile in the test dataset, we generate statistics for the occurrence of the test smile in each of the 3 “models”
+(trained_smiles/sampled_smiles/PubChem).</p>
+<p>For each of the 3 “models”, we keep track of smiles that fall within some tolerance of the true test-smile molecular weight. When sorted by decreasing
+sampling frequency, the rank at which we find the “correct” smile (in terms of a match in the smile string), gives us the “rank” of each test smile.
+Lower ranks indicate a better model. This output is written to <code class="docutils literal notranslate"><span class="pre">ranks_file</span></code>.</p>
+</section>
+<section id="write-formula-prior-cv">
+<h2>write_formula_prior_CV<a class="headerlink" href="#write-formula-prior-cv" title="Link to this heading"></a></h2>
+<p>This step is analogous to <code class="docutils literal notranslate"><span class="pre">write_structural_prior_CV</span></code>, but here “correctness” is based on a matching formula, not a matching smile.</p>
+</section>
+<section id="process-tabulated-molecules">
+<h2>process_tabulated_molecules<a class="headerlink" href="#process-tabulated-molecules" title="Link to this heading"></a></h2>
+<p>This step aggregates sampled smiles <em>across all folds</em>, calculating metrics like average sampling frequency (if <code class="docutils literal notranslate"><span class="pre">metric=freq-avg</span></code>).</p>
+</section>
+<section id="write-structural-prior-cv-overall">
+<h2>write_structural_prior_CV_overall<a class="headerlink" href="#write-structural-prior-cv-overall" title="Link to this heading"></a></h2>
+<p>This step is analogous to <code class="docutils literal notranslate"><span class="pre">write_structural_prior_CV</span></code>, but evaluates test smiles against the trained models <em>across all folds</em>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="workflow.html" class="btn btn-neutral float-left" title="Snakemake workflow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Michael Skinnider.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

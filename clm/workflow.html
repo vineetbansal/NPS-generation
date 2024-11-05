@@ -1,0 +1,180 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snakemake workflow &mdash; CLM  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Snakemake Workflow Steps" href="workflow_steps.html" />
+    <link rel="prev" title="Setting up the Environment" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            CLM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setting up the Environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installation">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Snakemake workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow_steps.html">Snakemake Workflow Steps</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CLM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Snakemake workflow</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/clm/workflow.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="snakemake-workflow">
+<h1>Snakemake workflow<a class="headerlink" href="#snakemake-workflow" title="Link to this heading"></a></h1>
+<p>The included <code class="docutils literal notranslate"><span class="pre">Snakefile</span></code> provides a way to run the end-end workflow for the
+<code class="docutils literal notranslate"><span class="pre">clm</span></code> repository.</p>
+<p>The following “rulegraph” illustrates the unique steps in the workflow that would be run,
+and their order of execution. (note that the evaluation and figure-generation steps have been omitted from this graph for clarity).</p>
+<p><img alt="Rulegraph" src="../_images/rulegraph.png" /></p>
+<p>Note that the actual number of jobs will exceed the number of rules above, since many different
+instances of the rules will be run for any given dataset, depending on the number of train/test folds,
+the number of independent seeds against which to run the models etc.</p>
+<p>The following dependency graph illustrates the particular instances of the steps that would be run, when
+running the workflow for a single <code class="docutils literal notranslate"><span class="pre">enum_factor</span></code>, 3 <code class="docutils literal notranslate"><span class="pre">folds</span></code>, 2 <code class="docutils literal notranslate"><span class="pre">training</span> <span class="pre">seeds</span></code>, and 1 <code class="docutils literal notranslate"><span class="pre">sampling</span> <span class="pre">seed</span></code>.
+(This is the starter configuration provided in the file <code class="docutils literal notranslate"><span class="pre">config_fast.yaml</span></code>).</p>
+<p><img alt="DAG" src="../_images/dag.png" /></p>
+<section id="testing-the-workflow">
+<h2>Testing the workflow<a class="headerlink" href="#testing-the-workflow" title="Link to this heading"></a></h2>
+<p>To run this workflow on a tiny dataset provided with <code class="docutils literal notranslate"><span class="pre">clm</span></code>:</p>
+<section id="steps">
+<h3>Steps<a class="headerlink" href="#steps" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cd</span></code> to the <code class="docutils literal notranslate"><span class="pre">workflow/</span></code> folder. In the activated environment, run the following command to see the steps (including the actual commands) that will be run:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">CLM</span><span class="o">/</span><span class="n">workflow</span>
+<span class="n">snakemake</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">config_fast</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">jobs</span> <span class="mi">1</span> <span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span> <span class="o">-</span><span class="n">p</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Repeat the command <em>without</em> the <code class="docutils literal notranslate"><span class="pre">--dry-run</span> <span class="pre">-p</span></code> to execute the workflow. The end-end workflow should take around 5 minutes on computers where <code class="docutils literal notranslate"><span class="pre">torch</span></code> has access to a gpu, or 20-25 minutes otherwise.</p></li>
+</ol>
+<p>Note that the configuration provided in <code class="docutils literal notranslate"><span class="pre">config_fast.yaml</span></code>, as well as the truncated datasets that it uses by default, are purely for software testing purposes, and generate results/graphs that are not interpretable. To run the actual workflow on your dataset, read on.</p>
+</section>
+</section>
+<section id="running-the-real-workflow">
+<h2>Running the “real” workflow<a class="headerlink" href="#running-the-real-workflow" title="Link to this heading"></a></h2>
+<p>To run the end-end workflow on an actual dataset (preferably on a cluster), repeat the above process, but with a few tweaks:</p>
+<section id="id1">
+<h3>Steps<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p>a. Specify the paths to your dataset (a <code class="docutils literal notranslate"><span class="pre">.txt</span></code> file containing SMILES in each line, or a <code class="docutils literal notranslate"><span class="pre">.txt</span></code> file in csv format with a <code class="docutils literal notranslate"><span class="pre">smiles</span></code> column and any other additional columns), as well as the PubChem dataset for model evaluation purposes, as <code class="docutils literal notranslate"><span class="pre">--config</span></code> parameters on the command line. Note that the PubChem dataset used for <code class="docutils literal notranslate"><span class="pre">clm</span></code>
+has undergone a time-intensive preprocessing. This dataset (~6Gb) is available on the <a class="reference external" href="https://lsidocs.princeton.edu/index.php/Cetus_to_Argo_Migration">argo</a> cluster at <code class="docutils literal notranslate"><span class="pre">/Genomics/skinniderlab/food-clm/PubChem.tsv</span></code></p>
+<p>b. Add the <code class="docutils literal notranslate"><span class="pre">--slurm</span></code> flag to indicate that the steps should be run using <code class="docutils literal notranslate"><span class="pre">sbatch</span></code>.</p>
+<p>c. Replace <code class="docutils literal notranslate"><span class="pre">--configfile</span> <span class="pre">config/config_fast.yaml</span></code> with <code class="docutils literal notranslate"><span class="pre">--configfile</span> <span class="pre">config/config.yaml</span></code> (or eliminate this flag altogether).</p>
+<p>d. Make any other configuration changes in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> (network architecture, number of epochs, other hyperparameters).</p>
+<p>e. Increase the value of the <code class="docutils literal notranslate"><span class="pre">--jobs</span></code> flag to specify the maximum number of concurrent slurm jobs running at any given time.</p>
+<p>For example, run the following command to see the steps (including the actual commands) that will be run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">config</span> <span class="n">dataset</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">dataset</span><span class="o">.</span><span class="n">txt</span> <span class="n">pubchem_tsv_file</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">PubChem</span><span class="o">.</span><span class="n">tsv</span> <span class="o">--</span><span class="n">jobs</span> <span class="mi">10</span> <span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span> <span class="o">-</span><span class="n">p</span>
+</pre></div>
+</div>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">/path/to/dataset.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">/path/to/PubChem.tsv</span></code> with the paths to your dataset file and PubChem tsv file respectively. These will override the
+values obtained for these flags in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>. Alternately, you can change <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> directly to point to the correct paths.</p>
+<p>Repeat the command without the <code class="docutils literal notranslate"><span class="pre">--dry-run</span> <span class="pre">-p</span></code> to execute the workflow. The end-end workflow should take around 24 hours, depending on the cluster workload and the exact configuration in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">config</span> <span class="n">dataset</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">dataset</span><span class="o">.</span><span class="n">txt</span> <span class="n">pubchem_tsv_file</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">PubChem</span><span class="o">.</span><span class="n">tsv</span> <span class="o">--</span><span class="n">jobs</span> <span class="mi">10</span> <span class="o">&amp;</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>Note that running <code class="docutils literal notranslate"><span class="pre">snakemake</span></code> in a foreground process will run the workflow in blocking mode. Though actual jobs will be submitted to compute nodes, pressing
+Ctrl-C will cause <code class="docutils literal notranslate"><span class="pre">snakemake</span></code> to attempt to cancel pending/currently running jobs (through <code class="docutils literal notranslate"><span class="pre">scancel</span></code>). You should thus run the actual workflow in the background
+using <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>, or use an environment like <a class="reference external" href="https://github.com/tmux/tmux/wiki/Getting-Started">tmux</a> that you can attach to and detach from on demand.</p>
+</div></blockquote>
+</section>
+</section>
+<section id="other-useful-commands">
+<h2>Other useful commands<a class="headerlink" href="#other-useful-commands" title="Link to this heading"></a></h2>
+<p>To generate the Rule graph that you see above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">configfile</span> <span class="o">..</span> <span class="o">--</span><span class="n">forceall</span> <span class="o">--</span><span class="n">rulegraph</span> <span class="o">|</span> <span class="n">dot</span> <span class="o">-</span><span class="n">Tpng</span> <span class="o">&gt;</span> <span class="n">rulegraph</span><span class="o">.</span><span class="n">png</span>
+</pre></div>
+</div>
+<p>To generate the DAG dependency graph that you see above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">configfile</span> <span class="o">..</span> <span class="o">--</span><span class="n">forceall</span> <span class="o">--</span><span class="n">dag</span> <span class="o">|</span> <span class="n">dot</span> <span class="o">-</span><span class="n">Tpng</span> <span class="o">&gt;</span> <span class="n">dag</span><span class="o">.</span><span class="n">png</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Setting up the Environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="workflow_steps.html" class="btn btn-neutral float-right" title="Snakemake Workflow Steps" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Michael Skinnider.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
