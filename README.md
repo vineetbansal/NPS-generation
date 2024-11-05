@@ -1,5 +1,6 @@
 [![Tests](https://github.com/skinniderlab/CLM/actions/workflows/tests.yml/badge.svg)](https://github.com/skinniderlab/CLM/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/skinniderlab/CLM/badge.svg?branch=master)](https://coveralls.io/github/skinniderlab/CLM?branch=master)
+[![Docs](https://github.com/skinniderlab/CLM/actions/workflows/docs.yml/badge.svg)](https://github.com/skinniderlab/CLM/actions/workflows/docs.yml)
 
 ## CLM
 
