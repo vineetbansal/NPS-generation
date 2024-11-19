@@ -1,6 +1,5 @@
 from pathlib import Path
 import pandas as pd
-import pytest
 from clm.commands.calculate_outcomes import (
     get_dataframes,
     calculate_outcomes_dataframe,
@@ -23,21 +22,19 @@ base_dir = Path(__file__).parent.parent
 test_dir = base_dir / "tests/test_data"
 
 
-@pytest.mark.xfail(strict=True)
 def test_generate_outcome_dicts():
+    prep_sample_df = read_csv_file(test_dir / "prep_outcomes_freq.csv")
     train_df, sample_df = get_dataframes(
-        train_file=test_dir / "prep_outcomes_freq.csv",
-        sampled_file=test_dir / "LOTUS_SMILES_processed_freq-avg_trunc.csv",
+        train_file=test_dir
+        / "snakemake_output/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi",
+        prep_sample_df=prep_sample_df,
     )
 
     # Certain fields in train_dict/gen_dict need to be tolerant of Nones
     train_df["qed"].iloc[4] = None
     sample_df["SA"].iloc[3] = None
 
-    calculate_outcomes_dataframe(
-        train_df,
-        sample_df,
-    )
+    calculate_outcomes_dataframe(sample_df, train_df)
 
 
 def test_prep_outcome_freq(tmp_path):
