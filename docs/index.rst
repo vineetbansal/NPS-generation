@@ -7,7 +7,7 @@ Welcome to CLM's documentation!
 ===============================
 
 A package to train and evaluate deep generative models of novel psychoactive substances,
-as used in the manuscript, :cite:t:`Skinnider2021`.
+as used in the manuscript, :cite:t:`Qiang2024`.
 
 .. toctree::
    :titlesonly:
