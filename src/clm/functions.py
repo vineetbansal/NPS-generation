@@ -47,10 +47,27 @@ def clean_mol(
             raise ValueError("invalid SMILES: " + str(smiles))
         else:
             return None
-    if not stereochem:
-        Chem.RemoveStereochemistry(mol)
-    Chem.SanitizeMol(mol)
-    mol = Chem.RemoveHs(mol)
+
+    try:
+        if not stereochem:
+            Chem.RemoveStereochemistry(mol)
+        Chem.SanitizeMol(mol)
+        mol = Chem.RemoveHs(mol)
+    except ValueError as e:
+        # SanitizeMol, RemoveHs can raise ValueError
+        if raise_error:
+            raise e
+        else:
+            return None
+    except Exception as e:
+        # Something unexpected happened; We still don't propagate the error
+        # unless we're asked to, but log it nonetheless.
+        logger.error(f"Unexpected exception in clean_mol: {e}")
+        if raise_error:
+            raise e
+        else:
+            return None
+
     return mol
 
 
