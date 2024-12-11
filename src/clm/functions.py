@@ -48,10 +48,27 @@ def clean_mol(
             raise ValueError("invalid SMILES: " + str(smiles))
         else:
             return None
-    if not stereochem:
-        Chem.RemoveStereochemistry(mol)
-    Chem.SanitizeMol(mol)
-    mol = Chem.RemoveHs(mol)
+
+    try:
+        if not stereochem:
+            Chem.RemoveStereochemistry(mol)
+        Chem.SanitizeMol(mol)
+        mol = Chem.RemoveHs(mol)
+    except ValueError as e:
+        # SanitizeMol, RemoveHs can raise ValueError
+        if raise_error:
+            raise e
+        else:
+            return None
+    except Exception as e:
+        # Something unexpected happened; We still don't propagate the error
+        # unless we're asked to, but log it nonetheless.
+        logger.error(f"Unexpected exception in clean_mol: {e}")
+        if raise_error:
+            raise e
+        else:
+            return None
+
     return mol
 
 
@@ -317,6 +334,10 @@ def seed_type(value):
 
 
 def continuous_JSD(generated_dist, original_dist, tol=1e-10):
+    # Remove none values from either distributions
+    original_dist = original_dist[~original_dist.isna()]
+    generated_dist = generated_dist[~generated_dist.isna()]
+
     if len(generated_dist) < 2:  # not enough points?
         return np.nan
     try:

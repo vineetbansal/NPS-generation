@@ -195,8 +195,8 @@ rule train_models_RNN:
 
 rule sample_molecules_RNN:
     """
-    Sample `sample_mols` smiles from a trained model and fole, and save to
-    `output_file`. Each line of `output_file` is (<mass>, <smile>).
+    Sample `sample_mols` smiles from a trained model and fold, and save to
+    `output_file`.
     """
     conda: "clm"
     input:

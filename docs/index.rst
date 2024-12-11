@@ -7,23 +7,13 @@ Welcome to CLM's documentation!
 ===============================
 
 A package to train and evaluate deep generative models of novel psychoactive substances,
-as used in the manuscript, :cite:t:`Skinnider2021`.
-
-.. toctree::
-
-   clm/installation.md
-   clm/faq.md
+as used in the manuscript, :cite:t:`Qiang2024`.
 
 .. toctree::
    :titlesonly:
 
-   modules
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   clm/installation.md
+   clm/workflow.md
+   clm/workflow_steps.md
 
 .. bibliography::
