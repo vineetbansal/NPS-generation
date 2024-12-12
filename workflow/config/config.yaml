@@ -82,7 +82,7 @@ top_k: 30
 # Used in rules that evaluate the correctness of generated or sampled molecules against known test molecules based on mass.
 err_ppm: 10
 
-# A list of integers specifying minimum frequency thresholds for inclusion.
+# Specifies minimum frequency thresholds for inclusion.
 # Each value represents the minimum number of times a molecule must be generated
 # across all folds to be considered for further evaluation.
 structural_prior_min_freq:
