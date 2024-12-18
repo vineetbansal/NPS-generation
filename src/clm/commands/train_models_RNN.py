@@ -128,7 +128,7 @@ def training_step(batch, model, optim, dataset, batch_size):
     optim.step()
     validation = dataset.get_validation(batch_size)
     validation_loss = model.loss(validation)
-    return validation_loss
+    return loss, validation_loss
 
 
 def sample_and_write_smiles(model, sample_mols, batch_size, smiles_file, dataset=None):
@@ -214,8 +214,9 @@ def train_models_RNN(
 
     for epoch in range(max_epochs):
         for batch_no, batch in tqdm(enumerate(loader), total=len(loader)):
-            loss = training_step(batch, model, optim, dataset, batch_size)
-            validation_loss = loss.detach()
+            loss, validation_loss = training_step(
+                batch, model, optim, dataset, batch_size
+            )
 
             loop_count = (epoch * len(loader)) + batch_no + 1
             if loop_count % log_every_steps == 0 or (
