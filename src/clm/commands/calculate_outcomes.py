@@ -177,7 +177,9 @@ def calculate_outcomes_dataframe(sample_df, train_df):
         n_total_smiles = df["size"].sum()
 
         # Filtering out invalid smiles
-        bin_df = df[~df["canonical_smile"].isnull()]
+        bin_df = df[df["is_valid"]]
+        if "canonical_smile" in df.columns:
+            bin_df = df[~df["canonical_smile"].isnull()]
 
         n_valid_smiles = bin_df["size"].sum()
 
