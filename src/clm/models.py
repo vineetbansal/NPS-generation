@@ -506,7 +506,6 @@ class ConditionalRNN(nn.Module):
         embedding_size=128,
         hidden_size=512,
         dropout=0,
-        gamma=-1,
         num_descriptors=2,
         conditional_emb=False,
         conditional_emb_l=True,
@@ -518,7 +517,6 @@ class ConditionalRNN(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.vocabulary = vocabulary
         self.vocabulary_size = len(self.vocabulary)
-        self.gamma = gamma
         self.conditional_emb = conditional_emb
         self.conditional_emb_l = conditional_emb_l
         self.conditional_dec = conditional_dec
@@ -591,18 +589,18 @@ class ConditionalRNN(nn.Module):
         )
         # instantiate hidden states
         if self.conditional_h:
-            self.mass_to_hs = []
-            self.mass_to_cs = []
+            self.descriptor_to_hs = []
+            self.descriptor_to_cs = []
             for layer in range(self.n_layers):
-                self.mass_to_hs.append(
+                self.descriptor_to_hs.append(
                     nn.Linear(self.num_descriptors, self.hidden_size)
                 )
-                self.mass_to_cs.append(
+                self.descriptor_to_cs.append(
                     nn.Linear(self.num_descriptors, self.hidden_size)
                 )
-            # mass_to_h compatibility with cuda
-            self.mass_to_hs = nn.ModuleList(self.mass_to_hs)
-            self.mass_to_cs = nn.ModuleList(self.mass_to_cs)
+            # compatibility with cuda
+            self.descriptor_to_hs = nn.ModuleList(self.descriptor_to_hs)
+            self.descriptor_to_cs = nn.ModuleList(self.descriptor_to_cs)
         # full descriptor embedding instead of 1d scalar
         if self.conditional_emb_l:
             self.conditional_to_emb = nn.Linear(
@@ -626,7 +624,7 @@ class ConditionalRNN(nn.Module):
         # move to the gpu
         padded, descriptors = padded.to(self.device), descriptors.to(self.device)
 
-        # embed the padded sequence, along with the masses
+        # embed the padded sequence, along with the descriptors
         embedded = self.embedding(padded)
         # -> embedded: max_len x batch_size x emb_size
         if self.dropout.p > 0:
@@ -650,7 +648,7 @@ class ConditionalRNN(nn.Module):
 
         # now pack the embedded sequences [packed : sum of len x embedding_size]
         packed = pack_padded_sequence(embedded, lengths, enforce_sorted=False)
-        # optionally, instantiate h_0/c_0 from mass
+        # optionally, instantiate h_0/c_0 from descriptor
         if self.conditional_h:
             h_0, c_0 = self.init_hidden(descriptors)
             # states: num_layers x batch_size x hidden_size
@@ -665,7 +663,7 @@ class ConditionalRNN(nn.Module):
         # run LSTM output through decoder
         if self.dropout.p > 0:
             padded_output = self.dropout(padded_output)
-        # cat masses along dimension of emb_size
+        # cat descriptors along dimension of emb_size
         if self.conditional_dec_l:
             combined_embedding_features = self.conditional_to_dec(
                 descriptors_repeating.float()
@@ -689,19 +687,6 @@ class ConditionalRNN(nn.Module):
             loss += self.loss_fn(decoded[char_idx], targets[char_idx])
 
         loss = loss.mean()
-
-        # optionally, also calculate difference from input masses []
-        if self.gamma > 0:
-            smiles = self.sample(descriptors)
-            calc_descriptors = SmilesDescriptorCollates.get_descriptors(  # noqa: F821
-                smiles
-            )
-            calc_descriptors = torch.Tensor(calc_descriptors).to(self.device)
-            descriptor_loss = descriptors - calc_descriptors
-            descriptor_mean_loss = descriptor_loss.mean(dim=0)
-
-            loss = loss + (self.gamma * descriptor_mean_loss.sum())
-
         return loss
 
     def sample(
@@ -744,7 +729,7 @@ class ConditionalRNN(nn.Module):
                 self.device
             ), torch.zeros(self.n_layers, n_sequences, self.hidden_size).to(self.device)
 
-        # repeat masses
+        # repeat descriptors
         descriptors = descriptors.view(1, n_sequences, descriptors.shape[1])
 
         loss = nn.NLLLoss(reduction="none", ignore_index=pad_token)
@@ -798,10 +783,10 @@ class ConditionalRNN(nn.Module):
         h_0s = []
         c_0s = []
         for layer in range(self.n_layers):
-            mass_to_h = self.mass_to_hs[layer]
-            mass_to_c = self.mass_to_cs[layer]
-            h_0 = mass_to_h(descriptors.float())
-            c_0 = mass_to_c(descriptors.float())
+            descriptor_to_h = self.descriptor_to_hs[layer]
+            descriptor_to_c = self.descriptor_to_cs[layer]
+            h_0 = descriptor_to_h(descriptors.float())
+            c_0 = descriptor_to_c(descriptors.float())
             h_0s.append(h_0)
             c_0s.append(c_0)
         # stack into correct dimensionality
