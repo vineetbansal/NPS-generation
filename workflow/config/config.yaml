@@ -48,6 +48,13 @@ max_input_smiles: 0
 
 # Parameters that define the neural network model and training process.
 model_params:
+  conditional:
+    enabled: false
+    emb: false
+    emb_l: true
+    dec: false
+    dec_l: true
+    h: false
   # Type of Recurrent Neural Network (RNN) to use.
   # Available options are 'LSTM' and 'GRU'
   rnn_type: LSTM
@@ -96,6 +103,7 @@ err_ppm: 10
 # Specifies minimum frequency thresholds for inclusion.
 # Each value represents the minimum number of times a molecule must be generated
 # across all folds to be considered for further evaluation.
+
 structural_prior_min_freq:
   - 1
   - 2

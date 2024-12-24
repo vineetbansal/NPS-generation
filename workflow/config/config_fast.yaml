@@ -38,6 +38,13 @@ max_input_smiles: 1000
 model_params:
   # Type of Recurrent Neural Network (RNN) to use.
   # Available options are 'LSTM' and 'GRU'
+  conditional:
+    enabled: false
+    emb: false
+    emb_l: true
+    dec: false
+    dec_l: true
+    h: false
   rnn_type: LSTM
   embedding_size: 32 # Size of the embedding vectors that represent each token in the input sequence.
   hidden_size: 256 # Size of the hidden state of the RNN.
