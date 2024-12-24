@@ -48,13 +48,6 @@ max_input_smiles: 0
 
 # Parameters that define the neural network model and training process.
 model_params:
-  conditional:
-    enabled: false
-    emb: false
-    emb_l: true
-    dec: false
-    dec_l: true
-    h: false
   # Type of Recurrent Neural Network (RNN) to use.
   # Available options are 'LSTM' and 'GRU'
   rnn_type: LSTM
@@ -66,9 +59,39 @@ model_params:
   learning_rate: 0.001 # Used by the optimizer to update model parameters.
   max_epochs: 999999 # Maximum number of training epochs (complete passes through the training dataset).
   patience: 50000 # Number of steps with no improvement in the validation loss after which early stopping is triggered.
-  log_every_steps: 100 # Frequency of logging training progress in terms of steps (batches).
-  log_every_epochs: 1 # Frequency of logging training progress in terms of epochs.
-  sample_mols: 10000000 # Number of molecules to sample from the trained model after training.
+
+  # An RNN model conditioned on input descriptors (experimentally obtained properties of the input SMILES).
+  # Note that rnn_type and other RNN architecture parameters are still applicable in this case.
+  conditional:
+    # Is the conditional model enabled?
+    enabled: false
+
+    # Note: Both emb and emb_l below cannot be true at the same time.
+    # Concatenate the descriptors directly to the token embeddings at each step in the sequence?
+    emb: false
+    # Concatenate the descriptors to the token embeddings, but by first passing them through a
+    # linear layer to obtain embeddings of dimensionality equal to that of the token embeddings?
+    emb_l: true
+
+    # Note: Both dec and dec_l below cannot be true at the same time.
+    # Concatenate the descriptors directly to the output of the RNN layers
+    # (prior to the decoder layer)?
+    dec: false
+    # Concatenate the descriptors to the output of the RNN layers
+    # (prior to the decoder layer), but by first passing them through a
+    # linear layer to obtain embeddings of dimensionality equal to that of the token embeddings?
+    dec_l: true
+
+    # Instantiate the hidden states based on learned transformations of the descriptors
+    # (with a single linear layer), as in Kotsias et al?
+    h: false
+
+  # Frequency of logging training progress in terms of steps (batches).
+  log_every_steps: 100
+  # Frequency of logging training progress in terms of epochs.
+  log_every_epochs: 1
+  # Number of molecules to sample from the trained model after training.
+  sample_mols: 10000000
 
 # When looking at sampled molecules across all folds, what metric(s) do we
 # use for aggregating frequencies?

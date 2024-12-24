@@ -38,13 +38,6 @@ max_input_smiles: 1000
 model_params:
   # Type of Recurrent Neural Network (RNN) to use.
   # Available options are 'LSTM' and 'GRU'
-  conditional:
-    enabled: false
-    emb: false
-    emb_l: true
-    dec: false
-    dec_l: true
-    h: false
   rnn_type: LSTM
   embedding_size: 32 # Size of the embedding vectors that represent each token in the input sequence.
   hidden_size: 256 # Size of the hidden state of the RNN.
@@ -54,18 +47,50 @@ model_params:
   learning_rate: 0.001 # Used by the optimizer to update model parameters.
   max_epochs: 3 # Maximum number of training epochs (complete passes through the training dataset).
   patience: 50000 # Number of steps with no improvement in the validation loss after which early stopping is triggered.
-  log_every_steps: 100 # Frequency of logging training progress in terms of steps (batches).
-  log_every_epochs: 1 # Frequency of logging training progress in terms of epochs.
-  sample_mols: 100 # Number of molecules to sample from the trained model after training.
+
+  # An RNN model conditioned on input descriptors (experimentally obtained properties of the input SMILES).
+  # Note that rnn_type and other RNN architecture parameters are still applicable in this case.
+  conditional:
+    # Is the conditional model enabled?
+    enabled: false
+
+    # Note: Both emb and emb_l below cannot be true at the same time.
+    # Concatenate the descriptors directly to the token embeddings at each step in the sequence?
+    emb: false
+    # Concatenate the descriptors to the token embeddings, but by first passing them through a
+    # linear layer to obtain embeddings of dimensionality equal to that of the token embeddings?
+    emb_l: true
+
+    # Note: Both dec and dec_l below cannot be true at the same time.
+    # Concatenate the descriptors directly to the output of the RNN layers
+    # (prior to the decoder layer)?
+    dec: false
+    # Concatenate the descriptors to the output of the RNN layers
+    # (prior to the decoder layer), but by first passing them through a
+    # linear layer to obtain embeddings of dimensionality equal to that of the token embeddings?
+    dec_l: true
+
+    # Instantiate the hidden states based on learned transformations of the descriptors
+    # (with a single linear layer), as in Kotsias et al?
+    h: false
+
+  # Frequency of logging training progress in terms of steps (batches).
+  log_every_steps: 100
+  # Frequency of logging training progress in terms of epochs.
+  log_every_epochs: 1
+  # Number of molecules to sample from the trained model after training.
+  sample_mols: 100
 
 # When looking at sampled molecules across all folds, what metric(s) do we
 # use for aggregating frequencies?
-# - 'freq_sum': With what frequency (across all folds) was each valid molecule produced?
-# - 'freq_avg': With what average frequency (across all folds) was each valid molecule produced?
-# - 'fp10k'   : With what average frequency (across all folds) was each valid molecule produced,
-#               as a fraction of total sampling frequency (x 10e3 to avoid ~0 values)
 metrics:
+  # With what frequency (across all folds) was each valid molecule produced?
+  # - freq-sum
+  # With what average frequency (across all folds) was each valid molecule produced?
   - freq-avg
+  # With what average frequency (across all folds) was each valid molecule produced,
+  # as a fraction of total sampling frequency (x 10e3 to avoid ~0 values)
+  # - fp10k
 
 # Minimum Tanimoto coefficient threshold to filter out molecules from training set.
 # This allows for only similar SMILES to be considered from the preprocessed dataset
@@ -130,13 +155,13 @@ paths:
   test_all_file: "{output_dir}/{enum_factor}/prior/inputs/test_{dataset}_{repr}_all.smi"
   # Complete aggregated SMILES from add_carbon rule across all folds.
   carbon_all_file: "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_carbon_all.csv.gz"
-  # Top-n candidate SMILES based on matching by exact mass for each cross-validation.
+  # Top-n candidate SMILES based on matching by exact mass for each cross-validation fold.
   cv_ranks_file: "{output_dir}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_structure.csv.gz"
-  # Top-n candidate SMILES (correctness based on formula rather than structure) for each cross-validation fold.
+  # Top-n candidate SMILES based on matching mass including Tanimoto coefficient for each cross-validation fold.
   cv_tc_file: "{output_dir}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_tc.csv.gz"
-  # Top-n candidate SMILES based on matching formula per fold.
+  # Top-n candidate SMILES (correctness based on formula rather than structure) for each cross-validation fold.
   formula_ranks_file: "{output_dir}/{enum_factor}/prior/structural_prior/{dataset}_{repr}_{fold}_CV_ranks_formula.csv.gz"
-  # Sampled SMILES aggregated across all fold.
+  # Sampled SMILES aggregated across all folds.
   process_tabulated_output: "{output_dir}/{enum_factor}/prior/samples/{dataset}_{repr}_processed_min{min_freq}_{metric}.csv.gz"
   # Loss curves from model training.
   loss_file: "{output_dir}/{enum_factor}/prior/models/{dataset}_{repr}_{fold}_{train_seed}_loss.csv.gz"
