@@ -42,7 +42,6 @@ def test_snakemake():
         forceall=True,
         verbose=True,
         printshellcmds=True,
-        use_conda=True,
     )
     assert success, "Workflow did not complete successfully"
 
