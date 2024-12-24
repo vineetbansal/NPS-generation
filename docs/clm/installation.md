@@ -8,7 +8,7 @@ Before you can use the `clm` package, ensure that your system meets the followin
 Clone the repository and enter it:
    ```
    git clone https://github.com/skinniderlab/CLM.git
-   cd clm
+   cd CLM
    ```
 
 ## Creating a clm environment
