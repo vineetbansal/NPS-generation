@@ -1,5 +1,5 @@
 # Note: `clm` does not use any dependency from any conda channel at all.
-# This file is provided as the convenience for users and CI workflows
+# This file is provided as a convenience for users and CI workflows
 # used to working with conda environments.
 
 name: 'clm'
