@@ -6,7 +6,7 @@
 Welcome to CLM's documentation!
 ===============================
 
-A package to train and evaluate deep generative models of chemical structures,
+A package to train and evaluate language models of chemical structures,
 as used in the manuscript, :cite:t:`Qiang2024`.
 
 Note that training and evaluating chemical language models requires significant
