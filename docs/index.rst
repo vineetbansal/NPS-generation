@@ -12,9 +12,9 @@ as used in the manuscript, :cite:t:`Qiang2024`.
 Note that training and evaluating chemical language models requires significant
 computational resources. By default, this package trains and samples from 
 multiple language models using cross-validation, and executes a comprehensive
- suite of assessments to evaluate the quality of the generated structures. 
- For this reason, access to a high-performance computing cluster with GPU 
- resources is strongly recommended.
+suite of assessments to evaluate the quality of the generated structures. 
+For this reason, access to a high-performance computing cluster with GPU 
+resources is strongly recommended.
 
 If you are simply looking to use the trained DeepMet model to annotate 
 metabolomics data, consider using the 
