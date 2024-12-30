@@ -529,20 +529,22 @@ class ConditionalRNN(nn.Module):
 
         # Assert that conditional_emb_l and conditional_emb cannot both be true at the same time
         assert not (
-            self.conditional_emb_l and self.conditional_emb and self.conditional_h
-        ), f"Both conditional_emb_l and conditional_emb cannot be true at the same time. Got: conditional_emb_l={self.conditional_emb_l}, conditional_emb={self.conditional_emb}"
-
-        # Assert that if conditional_emb_l is true, conditional_emb must be false, and vice. Assert the same for conditional_dec_l and conditional_dec
-        assert (
-            (self.conditional_emb_l != self.conditional_emb)
-            or (self.conditional_dec_l != self.conditional_dec)
-            or self.conditional_h
-        ), f"Expected one of conditional_emb_l or conditional_emb to be true and the other false. This should be followed for conditional_dec_l and conditional_dec. If both these conditions are false the conditional_h should be True. Got: conditional_emb_l={self.conditional_emb_l}, conditional_emb={self.conditional_emb}, conditional_dec_l={self.conditional_dec_l}, conditional_dec={self.conditional_dec}, conditional_h={self.conditional_h}"
+            self.conditional_emb_l and self.conditional_emb
+        ), "Both conditional_emb_l and conditional_emb cannot be true at the same time."
 
         # Assert that conditional_dec_l and conditional_dec cannot both be true at the same time
         assert not (
-            self.conditional_dec_l and self.conditional_dec and self.conditional_h
-        ), f"Both conditional_dec_l and conditional_dec cannot be true at the same time. Got: conditional_dec_l={self.conditional_dec_l}, conditional_dec={self.conditional_dec}"
+            self.conditional_dec_l and self.conditional_dec
+        ), "Both conditional_dec_l and conditional_dec cannot be true at the same time."
+
+        # Assert that at least one of the conditional* flags is set
+        assert (
+            self.conditional_emb_l
+            or self.conditional_emb
+            or self.conditional_dec_l
+            or self.conditional_dec
+            or self.conditional_h
+        ), "At least one conditional parameter must be set for the conditional model"
 
         # set up input/output sizes for RNN
         rnn_input_size = self.embedding_size  # Default: embedding size
