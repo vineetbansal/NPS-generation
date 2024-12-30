@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Setting up the Environment" href="clm/installation.html" /> 
+    <link rel="next" title="Setting up" href="clm/installation.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,8 +42,8 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="clm/installation.html">Setting up the Environment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="clm/installation.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clm/installation.html">Setting up</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clm/installation.html#creating-a-clm-environment">Creating a clm environment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="clm/workflow.html">Snakemake workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="clm/workflow_steps.html">Snakemake Workflow Steps</a></li>
 </ul>
@@ -74,12 +74,29 @@
              
   <section id="welcome-to-clm-s-documentation">
 <h1>Welcome to CLM’s documentation!<a class="headerlink" href="#welcome-to-clm-s-documentation" title="Link to this heading"></a></h1>
-<p>A package to train and evaluate deep generative models of novel psychoactive substances,
+<p>A package to train and evaluate language models of chemical structures,
 as used in the manuscript, <span id="id1">Qiang <em>et al.</em> [<a class="reference internal" href="#id4" title="Hantao Qiang, Fei Wang, Wenyun Lu, Xi Xing, Hahn Kim, Sandrine AM Merette, Lucas B Ayres, Eponine Oler, Jenna E AbuSalim, Asael Roichman, and others. Language model-guided anticipation and discovery of unknown metabolites. bioRxiv, pages 2024–11, 2024.">QWL+24</a>]</span>.</p>
+<p>Note that training and evaluating chemical language models requires significant
+computational resources. Running the default <cite>config.yaml</cite> file distributed
+with the repository, for example, will submit a total of 2102 jobs, with a
+total requested runtime of &gt;75,000 hours and a maximum memory of 256 GB.
+Actual runtimes will generally be substantially below this (but, for unusually
+large datasets, may be longer and require modification of the default resource
+requests), and resource requirements will vary substantially as a function of
+the configuration, with key parameters including the dataset size, number of
+cross-validation folds, degree of non-canonical SMILES enumeration, and amount
+of sampling to perform from the trained models (for instance, performing
+three-fold cross-validation and non-canonical SMILES enumeration at a fixed
+augmentation factor of 10x would reduce this resource request by approximately
+20-fold). Nonetheless, access to a high-performance computing cluster with GPU
+resources is strongly recommended to train and evaluate new models.</p>
+<p>If you are simply looking to use the trained DeepMet model to annotate
+metabolomics data, consider using the
+DeepMet <a class="reference external" href="https://deepmet.org/">web application</a>.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="clm/installation.html">Setting up the Environment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="clm/installation.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clm/installation.html">Setting up</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clm/installation.html#creating-a-clm-environment">Creating a clm environment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="clm/workflow.html">Snakemake workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="clm/workflow_steps.html">Snakemake Workflow Steps</a></li>
 </ul>
@@ -98,7 +115,7 @@ as used in the manuscript, <span id="id1">Qiang <em>et al.</em> [<a class="refer
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="clm/installation.html" class="btn btn-neutral float-right" title="Setting up the Environment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="clm/installation.html" class="btn btn-neutral float-right" title="Setting up" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
