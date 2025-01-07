@@ -39,6 +39,9 @@ jobs:
     - name: Pytest with coverage
       run: coverage run --source=src/clm -m pytest
 
+    - name: List dependencies
+      run: pip freeze
+
     - name: Upload coverage to Coveralls
       if: matrix.os == 'ubuntu-latest'
       run: coveralls
