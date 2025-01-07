@@ -16,6 +16,8 @@ OUTPUT_DIR = config['paths']['output_dir']
 MODEL_PARAMS = config['model_params']
 MIN_FREQS = config['structural_prior_min_freq']
 ERR_PPM = config['err_ppm']
+REMOVE_RARE = config['remove_rare']
+NEUTRALISE = config['neutralise']
 
 shell.executable("/bin/bash")
 
@@ -64,7 +66,13 @@ rule preprocess:
         '--seed {config[random_seed]} '
         '--input-file {input} '
         '--output-file {output} '
+        '--min-heavy-atoms {config[min_heavy_atoms]} '
+        '--valid-atoms {config[valid_atoms]} '
         '--max-input-smiles {config[max_input_smiles]} '
+        # 'if [ REMOVE_RARE == True ]; then '
+        # '--remove-rare  '
+        # 'if [ NEUTRALISE == True ]; then '
+        # '--no-neutralise '
 
 
 
