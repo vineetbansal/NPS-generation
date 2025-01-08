@@ -26,9 +26,9 @@ def add_args(parser):
         help="Minimum number of heavy atoms that a valid molecule should have",
     )
     parser.add_argument(
-        "--no-neutralise",
-        action="store_true",
-        help="Do not neutralise charges (default False)",
+        "--neutralise",
+        action="store_false",
+        help="Do not neutralise charges (default True)",
     )
     parser.add_argument(
         "--valid-atoms",
@@ -124,7 +124,7 @@ def main(args):
         input_file=args.input_file,
         output_file=args.output_file,
         max_input_smiles=args.max_input_smiles,
-        neutralise=not args.no_neutralise,
+        neutralise=args.neutralise,
         min_heavy_atoms=args.min_heavy_atoms,
         valid_atoms=args.valid_atoms,
         remove_rare=args.remove_rare,

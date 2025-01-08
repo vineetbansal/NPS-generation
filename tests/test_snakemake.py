@@ -31,7 +31,7 @@ def test_snakemake():
                 "output_dir": temp_dir,
             },
         },
-        dryrun=True,
+        dryrun=False,
         latency_wait=60,
         forceall=True,
         verbose=True,
