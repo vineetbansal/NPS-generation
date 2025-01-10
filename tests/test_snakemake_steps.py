@@ -13,7 +13,6 @@ from clm.commands import (
     write_formula_prior_CV,
     plot,
 )
-import pytest
 from clm.functions import assert_checksum_equals, read_csv_file, set_seed
 
 base_dir = Path(__file__).parent.parent
@@ -23,50 +22,11 @@ dataset = base_dir / "tests/test_data/LOTUS_truncated.txt"
 pubchem_tsv_file = base_dir / "tests/test_data/PubChem_truncated.tsv"
 
 
-@pytest.mark.parametrize(
-    (
-        "input_file",
-        "output_file",
-        "max_input_smiles",
-        "min_heavy_atoms",
-        "neutralise",
-        "valid_atoms",
-    ),
-    [
-        (
-            dataset,
-            test_dir / "prior/raw/LOTUS_truncated.txt",
-            1000,
-            3,
-            True,
-            ["Br", "C", "Cl", "F", "H", "I", "N", "O", "P", "S"],
-        ),
-        (
-            base_dir / "tests/test_data/smiles.csv",
-            base_dir / "tests/test_data/smiles.csv",
-            None,
-            0,
-            False,
-            ["Br", "C", "Cl", "F", "I", "N", "O", "P", "S", "Se", "Si"],
-        ),
-    ],
-)
-def test_00_preprocess(
-    tmp_path,
-    input_file,
-    output_file,
-    max_input_smiles,
-    min_heavy_atoms,
-    neutralise,
-    valid_atoms,
-):
+def test_00_preprocess(tmp_path):
     preprocess.preprocess(
-        input_file=input_file,
+        input_file=dataset,
         output_file=tmp_path / "preprocessed.smi",
-        max_input_smiles=max_input_smiles,
-        min_heavy_atoms=min_heavy_atoms,
-        neutralise=neutralise,
-        valid_atoms=valid_atoms,
+        max_input_smiles=1000,
     )
     generated = (
         pd.read_csv(tmp_path / "preprocessed.smi")[["smiles", "inchikey"]]
@@ -74,7 +34,34 @@ def test_00_preprocess(
         .reset_index(drop=True)
     )
     oracle = (
-        pd.read_csv(output_file)[["smiles", "inchikey"]]
+        pd.read_csv(test_dir / "prior/raw/LOTUS_truncated.txt")[["smiles", "inchikey"]]
+        .sort_values("inchikey")
+        .reset_index(drop=True)
+    )
+    pd.testing.assert_frame_equal(generated, oracle)
+
+
+def test_00_preprocess_no_filter(tmp_path):
+    # All SMILES in this file are canonicalized
+    # So, under lax conditions, no SMILES should be excluded during the preprocessing step
+    input_file = base_dir / "tests/test_data/smiles.csv"
+    preprocess.preprocess(
+        input_file=input_file,
+        output_file=tmp_path / "preprocessed.smi",
+        max_input_smiles=0,
+        min_heavy_atoms=0,
+        neutralise=False,
+        # These are the unique elements found in the molecules listed in the input file
+        valid_atoms=["Br", "C", "Cl", "F", "I", "N", "O", "P", "S", "Se", "Si"],
+    )
+    generated = (
+        pd.read_csv(tmp_path / "preprocessed.smi")[["smiles", "inchikey"]]
+        .sort_values("inchikey")
+        .reset_index(drop=True)
+    )
+    # We are testing the input file against the original one to ensure no SMILES are inadvertently filtered out
+    oracle = (
+        pd.read_csv(input_file)[["smiles", "inchikey"]]
         .sort_values("inchikey")
         .reset_index(drop=True)
     )
